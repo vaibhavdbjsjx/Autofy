@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Logo } from "./Logo";
 import {
   Mail, Lock, User, Briefcase, ArrowRight,
   Eye, EyeOff, AlertCircle, CheckCircle, XCircle, ChevronLeft,
@@ -89,7 +90,7 @@ function VisualPanel() {
       {/* Floating Cards */}
       <div style={{ display: "flex", flexDirection: "column", gap: 20, zIndex: 1, marginBottom: 40 }}>
         <FloatingEventCard
-          icon={<Target size={18} style={{ color: "#EA580C" }} />}
+          icon={<Target size={18} style={{ color: "#8B5CF6" }} />}
           text=" New Lead — Raj wants gym membership info"
           delay={0}
           duration={3.5}
@@ -227,7 +228,7 @@ export const LoginView: React.FC<LoginProps> = ({
               background: "var(--brand-subtle)", border: "1px solid var(--border)",
               display: "flex", alignItems: "center", justifyContent: "center"
             }}>
-              <Bot size={18} style={{ color: "var(--brand)" }} />
+              <Logo size={22} />
             </div>
             <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--text)" }}>Autofy</span>
           </div>
@@ -459,7 +460,7 @@ export const SignUpView: React.FC<SignUpProps> = ({
               background: "var(--brand-subtle)", border: "1px solid var(--border)",
               display: "flex", alignItems: "center", justifyContent: "center"
             }}>
-              <Bot size={18} style={{ color: "var(--brand)" }} />
+              <Logo size={22} />
             </div>
             <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.03em", color: "var(--text)" }}>Autofy</span>
           </div>

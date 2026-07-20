@@ -2,19 +2,24 @@
 
 /* ═══════════════════════════════════════════════════
    AUTOFY DESIGN SYSTEM — Light Mode Default
-   Brand: Burnt Orange on warm off-black
+   Brand: Pink→Blue gradient (from the speech-bubble logo)
    ═══════════════════════════════════════════════════ */
 
 /* ───── BRAND (constant across themes) ─────
-   Burnt Orange is Autofy's signature — distinctive like Snapchat's
-   yellow or WhatsApp's green. Paired with off-black + white it reads
-   premium, never "cheap orange". All UI pulls from these tokens. */
+   Autofy's identity is the pink→blue gradient of the speech-bubble
+   logo. `--brand` is the violet midpoint used for solid accents
+   (focus rings, active states, borders); `--brand-gradient` is the
+   signature used on the logo, key CTAs and gradient text. Used as an
+   accent, not flooded across every surface, so it reads premium. */
 :root {
-  --brand: #EA580C;        /* Burnt Orange — primary brand */
-  --brand-light: #F97316;
-  --brand-dark: #C2410C;
-  --brand-glow: rgba(234,88,12,0.22);
-  --brand-subtle: rgba(234,88,12,0.08);
+  --brand: #8B5CF6;        /* Violet midpoint — primary solid accent */
+  --brand-light: #A78BFA;
+  --brand-dark: #7C3AED;
+  --brand-glow: rgba(139,92,246,0.25);
+  --brand-subtle: rgba(139,92,246,0.08);
+  --brand-pink: #EC4899;   /* gradient start */
+  --brand-blue: #3B82F6;   /* gradient end   */
+  --brand-gradient: linear-gradient(135deg, #EC4899 0%, #8B5CF6 50%, #3B82F6 100%);
 
   /* WhatsApp connection color — used ONLY for WhatsApp-specific UI */
   --whatsapp-green: #25D366;
@@ -29,20 +34,20 @@
 
   /* LIGHT MODE — default (this app launches in light mode) */
   --bg: #FFFFFF;
-  --bg-2: #FAFAF9;
+  --bg-2: #FAFAFE;
   --bg-card: #FFFFFF;
-  --bg-elevated: #FFF7ED;
-  --border: rgba(234,88,12,0.10);
-  --border-strong: rgba(234,88,12,0.22);
-  --text: #1C1410;
-  --text-muted: rgba(28,20,16,0.55);
-  --text-subtle: rgba(28,20,16,0.32);
+  --bg-elevated: #F5F3FF;
+  --border: rgba(139,92,246,0.10);
+  --border-strong: rgba(139,92,246,0.22);
+  --text: #14101F;
+  --text-muted: rgba(20,16,31,0.55);
+  --text-subtle: rgba(20,16,31,0.32);
   --sidebar: #FFFFFF;
   --header-bg: rgba(255,255,255,0.90);
-  --input-bg: rgba(234,88,12,0.04);
+  --input-bg: rgba(139,92,246,0.04);
   --modal-bg: #FFFFFF;
-  --shadow: rgba(234,88,12,0.10);
-  --scrollbar: #E7E2DD;
+  --shadow: rgba(139,92,246,0.12);
+  --scrollbar: #E5E1F0;
   --success: #16A34A;
   --warning: #D97706;
   --danger: #DC2626;
@@ -50,22 +55,22 @@
 }
 
 html.dark {
-  /* DARK MODE — warm off-black with burnt-orange undertones */
-  --bg: #0C0A09;
-  --bg-2: #14110F;
+  /* DARK MODE — cool near-black with violet undertones */
+  --bg: #0A0A0F;
+  --bg-2: #111017;
   --bg-card: rgba(255,255,255,0.035);
-  --bg-elevated: rgba(234,88,12,0.06);
+  --bg-elevated: rgba(139,92,246,0.07);
   --border: rgba(255,255,255,0.08);
   --border-strong: rgba(255,255,255,0.16);
-  --text: #FAF6F2;
-  --text-muted: rgba(250,246,242,0.48);
-  --text-subtle: rgba(250,246,242,0.26);
-  --sidebar: #0F0D0B;
-  --header-bg: rgba(12,10,9,0.85);
+  --text: #F5F3FF;
+  --text-muted: rgba(245,243,255,0.48);
+  --text-subtle: rgba(245,243,255,0.26);
+  --sidebar: #0C0B12;
+  --header-bg: rgba(10,10,15,0.85);
   --input-bg: rgba(255,255,255,0.045);
-  --modal-bg: #161310;
-  --shadow: rgba(0,0,0,0.45);
-  --scrollbar: #2A2421;
+  --modal-bg: #131119;
+  --shadow: rgba(0,0,0,0.5);
+  --scrollbar: #26232F;
 }
 
 /* Tailwind theme tokens */
@@ -164,7 +169,7 @@ body {
 /* Brand gradient — use sparingly, only on key words (footer logo, hero accents) */
 .text-gradient-brand,
 .text-gradient-primary {
-  background: linear-gradient(135deg, #EA580C 0%, #F97316 50%, #FB923C 100%);
+  background: linear-gradient(135deg, #EC4899 0%, #8B5CF6 50%, #3B82F6 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -188,7 +193,7 @@ body {
   background-clip: text;
 }
 .text-gradient-rainbow {
-  background: linear-gradient(135deg, #EA580C 0%, #2563EB 25%, #16A34A 50%, #D97706 75%, #DC2626 100%);
+  background: linear-gradient(135deg, #EC4899 0%, #8B5CF6 25%, #3B82F6 50%, #22D3EE 75%, #EC4899 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -225,7 +230,7 @@ body {
 }
 html.light .glass {
   background: rgba(255,255,255,0.72);
-  border: 1px solid rgba(234,88,12,0.14);
+  border: 1px solid rgba(139,92,246,0.14);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -238,7 +243,10 @@ html.light .glass {
   gap: 8px;
   height: 44px;
   padding: 0 24px;
-  background: var(--brand);
+  /* Signature pink→blue gradient. Oversized so hover can shift it. */
+  background: var(--brand-gradient);
+  background-size: 160% 160%;
+  background-position: 0% 50%;
   border: none;
   border-radius: 100px;
   font-family: "Inter", sans-serif;
@@ -246,12 +254,12 @@ html.light .glass {
   font-weight: 700;
   color: #FFFFFF;
   cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: background-position 0.5s ease, box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
   text-decoration: none;
   white-space: nowrap;
 }
 .btn-primary:hover {
-  background: var(--brand-light);
+  background-position: 100% 50%;
   box-shadow: 0 8px 28px var(--brand-glow);
   transform: scale(1.02);
 }
@@ -384,7 +392,7 @@ textarea.input-field {
 
 select.input-field {
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23EA580C' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke=%238B5CF6 stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 14px center;
   padding-right: 40px;
@@ -486,7 +494,7 @@ select.input-field {
   position: fixed;
   top: 0; left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, var(--brand), #F97316, #FB923C);
+  background: linear-gradient(90deg, var(--brand-pink), var(--brand), var(--brand-blue));
   transform-origin: left center;
   z-index: 9999;
 }
@@ -555,7 +563,7 @@ select.input-field {
   position: absolute;
   inset: -1.5px;
   border-radius: inherit;
-  background: linear-gradient(135deg, #EA580C, #F59E0B, #FB923C, #EA580C);
+  background: linear-gradient(135deg, #EC4899, #8B5CF6, #3B82F6, #EC4899);
   background-size: 300% 300%;
   animation: border-rotate 3s linear infinite;
   z-index: -1;

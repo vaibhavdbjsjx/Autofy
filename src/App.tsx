@@ -9,6 +9,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import { CursorGlow } from "./components/CursorGlow";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { MagneticButton } from "./components/MagneticButton";
+import { Logo } from "./components/Logo";
 import { INITIAL_ONBOARDING_DATA, OnboardingData } from "./types";
 import { signOut, completeOAuthLogin } from "./lib/auth";
 import { useTheme } from "./context/ThemeContext";
@@ -30,7 +31,7 @@ const MARQUEE_ROW1 = [
   { icon: <Target size={16} style={{ color: "#DC2626" }} />, text: "Lead Capture" },
   { icon: <Calendar size={16} style={{ color: "#2563EB" }} />, text: "Booking System" },
   { icon: <CreditCard size={16} style={{ color: "#D97706" }} />, text: "UPI Payment" },
-  { icon: <Zap size={16} style={{ color: "#EA580C" }} />, text: "Auto Reply" },
+  { icon: <Zap size={16} style={{ color: "#8B5CF6" }} />, text: "Auto Reply" },
   { icon: <Link2 size={16} style={{ color: "#2563EB" }} />, text: "CRM Sync" },
   { icon: <CalendarDays size={16} style={{ color: "#16A34A" }} />, text: "Smart Scheduling" },
   { icon: <FileText size={16} style={{ color: "#D97706" }} />, text: "Invoice Generation" },
@@ -92,7 +93,7 @@ function Navbar() {
             <div style={{ width: 32, height: 32, borderRadius: 10,
               background: "var(--brand-subtle)", border: "1px solid var(--border)",
               display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Bot size={16} style={{ color: "var(--brand)" }} />
+              <Logo size={20} />
             </div>
             <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.03em",
               fontFamily: "'Plus Jakarta Sans',sans-serif", color: "var(--text)" }}>Autofy</span>
@@ -153,7 +154,7 @@ function BrowserMockup() {
       border: "1px solid var(--border-strong)",
       overflow: "hidden",
       transform: "perspective(1200px) rotateX(4deg)",
-      boxShadow: "0 40px 120px rgba(234,88,12,0.20)",
+      boxShadow: "0 40px 120px rgba(139,92,246,0.20)",
       display: "flex",
       flexDirection: "column",
       aspectRatio: "1.6/1",
@@ -316,7 +317,7 @@ function Hero() {
 
       {/* CSS Gradient Orbs */}
       <motion.div style={{ scale: orbScale, position: "absolute", top: -200, left: -200, width: 600, height: 600,
-        borderRadius: "50%", background: "radial-gradient(circle, rgba(234,88,12,0.18) 0%, transparent 70%)",
+        borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)",
         animation: "float1 12s ease-in-out infinite", pointerEvents: "none", zIndex: 0 }} />
       <motion.div style={{ scale: orbScale, position: "absolute", top: "50%", right: -300, width: 700, height: 700,
         borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)",
@@ -875,7 +876,7 @@ function LiveDemoSection() {
 // ════════════════════════════════════════════════════════════
 const FEATURES = [
   { title: "AI Replies Instantly", desc: "Respond to customer WhatsApp messages 24/7 with human-like AI that knows your business.",
-    icon: <MessageSquare size={22} />, accent: "#EA580C", badge: "< 0.3s response time",
+    icon: <MessageSquare size={22} />, accent: "#8B5CF6", badge: "< 0.3s response time",
     gradientDark: "linear-gradient(145deg, #1E0A3C, #2D1B69)", gradientLight: "linear-gradient(145deg, #EDE9FE, #DDD6FE)" },
   { title: "Auto Lead Capture", desc: "Every WhatsApp conversation is a potential lead. Autofy captures name, number, and intent automatically.",
     icon: <Users size={22} />, accent: "#3B82F6", badge: "Auto-captured from WhatsApp",
@@ -1021,7 +1022,7 @@ function FeaturesSection() {
 // HOW IT WORKS
 // ════════════════════════════════════════════════════════════
 const STEPS = [
-  { num: 1, title: "Connect WhatsApp", desc: "Link your WhatsApp Business number in 2 minutes. No coding required.", color: "#EA580C", icon: <Zap size={20} /> },
+  { num: 1, title: "Connect WhatsApp", desc: "Link your WhatsApp Business number in 2 minutes. No coding required.", color: "#8B5CF6", icon: <Zap size={20} /> },
   { num: 2, title: "Train Your AI", desc: "Upload your services, pricing, and FAQs. The AI learns your business instantly.", color: "#3B82F6", icon: <BookOpen size={20} /> },
   { num: 3, title: "Watch It Work", desc: "Your AI starts replying, capturing leads, and collecting payments — automatically.", color: "#10B981", icon: <Check size={20} /> },
 ];
@@ -1087,7 +1088,7 @@ function PricingSection() {
     { name: "Starter", priceINR: 999, priceUSD: 12, features: ["1 WhatsApp number", "500 AI replies/mo", "Lead capture", "Basic analytics", "Email support"],
       accent: "#3B82F6", popular: false },
     { name: "Growth", priceINR: 2499, priceUSD: 29, features: ["3 WhatsApp numbers", "Unlimited AI replies", "CRM & lead scoring", "UPI + card payments", "Priority support", "Custom AI persona"],
-      accent: "#EA580C", popular: true },
+      accent: "#8B5CF6", popular: true },
     { name: "Enterprise", priceINR: 5999, priceUSD: 69, features: ["Unlimited numbers", "Unlimited everything", "White-label option", "API access", "Dedicated account manager", "Custom integrations", "SLA guarantee"],
       accent: "#F59E0B", popular: false },
   ];
@@ -1209,7 +1210,7 @@ function PricingSection() {
 // ════════════════════════════════════════════════════════════
 const TESTIMONIALS = [
   { name: "Rajesh Kumar", role: "Owner, Elite Fitness Gym", quote: "Autofy reduced our response time from 2 hours to 0.3 seconds. Our lead conversion went up 340% in the first month.",
-    stars: 5, color: "#EA580C" },
+    stars: 5, color: "#8B5CF6" },
   { name: "Priya Sharma", role: "Director, Glow Salon & Spa", quote: "We stopped missing customer messages at night. Autofy handles bookings, answers pricing questions, and even collects deposits — all automatically.",
     stars: 5, color: "#3B82F6" },
   { name: "Dr. Ankit Mehta", role: "Founder, HealthFirst Clinic", quote: "The AI knows our entire service menu, insurance policies, and booking rules. Patients love the instant responses on WhatsApp.",
@@ -1272,7 +1273,7 @@ function CTASection() {
       {/* Background orb */}
       <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)",
         width: 500, height: 500, borderRadius: "50%",
-        background: "radial-gradient(circle, rgba(234,88,12,0.12) 0%, transparent 70%)",
+        background: "radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)",
         pointerEvents: "none" }} />
       <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}
         style={{ textAlign: "center", position: "relative", zIndex: 1, maxWidth: 600, margin: "0 auto", padding: "0 32px" }}>
@@ -1311,7 +1312,7 @@ function Footer() {
             <Link to="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none", marginBottom: 16 }}>
               <div style={{ width: 32, height: 32, borderRadius: 10, background: "var(--brand-subtle)",
                 border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Bot size={16} style={{ color: "var(--brand)" }} />
+                <Logo size={20} />
               </div>
               <span className="text-gradient-primary" style={{ fontSize: 20, fontWeight: 800,
                 fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Autofy</span>

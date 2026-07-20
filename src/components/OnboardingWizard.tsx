@@ -977,7 +977,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                           onClick={() => onTestAssistant(data)}
                           className="btn-ghost w-full justify-center h-48 rounded-[14px] text-[13px] font-bold cursor-pointer"
                         >
-                          <Sparkles className="w-4 h-4 text-[#C2410C]" />
+                          <Sparkles className="w-4 h-4 text-[#7C3AED]" />
                           <span>Test AI on WhatsApp first</span>
                         </button>
                       </div>

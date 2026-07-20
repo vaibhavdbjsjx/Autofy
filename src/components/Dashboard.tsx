@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Sun, Moon, LayoutDashboard, X, Bot, Menu } from "lucide-react";
+import { Logo } from "./Logo";
 import { useTheme } from "../context/ThemeContext";
 import {
   MessageSquare,
@@ -692,13 +693,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Logo */}
           <div className="flex items-center gap-2.5 pt-1">
             <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.1] flex items-center justify-center">
-              <Bot className="w-4.5 h-4.5 animate-spin-slow" style={{ color: "var(--brand)" }} />
+              <Logo size={18} />
             </div>
             <div>
               <span className="font-extrabold text-[15px] tracking-tight bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent font-sans">
                 Autofy OS
               </span>
-              <span className="block text-[8px] font-bold uppercase tracking-widest text-[#EA580C]">
+              <span className="block text-[8px] font-bold uppercase tracking-widest text-[#8B5CF6]">
                 Active Workspace
               </span>
             </div>
@@ -720,9 +721,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   }}
                   className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium tracking-tight transition-all duration-200 cursor-pointer whitespace-nowrap w-full"
                   style={isActive ? {
-                    background: "rgba(234,88,12, 0.12)",
-                    color: "#EA580C",
-                    borderLeft: "2px solid #EA580C",
+                    background: "rgba(139,92,246, 0.12)",
+                    color: "#8B5CF6",
+                    borderLeft: "2px solid #8B5CF6",
                     fontWeight: 600,
                   } : {
                     color: "var(--text-muted)",
@@ -740,7 +741,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <span
                       className="ml-auto px-1.5 py-0.5 text-[9px] font-extrabold rounded-full text-center"
                       style={{
-                        background: isActive ? "#EA580C" : "var(--bg-card)",
+                        background: isActive ? "#8B5CF6" : "var(--bg-card)",
                         color: "#FFF"
                       }}
                     >
@@ -763,7 +764,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
               style={{
-                background: "linear-gradient(135deg, #EA580C, #FB923C)",
+                background: "linear-gradient(135deg, #8B5CF6, #3B82F6)",
                 color: "#FFF",
               }}
             >
@@ -909,7 +910,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <button
                 onClick={() => setEmptyMode(!emptyMode)}
                 className={`w-7 h-4 rounded-full p-0.5 transition-all outline-none ${
-                  emptyMode ? "bg-[#EA580C]" : "bg-neutral-800"
+                  emptyMode ? "bg-[#8B5CF6]" : "bg-neutral-800"
                 }`}
               >
                 <div className={`w-3 h-3 rounded-full bg-white transition-all ${
@@ -932,7 +933,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               >
                 <Bell className="w-4 h-4" />
                 {notifications.some(n => n.unread) && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#EA580C] absolute top-1.5 right-1.5" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] absolute top-1.5 right-1.5" />
                 )}
               </button>
 
@@ -962,7 +963,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <div className="space-y-2.5 max-h-[220px] overflow-y-auto">
                       {notifications.map((n) => (
                         <div key={n.id} className="flex gap-2 text-[11px] leading-snug">
-                          <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${n.unread ? "bg-[#EA580C]" : "bg-neutral-700"}`} />
+                          <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${n.unread ? "bg-[#8B5CF6]" : "bg-neutral-700"}`} />
                           <span className={`${n.unread ? "text-neutral-200" : "text-neutral-500"}`}>{n.text}</span>
                         </div>
                       ))}
@@ -974,7 +975,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
             {/* Profile Avatar circle */}
             <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow"
-              style={{ background: "linear-gradient(135deg, #EA580C, #FB923C)" }}>
+              style={{ background: "linear-gradient(135deg, #8B5CF6, #3B82F6)" }}>
               {data.businessName ? data.businessName[0].toUpperCase() : "A"}
             </div>
           </div>
@@ -1430,7 +1431,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </button>
                     <button
                       onClick={handleAddServiceSubmit}
-                      style={{ background: "#EA580C", color: "#FFF" }}
+                      style={{ background: "#8B5CF6", color: "#FFF" }}
                       className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
                     >
                       Save service
@@ -1489,7 +1490,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </button>
                     <button
                       onClick={handleAddFAQSubmit}
-                      style={{ background: "#EA580C", color: "#FFF" }}
+                      style={{ background: "#8B5CF6", color: "#FFF" }}
                       className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
                     >
                       Save FAQ
@@ -1547,7 +1548,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </button>
                     <button
                       onClick={handleAddPlanSubmit}
-                      style={{ background: "#EA580C", color: "#FFF" }}
+                      style={{ background: "#8B5CF6", color: "#FFF" }}
                       className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
                     >
                       Save plan
@@ -1592,7 +1593,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           ...prev
                         ]);
                       }} 
-                      style={{ background: "#EA580C", color: "#FFF" }}
+                      style={{ background: "#8B5CF6", color: "#FFF" }}
                       className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
                     >
                       Mark as connected
@@ -1653,7 +1654,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </button>
                     <button
                       onClick={handleCreatePaymentSubmit}
-                      style={{ background: "#EA580C", color: "#FFF" }}
+                      style={{ background: "#8B5CF6", color: "#FFF" }}
                       className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer hover:opacity-90 transition-opacity"
                     >
                       Generate link
@@ -1685,7 +1686,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               key={id}
               onClick={() => handleTabChange(id)}
               className="flex flex-col items-center gap-0.5 px-3 py-1.5 rounded-xl transition-all min-w-[52px]"
-              style={{ color: active ? "#EA580C" : "var(--text-subtle)", background: "transparent", border: "none" }}
+              style={{ color: active ? "#8B5CF6" : "var(--text-subtle)", background: "transparent", border: "none" }}
             >
               <Icon className="w-5 h-5" />
               <span style={{ fontSize: "9px", fontWeight: 700, letterSpacing: "0.04em" }}>{label}</span>

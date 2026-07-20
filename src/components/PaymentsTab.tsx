@@ -273,10 +273,10 @@ export const PaymentsTab: React.FC<{
       {/* Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Revenue Generated", val: stats.totalRevenue, icon: DollarSign, color: "rgba(234,88,12,0.15)" },
+          { label: "Total Revenue Generated", val: stats.totalRevenue, icon: DollarSign, color: "rgba(139,92,246,0.15)" },
           { label: "Current Monthly Billing", val: stats.monthlyRevenue, icon: TrendingUp, color: "rgba(34,197,94,0.15)" },
           { label: "Pending Escrow Invoices", val: stats.pendingPayments, icon: Clock, color: "rgba(245,158,11,0.15)" },
-          { label: "Pristine Successful Clears", val: stats.successfulPayments, icon: CheckCircle2, color: "rgba(234,88,12,0.15)" }
+          { label: "Pristine Successful Clears", val: stats.successfulPayments, icon: CheckCircle2, color: "rgba(139,92,246,0.15)" }
         ].map((met, i) => {
           const Icon = met.icon;
           return (
@@ -427,7 +427,7 @@ export const PaymentsTab: React.FC<{
                     {gatewayConfigs.Razorpay.status === "Connected" ? "Key ID: " + gatewayConfigs.Razorpay.apiKey.slice(0, 10) + "..." : "Not connected"}
                   </p>
                 </div>
-                <button onClick={() => setIsRazorpayModalOpen(true)} className="px-4 py-2 bg-[#EA580C] hover:bg-[#6B51EF] text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5">
+                <button onClick={() => setIsRazorpayModalOpen(true)} className="px-4 py-2 bg-[#8B5CF6] hover:bg-[#6B51EF] text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5">
                   <Sliders className="w-3.5 h-3.5" />
                   Connect Razorpay
                 </button>
@@ -465,13 +465,13 @@ export const PaymentsTab: React.FC<{
               {subscriptionPlans.map((p, idx) => (
                 <tr key={idx} style={{
                   borderBottom: idx < subscriptionPlans.length - 1 ? "1px solid var(--border)" : "none",
-                  background: p.popular ? "rgba(234,88,12,0.03)" : "transparent",
-                  borderLeft: p.popular ? "3px solid #EA580C" : "none"
+                  background: p.popular ? "rgba(139,92,246,0.03)" : "transparent",
+                  borderLeft: p.popular ? "3px solid #8B5CF6" : "none"
                 }} className="hover:bg-var(--bg-elevated)/10 transition-colors">
                   <td className="p-4 font-bold text-white flex items-center gap-2">
                     {p.name}
                     {p.popular && (
-                      <span className="bg-[#EA580C] text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full">
+                      <span className="bg-[#8B5CF6] text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full">
                         Most Popular
                       </span>
                     )}
@@ -485,7 +485,7 @@ export const PaymentsTab: React.FC<{
                     <button onClick={() => handleChoosePlan(p)}
                       className="px-3.5 py-1.5 text-[10px] font-bold rounded-lg cursor-pointer transition uppercase text-white"
                       style={{
-                        background: p.popular ? "#EA580C" : "var(--input-bg)",
+                        background: p.popular ? "#8B5CF6" : "var(--input-bg)",
                         border: p.popular ? "none" : "1px solid var(--border)",
                       }}>
                       Choose Plan
@@ -663,7 +663,7 @@ export const PaymentsTab: React.FC<{
                   <button onClick={() => setIsRazorpayModalOpen(false)} className="flex-1 py-2.5 rounded-xl bg-var(--bg-elevated) border border-neutral-800 text-neutral-400 text-xs font-bold cursor-pointer">
                     Cancel
                   </button>
-                  <button onClick={handleSaveRazorpay} className="flex-1 py-2.5 rounded-xl bg-[#EA580C] hover:bg-[#6B51EF] text-white text-xs font-bold cursor-pointer">
+                  <button onClick={handleSaveRazorpay} className="flex-1 py-2.5 rounded-xl bg-[#8B5CF6] hover:bg-[#6B51EF] text-white text-xs font-bold cursor-pointer">
                     Save settings
                   </button>
                 </div>
@@ -748,7 +748,7 @@ export const PaymentsTab: React.FC<{
                     triggerNotification(" Simulated successful download of grand PDF invoice directly downstream.");
                     setInvoicePreview(null);
                   }}
-                  className="py-2.5 bg-[#EA580C] hover:bg-[#6B51EF] rounded-xl text-white font-extrabold text-[10px] uppercase cursor-pointer flex items-center justify-center gap-1"
+                  className="py-2.5 bg-[#8B5CF6] hover:bg-[#6B51EF] rounded-xl text-white font-extrabold text-[10px] uppercase cursor-pointer flex items-center justify-center gap-1"
                 >
                   <FileDown className="w-3.5 h-3.5" />
                   PDF Down
