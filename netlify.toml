@@ -1,0 +1,37 @@
+# ════════════════════════════════════════════════════════════
+# Netlify deployment config for the Autofy FRONTEND (static SPA).
+# The FastAPI backend is NOT hosted here — deploy it separately
+# (Render / Railway / Fly) and point the frontend at it (see below).
+# ════════════════════════════════════════════════════════════
+
+[build]
+  # Vite outputs the production bundle to ./dist
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  # Pin Node so Netlify's build matches local (Vite 6 / React 19 need Node 18+)
+  NODE_VERSION = "20"
+
+# ─────────────────────────────────────────────────────────────
+# OPTION A (recommended): proxy /api/* to your deployed backend.
+# Keeps the frontend calling relative "/api/..." (no CORS setup, no
+# rebuild to change the URL). Uncomment and replace the host once the
+# backend is live. With this, leave VITE_API_URL UNSET in Netlify.
+# ─────────────────────────────────────────────────────────────
+# [[redirects]]
+#   from = "/api/*"
+#   to = "https://YOUR-BACKEND-HOST.onrender.com/api/:splat"
+#   status = 200
+#   force = true
+
+# ─────────────────────────────────────────────────────────────
+# SPA fallback — REQUIRED for React Router. Without this, a hard
+# refresh or direct visit to /dashboard, /login, /onboarding, etc.
+# returns a 404 because those paths only exist client-side.
+# (Keep this LAST so the /api proxy above wins for API calls.)
+# ─────────────────────────────────────────────────────────────
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
