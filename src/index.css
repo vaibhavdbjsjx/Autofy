@@ -728,9 +728,141 @@ select.input-field {
 .scrollbar-none::-webkit-scrollbar { display: none; }
 
 /* ═══════════════════════════════════════════════════
+   HERO — FUTURISTIC BACKGROUND SYSTEM
+   Layered: aurora blobs → grid → spotlight → content.
+   All decorative layers are pointer-events:none so they
+   never intercept clicks.
+   ═══════════════════════════════════════════════════ */
+:root {
+  --grid-line: rgba(139,92,246,0.10);
+  --spotlight: rgba(139,92,246,0.14);
+}
+html.dark {
+  --grid-line: rgba(255,255,255,0.055);
+  --spotlight: rgba(139,92,246,0.20);
+}
+
+/* Soft drifting colour blobs — the "aurora" */
+.aurora {
+  position: absolute; inset: 0; overflow: hidden;
+  pointer-events: none; z-index: 0;
+}
+.aurora i {
+  position: absolute; display: block; border-radius: 50%;
+  filter: blur(90px); opacity: 0.5;
+  will-change: transform;
+}
+html.dark .aurora i { opacity: 0.42; }
+.aurora .a1 {
+  width: 620px; height: 620px; top: -220px; left: -160px;
+  background: radial-gradient(circle, #EC4899 0%, transparent 68%);
+  animation: aurora-1 18s ease-in-out infinite;
+}
+.aurora .a2 {
+  width: 680px; height: 680px; top: -140px; right: -220px;
+  background: radial-gradient(circle, #3B82F6 0%, transparent 68%);
+  animation: aurora-2 22s ease-in-out infinite;
+}
+.aurora .a3 {
+  width: 560px; height: 560px; bottom: -260px; left: 42%;
+  background: radial-gradient(circle, #8B5CF6 0%, transparent 68%);
+  animation: aurora-3 20s ease-in-out infinite;
+}
+@keyframes aurora-1 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50%     { transform: translate(90px,60px) scale(1.12); }
+}
+@keyframes aurora-2 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50%     { transform: translate(-80px,70px) scale(0.92); }
+}
+@keyframes aurora-3 {
+  0%,100% { transform: translate(0,0) scale(1); }
+  50%     { transform: translate(-70px,-50px) scale(1.08); }
+}
+
+/* Tech grid, faded out toward the edges with a radial mask */
+.hero-grid {
+  position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 58px 58px;
+  -webkit-mask-image: radial-gradient(ellipse 68% 58% at 50% 38%, #000 35%, transparent 100%);
+          mask-image: radial-gradient(ellipse 68% 58% at 50% 38%, #000 35%, transparent 100%);
+}
+
+/* Warm spotlight behind the headline */
+.hero-spotlight {
+  position: absolute; left: 50%; top: -14%;
+  width: min(1000px, 130%); height: 640px;
+  transform: translateX(-50%);
+  pointer-events: none; z-index: 1;
+  background: radial-gradient(ellipse at center, var(--spotlight) 0%, transparent 66%);
+}
+
+/* Frosted glass — stronger than .glass, for floating hero cards */
+.glass-strong {
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.75);
+  box-shadow: 0 18px 50px rgba(80,40,160,0.14), 0 2px 6px rgba(0,0,0,0.04);
+  border-radius: 16px;
+}
+html.dark .glass-strong {
+  background: rgba(255,255,255,0.055);
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+}
+
+/* Gradient-outlined pill (hero badge) */
+.badge-glow {
+  position: relative;
+  background: rgba(255,255,255,0.62);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-radius: 100px;
+}
+html.dark .badge-glow { background: rgba(255,255,255,0.05); }
+.badge-glow::before {
+  content: ''; position: absolute; inset: -1px; border-radius: inherit;
+  padding: 1px; background: var(--brand-gradient);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Live pulsing dot */
+.pulse-dot { position: relative; width: 7px; height: 7px; border-radius: 50%; background: var(--success); flex-shrink: 0; }
+.pulse-dot::after {
+  content: ''; position: absolute; inset: 0; border-radius: 50%;
+  background: var(--success); animation: pulse-ring 2s ease-out infinite;
+}
+@keyframes pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.7; }
+  100% { transform: scale(3.2); opacity: 0; }
+}
+
+/* Glow ring around the primary hero CTA */
+.cta-glow { box-shadow: 0 10px 40px var(--brand-glow), 0 0 0 1px rgba(255,255,255,0.14) inset; }
+
+/* Gentle bob for floating hero cards */
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+.bob-slow { animation: bob 6s ease-in-out infinite; }
+.bob-mid  { animation: bob 5s ease-in-out infinite; }
+.bob-fast { animation: bob 4.2s ease-in-out infinite; }
+
+/* Floating cards are decoration — never show them on small screens */
+@media (max-width: 1180px) { .hero-float { display: none !important; } }
+
+/* ═══════════════════════════════════════════════════
    REDUCED MOTION
    ═══════════════════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
   * { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
   .marquee-track, .marquee-track-reverse { animation: none !important; }
+  /* Hero decoration: hold still rather than snap-loop */
+  .aurora i, .bob-slow, .bob-mid, .bob-fast, .pulse-dot::after { animation: none !important; }
 }

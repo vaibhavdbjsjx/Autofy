@@ -315,16 +315,51 @@ function Hero() {
     <section ref={sectionRef} style={{ position: "relative", minHeight: "100vh", overflow: "hidden",
       display: "flex", flexDirection: "column", paddingTop: 64, background: "var(--bg)" }}>
 
-      {/* CSS Gradient Orbs */}
-      <motion.div style={{ scale: orbScale, position: "absolute", top: -200, left: -200, width: 600, height: 600,
-        borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.18) 0%, transparent 70%)",
-        animation: "float1 12s ease-in-out infinite", pointerEvents: "none", zIndex: 0 }} />
-      <motion.div style={{ scale: orbScale, position: "absolute", top: "50%", right: -300, width: 700, height: 700,
-        borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)",
-        animation: "float2 15s ease-in-out infinite", pointerEvents: "none", zIndex: 0 }} />
-      <motion.div style={{ scale: orbScale, position: "absolute", bottom: -200, left: "30%", width: 500, height: 500,
-        borderRadius: "50%", background: "radial-gradient(circle, rgba(196,130,255,0.10) 0%, transparent 70%)",
-        animation: "float3 10s ease-in-out infinite", pointerEvents: "none", zIndex: 0 }} />
+      {/* ── Futuristic background stack (all decorative, pointer-events:none) ──
+          1. aurora   — drifting pink/blue/violet colour blobs
+          2. grid     — tech grid, radially masked so it fades at the edges
+          3. spotlight— soft glow behind the headline                        */}
+      <motion.div className="aurora" style={{ scale: orbScale }}>
+        <i className="a1" />
+        <i className="a2" />
+        <i className="a3" />
+      </motion.div>
+      <div className="hero-grid" />
+      <div className="hero-spotlight" />
+
+      {/* ── Floating glass cards: show the product's story at a glance.
+           Decorative only; hidden below 1180px via .hero-float.        ── */}
+      {[
+        { cls: "bob-slow", pos: { top: "27%", left: "3.5%" }, delay: 0.9,
+          icon: <Users size={15} style={{ color: "#3B82F6" }} />, tint: "rgba(59,130,246,0.12)",
+          title: "New lead captured", sub: "Raj wants gym membership info" },
+        { cls: "bob-mid", pos: { top: "23%", right: "3.5%" }, delay: 1.05,
+          icon: <CreditCard size={15} style={{ color: "#16A34A" }} />, tint: "rgba(22,163,74,0.12)",
+          title: "Payment received", sub: "₹2,999 from Priya K." },
+        { cls: "bob-fast", pos: { top: "40%", right: "5%" }, delay: 1.2,
+          icon: <Zap size={15} style={{ color: "#8B5CF6" }} />, tint: "rgba(139,92,246,0.14)",
+          title: "AI replied in 0.3s", sub: "98% confidence" },
+      ].map((c, i) => (
+        <motion.div
+          key={i}
+          className="hero-float"
+          initial={{ opacity: 0, y: 24, scale: 0.94 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: c.delay, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          style={{ position: "absolute", zIndex: 5, pointerEvents: "none", ...c.pos }}
+        >
+          <div className={`glass-strong ${c.cls}`} style={{ display: "flex", alignItems: "center", gap: 11, padding: "13px 17px", minWidth: 232 }}>
+            <span style={{ width: 30, height: 30, borderRadius: 9, background: c.tint,
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              {c.icon}
+            </span>
+            <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.35 }}>
+              <span style={{ fontSize: 12.5, fontWeight: 800, color: "var(--text)", letterSpacing: "-0.01em" }}>{c.title}</span>
+              <span style={{ fontSize: 11.5, color: "var(--text-muted)" }}>{c.sub}</span>
+            </span>
+          </div>
+        </motion.div>
+      ))}
 
       {/* Hero Content — width:100% + smaller side padding keeps the centered
           column from exceeding the mobile viewport (which clipped content). */}
@@ -332,30 +367,36 @@ function Hero() {
         width: "100%", maxWidth: 1200, margin: "0 auto", padding: "100px 20px 60px", position: "relative", zIndex: 10,
         flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
 
-        {/* Badge */}
-        <motion.div variants={scaleIn} initial="hidden" animate="visible" style={{ marginBottom: 32 }}>
-          <span className="section-tag" style={{ border: "1px solid var(--border-strong)", background: "var(--brand-subtle)", color: "var(--brand)", padding: "8px 16px", borderRadius: "100px", fontSize: 12, fontWeight: 600 }}>
-            <Sparkles size={13} /> Trusted by 500+ businesses
+        {/* Badge — frosted glass pill with a gradient outline + live pulse */}
+        <motion.div variants={scaleIn} initial="hidden" animate="visible" style={{ marginBottom: 30 }}>
+          <span className="badge-glow" style={{ display: "inline-flex", alignItems: "center", gap: 9,
+            padding: "9px 18px", fontSize: 12.5, fontWeight: 700, letterSpacing: "0.01em", color: "var(--text)" }}>
+            <span className="pulse-dot" />
+            Trusted by 500+ businesses
+            <Sparkles size={13} style={{ color: "var(--brand)" }} />
           </span>
         </motion.div>
 
-        {/* Headline */}
+        {/* Headline — "Answers Itself" carries the signature gradient */}
         <h1 style={{
           fontFamily: "'Plus Jakarta Sans', sans-serif",
           // Lower mobile floor (was 44px) so the longest line "24/7 on WhatsApp"
           // fits within a 375px viewport without clipping; scales up on desktop.
-          fontSize: "clamp(34px, 8vw, 80px)",
+          fontSize: "clamp(34px, 8vw, 82px)",
           fontWeight: 900,
           color: "var(--text)",
           textAlign: "center",
-          letterSpacing: "-0.04em",
-          lineHeight: 1.05,
+          letterSpacing: "-0.045em",
+          lineHeight: 1.02,
           maxWidth: "100%",
           margin: "0 auto 24px"
         }}>
           <div>Your Business</div>
-          <div>Answers Itself</div>
-          <div>24/7 on <span style={{ color: "#10B981" }}>WhatsApp</span></div>
+          <div className="text-gradient-brand">Answers Itself</div>
+          <div>
+            24/7 on{" "}
+            <span style={{ color: "#25D366", textShadow: "0 0 38px rgba(37,211,102,0.35)" }}>WhatsApp</span>
+          </div>
         </h1>
 
         {/* Subheadline */}
@@ -368,32 +409,32 @@ function Hero() {
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.65, duration: 0.6 }}
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, flexWrap: "wrap", marginTop: 40 }}>
-          <MagneticButton onClick={() => navigate("/signup")} className="btn-primary" style={{ height: 52, padding: "0 32px", borderRadius: 100 }}>
+          <MagneticButton onClick={() => navigate("/signup")} className="btn-primary cta-glow" style={{ height: 54, padding: "0 34px", borderRadius: 100, fontSize: 15 }}>
             Get Started Free <ArrowRight size={16} />
           </MagneticButton>
           <button onClick={() => document.getElementById("demo")?.scrollIntoView({ behavior: "smooth" })}
-            className="btn-secondary" style={{ height: 52, padding: "0 32px", borderRadius: 100 }}>
+            className="btn-secondary glass" style={{ height: 54, padding: "0 32px", borderRadius: 100, fontSize: 15 }}>
             Watch Demo <ArrowDown size={16} />
           </button>
         </motion.div>
 
-        {/* Trust chips */}
+        {/* Trust chips — frosted pills read better against the aurora */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85 }}
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 32, flexWrap: "wrap", marginTop: 40 }}>
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "wrap", marginTop: 34 }}>
           {[
-            { text: "500+ businesses active", color: "#10B981" },
+            { text: "500+ businesses active", color: "#16A34A" },
             { text: "4.9/5 average rating", color: "#F59E0B" },
             { text: "No credit card needed", color: "var(--brand)" }
           ].map((item, i) => (
-            <span key={i} style={{ display: "flex", alignItems: "center", gap: 8,
-              fontSize: 13, fontWeight: 500, color: "var(--text-muted)" }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: item.color }} />
+            <span key={i} className="glass" style={{ display: "flex", alignItems: "center", gap: 8,
+              padding: "8px 15px", borderRadius: 100, fontSize: 12.5, fontWeight: 600, color: "var(--text-muted)" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: item.color, flexShrink: 0 }} />
               {item.text}
             </span>
           ))}
         </motion.div>
 
-        {/* Interactive browser mockup */}
+        {/* Interactive browser mockup (carries its own violet glow + 3D tilt) */}
         <BrowserMockup />
       </motion.div>
 
