@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Logo } from "./Logo";
 import {
@@ -375,6 +376,9 @@ export const SignUpView: React.FC<SignUpProps> = ({
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  // App stores (and privacy law) require explicit consent before an account
+  // is created. We record that the user agreed to the Privacy Policy + Terms.
+  const [agreed, setAgreed] = useState(false);
 
   // Real-time validations
   const isNameValid = fullName.trim().length >= 2;
@@ -403,6 +407,14 @@ export const SignUpView: React.FC<SignUpProps> = ({
       setError("Password is too weak. Must meet strength criteria.");
       return;
     }
+    if (!agreed) {
+      setError("Please agree to the Privacy Policy and Terms of Service to continue.");
+      return;
+    }
+    // Persist the consent + timestamp so we have a record the user agreed.
+    try {
+      localStorage.setItem("autofy-consent", JSON.stringify({ agreed: true, at: new Date().toISOString() }));
+    } catch { /* storage unavailable — ignore */ }
 
     setIsLoading(true);
     const { error: authError } = await signUpWithEmail(email, password, businessName, fullName);
@@ -422,6 +434,13 @@ export const SignUpView: React.FC<SignUpProps> = ({
 
   const handleGoogleLogin = async () => {
     setError("");
+    if (!agreed) {
+      setError("Please agree to the Privacy Policy and Terms of Service to continue.");
+      return;
+    }
+    try {
+      localStorage.setItem("autofy-consent", JSON.stringify({ agreed: true, at: new Date().toISOString() }));
+    } catch { /* ignore */ }
     const { error: authError } = await signInWithGoogle();
     if (authError) {
       setError(authError.message || "Google sign in failed.");
@@ -601,8 +620,28 @@ export const SignUpView: React.FC<SignUpProps> = ({
               )}
             </div>
 
-            {/* Submit Button */}
-            <button type="submit" disabled={isLoading} className="btn-primary" style={{ width: "100%", marginTop: 8 }}>
+            {/* Privacy Policy + Terms consent — required to create an account */}
+            <label style={{ display: "flex", alignItems: "flex-start", gap: 10, cursor: "pointer", marginTop: 4 }}>
+              <input
+                type="checkbox"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+                aria-label="Agree to Privacy Policy and Terms of Service"
+                style={{
+                  width: 18, height: 18, marginTop: 1, flexShrink: 0, cursor: "pointer",
+                  accentColor: "var(--brand)",
+                }}
+              />
+              <span style={{ fontSize: 12.5, lineHeight: 1.5, color: "var(--text-muted)" }}>
+                I agree to Autofy's{" "}
+                <Link to="/privacy" target="_blank" style={{ color: "var(--brand)", fontWeight: 600 }}>Privacy Policy</Link>
+                {" "}and{" "}
+                <Link to="/terms" target="_blank" style={{ color: "var(--brand)", fontWeight: 600 }}>Terms of Service</Link>.
+              </span>
+            </label>
+
+            {/* Submit Button — disabled until the user agrees */}
+            <button type="submit" disabled={isLoading || !agreed} className="btn-primary" style={{ width: "100%", marginTop: 8, opacity: agreed ? 1 : 0.6 }}>
               {isLoading ? (
                 <>
                   <Loader2 size={16} className="animate-spin" /> Creating Account...
