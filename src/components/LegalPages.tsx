@@ -12,6 +12,9 @@ import { Logo } from "./Logo";
 
 const LAST_UPDATED = "27 July 2026";
 const CONTACT_EMAIL = "hello@autofy.io"; // update to your real support inbox
+const COMPANY_NAME = "Autofy Technologies Pvt. Ltd.";
+const COMPANY_OWNER = "Vaibhav S G";
+const COMPANY_ADDRESS = "Nandagokula, Beejamakki, Kalthodu, Kundapura Post, Udupi, Karnataka – 576219, India";
 
 // ─── Shared page shell (header + readable column + footer) ───
 function LegalLayout({ title, children }: { title: string; children: ReactNode }) {
@@ -120,7 +123,10 @@ export function PrivacyPolicy() {
       <H2>8. Contact us</H2>
       <P>
         Questions about privacy? Contact <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--brand)", fontWeight: 600 }}>{CONTACT_EMAIL}</a>.
-        [Add your registered business name and address here before publishing to the app stores.]
+      </P>
+      <P>
+        <strong>{COMPANY_NAME}</strong><br />
+        {COMPANY_ADDRESS}
       </P>
     </LegalLayout>
   );
@@ -186,7 +192,10 @@ export function TermsOfService() {
       <H2>9. Contact</H2>
       <P>
         Questions about these Terms? Contact <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--brand)", fontWeight: 600 }}>{CONTACT_EMAIL}</a>.
-        [Add your registered business name, jurisdiction, and governing law here before publishing.]
+      </P>
+      <P>
+        These Terms are governed by the laws of India. Any disputes are subject to the jurisdiction of the courts
+        of Udupi, Karnataka. Operated by <strong>{COMPANY_NAME}</strong>, {COMPANY_ADDRESS}.
       </P>
     </LegalLayout>
   );
@@ -252,9 +261,12 @@ export function ContactUs() {
 
       <H2>Business address</H2>
       <P>
-        [Add your registered business name and full postal address here — Razorpay requires this on your
-        Contact page before they activate live payments.]
+        <strong>{COMPANY_NAME}</strong><br />
+        {COMPANY_ADDRESS}
       </P>
+
+      <H2>Grievance / contact person</H2>
+      <P>{COMPANY_OWNER} — reachable at <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--brand)", fontWeight: 600 }}>{CONTACT_EMAIL}</a>.</P>
     </LegalLayout>
   );
 }
