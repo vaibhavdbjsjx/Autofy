@@ -191,3 +191,70 @@ export function TermsOfService() {
     </LegalLayout>
   );
 }
+
+// ═══════════════ REFUND & CANCELLATION POLICY ═══════════════
+// Razorpay activation REQUIRES a public refund/cancellation policy.
+export function RefundPolicy() {
+  return (
+    <LegalLayout title="Refund & Cancellation Policy">
+      <P>
+        This policy explains how cancellations and refunds work for Autofy subscriptions. It applies to payments
+        you make to Autofy for your own subscription. Payments your customers make to <em>your</em> business are
+        governed by your business's own refund terms, not this policy.
+      </P>
+
+      <H2>1. Subscription cancellation</H2>
+      <P>
+        You can cancel your Autofy subscription at any time from your dashboard under Settings → Billing. When you
+        cancel, your plan stays active until the end of the current billing period; you will not be charged again
+        after that.
+      </P>
+
+      <H2>2. Refunds</H2>
+      <UL>
+        <li>Monthly plans are generally non-refundable once the billing period has started.</li>
+        <li>If you were charged in error, or experienced a billing issue, contact us within <strong>7 days</strong> and we will review and refund eligible amounts.</li>
+        <li>Approved refunds are processed back to your original payment method via Razorpay within <strong>5–7 business days</strong>.</li>
+      </UL>
+
+      <H2>3. How to request a refund</H2>
+      <P>
+        Email <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--brand)", fontWeight: 600 }}>{CONTACT_EMAIL}</a> with
+        your account email and the payment reference. We aim to respond within 2 business days.
+      </P>
+
+      <H2>4. Failed or duplicate payments</H2>
+      <P>
+        If a payment fails but you were still charged, or you were charged twice, the extra amount is refunded
+        automatically to your source account. If you don't see it within 7 business days, contact us.
+      </P>
+
+      <H2>5. Contact</H2>
+      <P>
+        For any billing question, reach us at <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--brand)", fontWeight: 600 }}>{CONTACT_EMAIL}</a>.
+      </P>
+    </LegalLayout>
+  );
+}
+
+// ═══════════════════════ CONTACT US ═══════════════════════
+// Razorpay activation also requires reachable contact details.
+export function ContactUs() {
+  return (
+    <LegalLayout title="Contact Us">
+      <P>We'd love to hear from you. For support, billing, or partnership questions, reach out any time.</P>
+
+      <H2>Email</H2>
+      <P><a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--brand)", fontWeight: 600 }}>{CONTACT_EMAIL}</a></P>
+
+      <H2>Support hours</H2>
+      <P>Monday–Saturday, 10:00 AM – 7:00 PM IST. We typically respond within one business day.</P>
+
+      <H2>Business address</H2>
+      <P>
+        [Add your registered business name and full postal address here — Razorpay requires this on your
+        Contact page before they activate live payments.]
+      </P>
+    </LegalLayout>
+  );
+}

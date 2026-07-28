@@ -10,7 +10,7 @@ import { CursorGlow } from "./components/CursorGlow";
 import { ThemeToggle } from "./components/ThemeToggle";
 import { MagneticButton } from "./components/MagneticButton";
 import { Logo } from "./components/Logo";
-import { PrivacyPolicy, TermsOfService } from "./components/LegalPages";
+import { PrivacyPolicy, TermsOfService, RefundPolicy, ContactUs } from "./components/LegalPages";
 import { INITIAL_ONBOARDING_DATA, OnboardingData } from "./types";
 import { signOut, completeOAuthLogin } from "./lib/auth";
 import { useTheme } from "./context/ThemeContext";
@@ -1389,8 +1389,10 @@ function Footer() {
           display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <p style={{ fontSize: 12, color: "var(--text-subtle)" }}>© {new Date().getFullYear()} Autofy Technologies Pvt. Ltd.</p>
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-            <Link to="/privacy" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Privacy Policy</Link>
-            <Link to="/terms" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Terms of Service</Link>
+            <Link to="/privacy" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Privacy</Link>
+            <Link to="/terms" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Terms</Link>
+            <Link to="/refund" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Refunds</Link>
+            <Link to="/contact" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Contact</Link>
             <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>Made with care in India</span>
           </div>
         </div>
@@ -1545,6 +1547,8 @@ export default function App() {
         <Route path="/auth/callback" element={<OAuthCallback />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/refund" element={<RefundPolicy />} />
+        <Route path="/contact" element={<ContactUs />} />
         <Route path="/onboarding" element={
           <ProtectedRoute>
             <OnboardingWizard

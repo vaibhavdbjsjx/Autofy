@@ -239,6 +239,37 @@ class RazorpayService:
         return hmac.compare_digest(generated_signature, razorpay_signature)
 
     @staticmethod
+    async def create_refund(
+        razorpay_payment_id: str,
+        amount: Optional[Decimal] = None,
+        notes: Optional[Dict[str, str]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Refund a captured Razorpay payment (full or partial). Required so the
+        app can honour the published Refund & Cancellation Policy.
+        Pass `amount` in rupees for a partial refund; omit for a full refund.
+        Returns Razorpay's refund object, or a mock in dev when keys are unset.
+        """
+        auth = RazorpayService.get_auth_tuple()
+        if not auth:
+            logger.warning("Razorpay keys unconfigured — returning mock refund (dev mode).")
+            return {"id": f"rfnd_mock_{razorpay_payment_id}", "status": "processed", "mock": True}
+
+        body: Dict[str, Any] = {"speed": "normal"}
+        if amount is not None:
+            body["amount"] = int(amount * 100)  # paise
+        if notes:
+            body["notes"] = notes
+
+        url = f"https://api.razorpay.com/v1/payments/{razorpay_payment_id}/refund"
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(url, auth=auth, json=body, timeout=20.0)
+            if resp.status_code not in (200, 201):
+                logger.error("Razorpay refund failed: %s %s", resp.status_code, resp.text)
+                raise Exception(f"Refund failed: {resp.text}")
+            return resp.json()
+
+    @staticmethod
     def update_payment_on_verification(
         db: Session,
         razorpay_payment_id: str,

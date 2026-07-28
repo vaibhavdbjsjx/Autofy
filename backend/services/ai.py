@@ -10,7 +10,9 @@ class GeminiAIService:
     def __init__(self):
         self.api_key = settings.GEMINI_API_KEY
         self._embedding_model = "text-embedding-004"
-        self._generation_model = "gemini-2.5-flash"
+        # gemini-2.5-flash is no longer available to new API users; the
+        # "-latest" alias always resolves to the current Flash model.
+        self._generation_model = "gemini-flash-latest"
         self.base_url = "https://generativelanguage.googleapis.com/v1beta"
 
     async def generate_text_embedding(self, text: str) -> List[float]:
