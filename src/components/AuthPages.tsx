@@ -113,33 +113,10 @@ function VisualPanel() {
         />
       </div>
 
-      {/* Join Section at Bottom */}
+      {/* Honest tagline (no fabricated user counts / avatars) */}
       <div style={{ zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-          {[
-            "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=64&q=80",
-            "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=64&q=80",
-            "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=64&q=80",
-            "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=64&q=80",
-            "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=64&q=80"
-          ].map((url, i) => (
-            <img
-              key={i}
-              src={url}
-              alt=""
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: "50%",
-                border: "2px solid #0D0B1E",
-                marginLeft: i > 0 ? -8 : 0,
-                objectFit: "cover",
-              }}
-            />
-          ))}
-        </div>
-        <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.6)" }}>
-          Join 500+ business owners automating today
+        <span style={{ fontSize: 13, fontWeight: 500, color: "rgba(255,255,255,0.6)", textAlign: "center", maxWidth: 300 }}>
+          Automate customer chats, capture leads, and get paid — right inside WhatsApp.
         </span>
       </div>
     </div>

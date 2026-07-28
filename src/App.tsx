@@ -373,7 +373,7 @@ function Hero() {
           <span className="badge-glow" style={{ display: "inline-flex", alignItems: "center", gap: 9,
             padding: "9px 18px", fontSize: 12.5, fontWeight: 700, letterSpacing: "0.01em", color: "var(--text)" }}>
             <span className="pulse-dot" />
-            Trusted by 500+ businesses
+            AI-powered WhatsApp automation
             <Sparkles size={13} style={{ color: "var(--brand)" }} />
           </span>
         </motion.div>
@@ -423,7 +423,7 @@ function Hero() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85 }}
           style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, flexWrap: "wrap", marginTop: 34 }}>
           {[
-            { text: "500+ businesses active", color: "#16A34A" },
+            { text: "Built for Indian businesses", color: "#16A34A" },
             { text: "4.9/5 average rating", color: "#F59E0B" },
             { text: "No credit card needed", color: "var(--brand)" }
           ].map((item, i) => (

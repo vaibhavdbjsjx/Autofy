@@ -122,7 +122,16 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
 def google_authorize():
     """
     Exposes the Google OAuth2 OpenID Connect permission redirect URI.
+
+    If Google credentials aren't configured, fail with a clear message so the
+    SPA shows "Google sign-in isn't set up" instead of sending the user to a
+    broken Google error page (empty client_id).
     """
+    if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Google sign-in isn't configured yet. Please sign up with email, or add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the backend .env.",
+        )
     redirect_url = GoogleOAuthService.get_authorization_url()
     return {"authorization_url": redirect_url}
 
