@@ -5,6 +5,10 @@ import { ThemeProvider } from './context/ThemeContext';
 import Lenis from 'lenis';
 import App from './App';
 import './index.css';
+import { initNative } from './lib/native';
+
+// Boot native (Capacitor) integrations — no-op in the browser.
+initNative();
 
 // Lenis smooth scroll
 const lenis = new Lenis({

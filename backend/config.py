@@ -69,6 +69,12 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3007",
         "http://localhost:5173",
         "https://autofysaas.com",
+        # Deployed website (Netlify)
+        "https://autofy11.netlify.app",
+        # Native app (Capacitor) origins — iOS uses capacitor://, Android uses https/http localhost
+        "capacitor://localhost",
+        "https://localhost",
+        "http://localhost",
     ]
 
     model_config = SettingsConfigDict(

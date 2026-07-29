@@ -728,6 +728,32 @@ select.input-field {
 .scrollbar-none::-webkit-scrollbar { display: none; }
 
 /* ═══════════════════════════════════════════════════
+   NATIVE APP (Capacitor) — safe areas & mobile feel
+   env(safe-area-inset-*) is 0 in a normal browser, so
+   these rules are invisible on the web and only kick in
+   on notched phones inside the packaged app.
+   ═══════════════════════════════════════════════════ */
+@supports (padding: env(safe-area-inset-bottom)) {
+  /* Keep bottom-fixed UI (mobile menu, sticky bars) clear of the
+     iPhone home indicator. */
+  .mobile-menu { padding-bottom: env(safe-area-inset-bottom); }
+  body { padding-bottom: env(safe-area-inset-bottom); }
+}
+
+/* Stop the whole page from rubber-band scrolling behind the app shell. */
+html, body { overscroll-behavior-y: none; }
+
+/* Native-app feel: no long-press callout / blue tap highlight / accidental
+   text selection on buttons & nav. Inputs stay selectable (rule below). */
+button, a, .btn-primary, .btn-secondary, .nav-link, .sidebar-link {
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+input, textarea, [contenteditable] { -webkit-user-select: text; user-select: text; }
+
+/* ═══════════════════════════════════════════════════
    HERO — FUTURISTIC BACKGROUND SYSTEM
    Layered: aurora blobs → grid → spotlight → content.
    All decorative layers are pointer-events:none so they

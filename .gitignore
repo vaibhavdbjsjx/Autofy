@@ -6,6 +6,7 @@ coverage/
 *.log
 .env*
 !.env.example
+!.env.production
 
 # Python / backend
 __pycache__/
@@ -22,3 +23,15 @@ autofy.db
 .claude/
 scratch/
 .vscode/
+
+# Capacitor native build artifacts (keep source config, ignore generated builds)
+android/app/build/
+android/build/
+android/.gradle/
+android/app/src/main/assets/public/
+android/app/src/main/res/
+ios/App/build/
+ios/App/Pods/
+ios/App/App/public/
+ios/App/Podfile.lock
+.DS_Store

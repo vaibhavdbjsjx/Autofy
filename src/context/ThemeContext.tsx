@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { syncStatusBar } from "../lib/native";
 
 type Theme = "dark" | "light";
 interface ThemeContextValue {
@@ -34,6 +35,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem("autofy-theme", theme);
     } catch {}
+    // Match the native status bar to the theme (no-op on web).
+    syncStatusBar(theme);
   }, [theme]);
 
   const toggleTheme = () => setThemeState((p) => (p === "dark" ? "light" : "dark"));
