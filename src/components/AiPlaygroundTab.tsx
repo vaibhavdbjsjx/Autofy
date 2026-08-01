@@ -261,17 +261,17 @@ export const AiPlaygroundTab: React.FC = () => {
   };
 
   return (
-    <div id="ai-testing-console-module" className="space-y-6 text-neutral-200">
+    <div id="ai-testing-console-module" className="space-y-6 text-[var(--text)]">
       
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-var(--border) pb-5 relative font-sans">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border)] pb-5 relative font-sans">
         <AnimatePresence>
           {toastMessage && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute top-0 right-0 bg-[#0c0d12] border border-blue-500/40 text-blue-400 px-4 py-2.5 rounded-xl z-50 text-[11px] font-bold shadow-2xl"
+              className="absolute top-0 right-0 bg-[var(--bg-card)] border border-blue-500/40 text-blue-400 px-4 py-2.5 rounded-xl z-50 text-[11px] font-bold shadow-2xl"
             >
               {toastMessage}
             </motion.div>
@@ -279,17 +279,17 @@ export const AiPlaygroundTab: React.FC = () => {
         </AnimatePresence>
 
         <div>
-          <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-xl font-black text-[var(--text)] tracking-tight flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-blue-500" />
             AI Playground (Testing Console)
           </h2>
-          <p className="text-xs text-neutral-400 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             Validate exactly how Autofy's agent compiled state behaves under real traffic constraints or custom prompt rules.
           </p>
         </div>
 
         {/* Dynamic sub tab switcher */}
-        <div className="bg-[#050508] p-1 border border-var(--border) rounded-xl flex items-center gap-1 self-start md:self-auto">
+        <div className="bg-[var(--bg)] p-1 border border-[var(--border)] rounded-xl flex items-center gap-1 self-start md:self-auto">
           {[
             { id: "sandbox", label: "Sandbox & Diagnostics", icon: Terminal },
             { id: "stress", label: "Stress Test & Quality", icon: Activity },
@@ -302,8 +302,8 @@ export const AiPlaygroundTab: React.FC = () => {
                 onClick={() => setActiveSubTab(sb.id as any)}
                 className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-[10.5px] font-bold uppercase transitionCursor cursor-pointer ${
                   activeSubTab === sb.id 
-                    ? "bg-blue-600 text-white font-black" 
-                    : "text-neutral-500 hover:text-neutral-300"
+                    ? "bg-blue-600 text-[var(--text)] font-black" 
+                    : "text-[var(--text-subtle)] hover:text-[var(--text)]"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -344,16 +344,16 @@ export const AiPlaygroundTab: React.FC = () => {
         <div className="xl:col-span-2 space-y-6">
           
           {/* Chat Simulator */}
-          <div className="bg-[#090a0f]/90 border border-var(--border) rounded-3xl p-5 backdrop-blur-md flex flex-col h-[520px]">
-            <div className="flex items-center justify-between border-b border-var(--border) pb-3 mb-4 shrink-0">
+          <div className="bg-[#090a0f]/90 border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md flex flex-col h-[520px]">
+            <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 mb-4 shrink-0">
               <div className="flex items-center gap-2">
                 <Terminal className="w-4 h-4 text-blue-500" />
-                <h3 className="text-xs font-black uppercase text-white tracking-widest">Real-Time Chat Simulator</h3>
+                <h3 className="text-xs font-black uppercase text-[var(--text)] tracking-widest">Real-Time Chat Simulator</h3>
               </div>
               <button
                 onClick={handleResetSandbox}
                 title="Flush chat database"
-                className="p-1 px-2.5 bg-var(--bg-elevated) border border-var(--border) hover:bg-var(--bg-elevated) rounded-xl text-neutral-400 hover:text-white text-[10px] uppercase font-bold flex items-center gap-1 cursor-pointer transition"
+                className="p-1 px-2.5 bg-[var(--bg-elevated)] border border-[var(--border)] hover:bg-[var(--bg-elevated)] rounded-xl text-[var(--text-muted)] hover:text-[var(--text)] text-[10px] uppercase font-bold flex items-center gap-1 cursor-pointer transition"
               >
                 <RotateCcw className="w-3 h-3" />
                 Flush Sandbox
@@ -375,16 +375,16 @@ export const AiPlaygroundTab: React.FC = () => {
 
                   <div className={`max-w-[80%] rounded-2xl p-3.5 border ${
                     msg.role === "user"
-                      ? "bg-blue-600 text-white border-blue-500/20"
-                      : "bg-var(--bg-elevated)/40 text-neutral-250 text-neutral-200 border-var(--border)"
+                      ? "bg-blue-600 text-[var(--text)] border-blue-500/20"
+                      : "bg-[var(--bg-elevated)]/40 text-neutral-250 text-[var(--text)] border-[var(--border)]"
                   }`}>
                     <p className="font-medium whitespace-pre-line">{msg.text}</p>
                     
                     {msg.diagnostics && (
-                      <div className="mt-2 pt-2 border-t border-neutral-800/60 flex items-center gap-2 flex-wrap text-[9px] font-mono text-neutral-500">
-                        <span>Confidence: <strong className="text-neutral-300">{(msg.diagnostics.confidence * 100).toFixed(0)}%</strong></span>
+                      <div className="mt-2 pt-2 border-t border-[var(--border)]/60 flex items-center gap-2 flex-wrap text-[9px] font-mono text-[var(--text-subtle)]">
+                        <span>Confidence: <strong className="text-[var(--text)]">{(msg.diagnostics.confidence * 100).toFixed(0)}%</strong></span>
                         <span>•</span>
-                        <span>Time: <strong className="text-neutral-300">{msg.diagnostics.timeMs}ms</strong></span>
+                        <span>Time: <strong className="text-[var(--text)]">{msg.diagnostics.timeMs}ms</strong></span>
                         <span>•</span>
                         <span>Source: <strong className="text-blue-400">{msg.diagnostics.source}</strong></span>
                       </div>
@@ -392,8 +392,8 @@ export const AiPlaygroundTab: React.FC = () => {
                   </div>
 
                   {msg.role === "user" && (
-                    <div className="w-7 h-7 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center shrink-0">
-                      <User className="w-3.5 h-3.5 text-neutral-300" />
+                    <div className="w-7 h-7 rounded-full bg-[var(--bg-elevated)] border border-[var(--border-strong)] flex items-center justify-center shrink-0">
+                      <User className="w-3.5 h-3.5 text-[var(--text)]" />
                     </div>
                   )}
                 </div>
@@ -401,9 +401,9 @@ export const AiPlaygroundTab: React.FC = () => {
             </div>
 
             {/* Inbound Simulator Actions (Shortcuts) */}
-            <div className="shrink-0 border-t border-var(--border)/60 pt-3.5 space-y-2.5">
+            <div className="shrink-0 border-t border-[var(--border)]/60 pt-3.5 space-y-2.5">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="text-[10px] font-black uppercase text-neutral-500 tracking-wider">Escalation Presets:</span>
+                <span className="text-[10px] font-black uppercase text-[var(--text-subtle)] tracking-wider">Escalation Presets:</span>
                 {[
                   { type: "unknown", label: "Out of Bounds" },
                   { type: "low_confidence", label: "Low Confidence" },
@@ -414,7 +414,7 @@ export const AiPlaygroundTab: React.FC = () => {
                   <button
                     key={b.type}
                     onClick={() => triggerEscalationTest(b.type as any)}
-                    className="px-2 py-1 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) text-[9.5px] font-bold text-neutral-400 hover:text-blue-400 rounded-lg cursor-pointer transition border border-var(--border)"
+                    className="px-2 py-1 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] text-[9.5px] font-bold text-[var(--text-muted)] hover:text-blue-400 rounded-lg cursor-pointer transition border border-[var(--border)]"
                   >
                     {b.label}
                   </button>
@@ -429,11 +429,11 @@ export const AiPlaygroundTab: React.FC = () => {
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Ask a question as a simulator lead (e.g. 'Can I refund my membership plan?')..."
-                  className="flex-1 bg-[#050508] border border-var(--border) px-3.5 py-2.5 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500/50"
+                  className="flex-1 bg-[var(--bg)] border border-[var(--border)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)]"
                 />
                 <button
                   type="submit"
-                  className="px-4 bg-blue-600 hover:bg-blue-550 text-white rounded-xl transition flex items-center justify-center cursor-pointer"
+                  className="px-4 bg-blue-600 hover:bg-blue-550 text-[var(--text)] rounded-xl transition flex items-center justify-center cursor-pointer"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -442,25 +442,25 @@ export const AiPlaygroundTab: React.FC = () => {
           </div>
 
           {/* Compiled Prompt Sent to Gemini */}
-          <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-5 backdrop-blur-md space-y-2.5">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-2.5">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-black uppercase text-white tracking-widest flex items-center gap-1.5">
+              <span className="text-xs font-black uppercase text-[var(--text)] tracking-widest flex items-center gap-1.5">
                 <Code2 className="w-4 h-4 text-cyan-400" />
                 Gemini SDK Prompt Construction
               </span>
               <button
                 onClick={() => copyToClipboard(compiledPrompt)}
-                className="text-[9.5px] font-black uppercase text-neutral-400 hover:text-white flex items-center gap-1 bg-var(--bg-elevated) px-2 py-1 rounded-lg border border-neutral-800"
+                className="text-[9.5px] font-black uppercase text-[var(--text-muted)] hover:text-[var(--text)] flex items-center gap-1 bg-[var(--bg-elevated)] px-2 py-1 rounded-lg border border-[var(--border)]"
               >
                 Copy Prompt
               </button>
             </div>
             
-            <p className="text-[10.5px] text-neutral-400 leading-normal pb-1 border-b border-var(--border)/65">
+            <p className="text-[10.5px] text-[var(--text-muted)] leading-normal pb-1 border-b border-[var(--border)]/65">
               Below is the structured context compiled automatically from CRM settings and database schemas, which is passed to `@google/genai` on every dialogue handshake:
             </p>
 
-            <pre className="p-3 bg-[#040406]/90 border border-var(--border) rounded-2xl text-[10px] font-mono text-cyan-300/80 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-52">
+            <pre className="p-3 bg-[#040406]/90 border border-[var(--border)] rounded-2xl text-[10px] font-mono text-cyan-300/80 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-52">
               {compiledPrompt}
             </pre>
           </div>
@@ -471,28 +471,28 @@ export const AiPlaygroundTab: React.FC = () => {
         <div className="space-y-6">
           
           {/* Diagnostic Metrics */}
-          <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-5 backdrop-blur-md space-y-4">
-            <h3 className="text-xs font-black text-white uppercase tracking-wider text-blue-400 border-b border-var(--border) pb-2 flex items-center gap-1.5">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-4">
+            <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-wider text-blue-400 border-b border-[var(--border)] pb-2 flex items-center gap-1.5">
               <Zap className="w-4 h-4" />
               AI Inference Diagnostics
             </h3>
 
             <div className="space-y-3.5 text-xs">
               
-              <div className="p-3.5 bg-var(--bg-elevated)/30 border border-var(--border) rounded-2xl space-y-1">
-                <p className="text-[10px] uppercase font-black text-neutral-500 tracking-wider">Confidence Benchmark</p>
+              <div className="p-3.5 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-2xl space-y-1">
+                <p className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider">Confidence Benchmark</p>
                 <div className="flex items-center justify-between mt-1">
                   <span className={`text-lg font-black font-mono leading-none ${
                     diagnostics.confidence > 0.8 ? "text-green-400" : diagnostics.confidence > 0.6 ? "text-amber-400" : "text-red-400"
                   }`}>
                     {(diagnostics.confidence * 100).toFixed(0)}%
                   </span>
-                  <span className="text-[10px] bg-[#050508] p-1 font-mono text-neutral-500 border border-var(--border) rounded">
+                  <span className="text-[10px] bg-[var(--bg)] p-1 font-mono text-[var(--text-subtle)] border border-[var(--border)] rounded">
                     Score: {diagnostics.confidence}
                   </span>
                 </div>
                 {/* slider */}
-                <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden mt-1.5">
+                <div className="w-full bg-[var(--bg-elevated)] h-1.5 rounded-full overflow-hidden mt-1.5">
                   <div
                     className={`h-full transition-all ${
                       diagnostics.confidence > 0.8 ? "bg-green-400" : diagnostics.confidence > 0.6 ? "bg-amber-400" : "bg-red-400"
@@ -503,32 +503,32 @@ export const AiPlaygroundTab: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-neutral-950 border border-var(--border) rounded-2xl space-y-0.5 text-center">
-                  <p className="text-[9.5px] uppercase font-bold text-neutral-500">Latency</p>
-                  <p className="text-base font-black font-mono text-white mt-1">{diagnostics.timeMs} ms</p>
+                <div className="p-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl space-y-0.5 text-center">
+                  <p className="text-[9.5px] uppercase font-bold text-[var(--text-subtle)]">Latency</p>
+                  <p className="text-base font-black font-mono text-[var(--text)] mt-1">{diagnostics.timeMs} ms</p>
                 </div>
-                <div className="p-3 bg-neutral-950 border border-var(--border) rounded-2xl space-y-0.5 text-center">
-                  <p className="text-[9.5px] uppercase font-bold text-neutral-500">Fallback Flag</p>
-                  <p className={`text-xs font-black uppercase mt-1.5 ${diagnostics.fallback ? "text-amber-400" : "text-neutral-500"}`}>
+                <div className="p-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl space-y-0.5 text-center">
+                  <p className="text-[9.5px] uppercase font-bold text-[var(--text-subtle)]">Fallback Flag</p>
+                  <p className={`text-xs font-black uppercase mt-1.5 ${diagnostics.fallback ? "text-amber-400" : "text-[var(--text-subtle)]"}`}>
                     {diagnostics.fallback ? " Triggered" : "None"}
                   </p>
                 </div>
               </div>
 
-              <div className="p-3 bg-var(--bg-elevated)/20 border border-var(--border) rounded-2xl flex items-center justify-between">
+              <div className="p-3 bg-[var(--bg-elevated)]/20 border border-[var(--border)] rounded-2xl flex items-center justify-between">
                 <div>
-                  <p className="text-[9.5px] uppercase font-bold text-neutral-500">Human Handshake</p>
-                  <p className="text-[10px] text-neutral-400 text-neutral-400 mt-0.5">Escrow transfer rules</p>
+                  <p className="text-[9.5px] uppercase font-bold text-[var(--text-subtle)]">Human Handshake</p>
+                  <p className="text-[10px] text-[var(--text-muted)] text-[var(--text-muted)] mt-0.5">Escrow transfer rules</p>
                 </div>
                 <span className={`px-2 py-0.5 font-bold text-[9.5px] uppercase rounded-md ${
-                  diagnostics.escalation ? "bg-red-500/10 text-red-400 border border-red-500/10" : "bg-var(--bg-elevated) text-neutral-500"
+                  diagnostics.escalation ? "bg-red-500/10 text-red-400 border border-red-500/10" : "bg-[var(--bg-elevated)] text-[var(--text-subtle)]"
                 }`}>
                   {diagnostics.escalation ? " Required" : "No Limit"}
                 </span>
               </div>
 
-              <div className="p-3 bg-var(--bg-elevated)/20 border border-var(--border) rounded-2xl space-y-1">
-                <p className="text-[9.5px] uppercase font-bold text-neutral-500">Retrieved Rule Target</p>
+              <div className="p-3 bg-[var(--bg-elevated)]/20 border border-[var(--border)] rounded-2xl space-y-1">
+                <p className="text-[9.5px] uppercase font-bold text-[var(--text-subtle)]">Retrieved Rule Target</p>
                 <p className="text-[11px] font-bold text-cyan-400 flex items-center gap-1 truncate" title={diagnostics.source}>
                   <BookOpen className="w-3.5 h-3.5" />
                   {diagnostics.source || "None"}
@@ -539,20 +539,20 @@ export const AiPlaygroundTab: React.FC = () => {
           </div>
 
           {/* Conversation memory stack */}
-          <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-5 backdrop-blur-md space-y-4">
-            <h3 className="text-xs font-black text-white uppercase tracking-wider text-blue-400 border-b border-var(--border) pb-2 flex items-center gap-1.5">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-4">
+            <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-wider text-blue-400 border-b border-[var(--border)] pb-2 flex items-center gap-1.5">
               <History className="w-4 h-4" />
               Conversation Context Storage
             </h3>
 
             <div className="space-y-3 max-h-60 overflow-y-auto pr-1">
               {memoryList.map((m, idx) => (
-                <div key={idx} className="p-3 bg-var(--bg-elevated)/30 border border-var(--border) rounded-xl text-[11px] leading-normal font-sans">
-                  <div className="flex items-center justify-between text-[9px] uppercase font-black tracking-wider text-neutral-500 mb-1">
+                <div key={idx} className="p-3 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-xl text-[11px] leading-normal font-sans">
+                  <div className="flex items-center justify-between text-[9px] uppercase font-black tracking-wider text-[var(--text-subtle)] mb-1">
                     <span>Role: {m.role}</span>
                     <span className="font-mono text-[8px]">Index #{idx}</span>
                   </div>
-                  <p className="text-neutral-300 italic">"{m.content}"</p>
+                  <p className="text-[var(--text)] italic">"{m.content}"</p>
                 </div>
               ))}
             </div>
@@ -571,16 +571,16 @@ export const AiPlaygroundTab: React.FC = () => {
         
         {/* Left Side: Stress tests and dials */}
         <div className="xl:col-span-2 space-y-6">
-          <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-5 backdrop-blur-md space-y-5">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-5">
             <div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest text-blue-400">Query Stress Emulator</h3>
-              <p className="text-xs text-neutral-400 mt-1">Simulate parallel dialogue triggers concurrently to analyze Autofy scale benchmarks.</p>
+              <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-widest text-blue-400">Query Stress Emulator</h3>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Simulate parallel dialogue triggers concurrently to analyze Autofy scale benchmarks.</p>
             </div>
 
-            <div className="p-4 bg-[#07080c] border border-var(--border) rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="p-4 bg-[#07080c] border border-[var(--border)] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
               
               <div className="space-y-2">
-                <span className="text-[10px] uppercase font-black text-neutral-500 tracking-wider block">Query volume scale</span>
+                <span className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider block">Query volume scale</span>
                 <div className="flex gap-2">
                   {([100, 500, 1000] as const).map(vol => (
                     <button
@@ -589,8 +589,8 @@ export const AiPlaygroundTab: React.FC = () => {
                       disabled={isStressRunning}
                       className={`px-3 py-1.5 rounded-xl font-mono text-xs font-bold border cursor-pointer transition ${
                         stressVolume === vol 
-                          ? "bg-blue-600 border-blue-500 text-white" 
-                          : "bg-var(--bg-elevated) border-var(--border) text-neutral-400 hover:text-white"
+                          ? "bg-blue-600 border-blue-500 text-[var(--text)]" 
+                          : "bg-[var(--bg-elevated)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)]"
                       }`}
                     >
                       {vol} Calls
@@ -602,9 +602,9 @@ export const AiPlaygroundTab: React.FC = () => {
               <button
                 onClick={handleRunStressTest}
                 disabled={isStressRunning}
-                className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-550 disabled:bg-neutral-800 disabled:text-neutral-500 text-white font-extrabold text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-6 py-3 bg-blue-600 hover:bg-blue-550 disabled:bg-[var(--bg-elevated)] disabled:text-[var(--text-subtle)] text-[var(--text)] font-extrabold text-xs rounded-xl shadow-lg transition-all cursor-pointer flex items-center justify-center gap-2"
               >
-                <Play className="w-4 h-4 fill-white text-white" />
+                <Play className="w-4 h-4 fill-white text-[var(--text)]" />
                 {isStressRunning ? `Simulating ${stressProgress}%` : "Run Stress Test Simulation"}
               </button>
 
@@ -612,16 +612,16 @@ export const AiPlaygroundTab: React.FC = () => {
 
             {/* Run Progress slider */}
             {isStressRunning && (
-              <div className="space-y-1.5 p-3.5 bg-var(--bg-elevated)/30 border border-var(--border) rounded-2xl">
-                <div className="flex justify-between items-center text-[10px] uppercase font-black text-neutral-400">
+              <div className="space-y-1.5 p-3.5 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-2xl">
+                <div className="flex justify-between items-center text-[10px] uppercase font-black text-[var(--text-muted)]">
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
                     Simulating query dispatches...
                   </span>
-                  <span className="font-mono text-neutral-300">{stressProgress}% complete</span>
+                  <span className="font-mono text-[var(--text)]">{stressProgress}% complete</span>
                 </div>
 
-                <div className="w-full h-2 bg-var(--bg-elevated) rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
                   <div className="bg-blue-600 h-full transition-all duration-100" style={{ width: `${stressProgress}%` }} />
                 </div>
               </div>
@@ -635,10 +635,10 @@ export const AiPlaygroundTab: React.FC = () => {
                 { label: "Avg Execution Time", val: `${stressResults.avgSpeedMs} ms`, metric: "@google/genai proxy" },
                 { label: "Automatic Fallbacks", val: `${stressResults.fallbacks} cases`, metric: "Escalated gracefully" }
               ].map((res, idx) => (
-                <div key={idx} className="p-3.5 bg-var(--bg-elevated)/20 border border-var(--border) rounded-2xl text-center">
-                  <p className="text-[9.5px] uppercase font-black text-neutral-500 tracking-wider">{res.label}</p>
-                  <p className="text-lg font-black font-mono text-white mt-1.5">{res.val}</p>
-                  <p className="text-[8.5px] text-neutral-400 mt-1">{res.metric}</p>
+                <div key={idx} className="p-3.5 bg-[var(--bg-elevated)]/20 border border-[var(--border)] rounded-2xl text-center">
+                  <p className="text-[9.5px] uppercase font-black text-[var(--text-subtle)] tracking-wider">{res.label}</p>
+                  <p className="text-lg font-black font-mono text-[var(--text)] mt-1.5">{res.val}</p>
+                  <p className="text-[8.5px] text-[var(--text-muted)] mt-1">{res.metric}</p>
                 </div>
               ))}
             </div>
@@ -646,21 +646,21 @@ export const AiPlaygroundTab: React.FC = () => {
           </div>
 
           {/* AI QUALITY ANALYZER PANELS */}
-          <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-5 backdrop-blur-md space-y-4">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-4">
             <div>
-              <h3 className="text-xs font-black text-white uppercase tracking-widest text-blue-400">AI Quality Response Analyzer</h3>
-              <p className="text-xs text-neutral-400 mt-1">Automatic semantic checker detects weak contexts, policy holes, or possible response hallucinations.</p>
+              <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-widest text-blue-400">AI Quality Response Analyzer</h3>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Automatic semantic checker detects weak contexts, policy holes, or possible response hallucinations.</p>
             </div>
 
             <div className="space-y-3.5">
               {qualityAudits.map(audit => (
-                <div key={audit.id} className="p-4 bg-var(--bg-elevated)/20 border border-var(--border) rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs leading-normal">
+                <div key={audit.id} className="p-4 bg-[var(--bg-elevated)]/20 border border-[var(--border)] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs leading-normal">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-red-550 bg-red-500" />
-                      <p className="font-bold text-white">{audit.issue}</p>
+                      <p className="font-bold text-[var(--text)]">{audit.issue}</p>
                     </div>
-                    <p className="text-neutral-400 text-neutral-400 text-[11px]">Recommended action: <strong className="text-neutral-200">{audit.fix}</strong></p>
+                    <p className="text-[var(--text-muted)] text-[var(--text-muted)] text-[11px]">Recommended action: <strong className="text-[var(--text)]">{audit.fix}</strong></p>
                   </div>
                   <span className="px-2 py-1 font-mono text-[9px] font-black uppercase text-red-400 bg-red-500/10 border border-red-500/20 rounded-md self-start md:self-auto shrink-0">
                     {audit.impact}
@@ -675,8 +675,8 @@ export const AiPlaygroundTab: React.FC = () => {
 
         {/* Right side: sandbox knowledge parameters config summary */}
         <div className="space-y-6">
-          <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-5 backdrop-blur-md space-y-4">
-            <h3 className="text-xs font-black text-white uppercase tracking-wider text-blue-400 border-b border-var(--border) pb-2">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-4">
+            <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-wider text-blue-400 border-b border-[var(--border)] pb-2">
               Sandbox Knowledge Source Panel
             </h3>
 
@@ -688,9 +688,9 @@ export const AiPlaygroundTab: React.FC = () => {
                 { label: "Security Policy alignment", val: activeKnowledgeSource.policy },
                 { label: "Linked Doc Reference", val: activeKnowledgeSource.document },
               ].map((kn, idx) => (
-                <div key={idx} className="p-3 bg-var(--bg-elevated)/20 border border-var(--border) rounded-xl space-y-1">
-                  <label className="text-[9.5px] uppercase font-bold text-neutral-500 block">{kn.label}</label>
-                  <p className="font-bold text-white truncate text-[11px]">{kn.val}</p>
+                <div key={idx} className="p-3 bg-[var(--bg-elevated)]/20 border border-[var(--border)] rounded-xl space-y-1">
+                  <label className="text-[9.5px] uppercase font-bold text-[var(--text-subtle)] block">{kn.label}</label>
+                  <p className="font-bold text-[var(--text)] truncate text-[11px]">{kn.val}</p>
                 </div>
               ))}
             </div>
@@ -709,12 +709,12 @@ export const AiPlaygroundTab: React.FC = () => {
         {/* LEFTSIDE: EXPORTABLE PYTHON / FASTAPI FILES MODULES */}
         <div className="xl:col-span-2 space-y-6">
           
-          <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-5 backdrop-blur-md space-y-4">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-4">
             
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-var(--border)/60 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border)]/60 pb-3">
               <div>
-                <h3 className="text-xs font-black text-white uppercase tracking-widest">FastAPI Production Code Generator</h3>
-                <p className="text-[10.5px] text-neutral-500 mt-1">Raw, production-ready, highly compliant Python codebases.</p>
+                <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-widest">FastAPI Production Code Generator</h3>
+                <p className="text-[10.5px] text-[var(--text-subtle)] mt-1">Raw, production-ready, highly compliant Python codebases.</p>
               </div>
 
               {/* download file list selectors */}
@@ -730,8 +730,8 @@ export const AiPlaygroundTab: React.FC = () => {
                     onClick={() => setActiveCodeFile(fi.id as any)}
                     className={`px-2.5 py-1.5 rounded-lg text-[9.5px] font-black uppercase transition cursor-pointer ${
                       activeCodeFile === fi.id 
-                        ? "bg-neutral-800 border-neutral-700 text-blue-400" 
-                        : "text-neutral-500 hover:text-neutral-300 border border-transparent"
+                        ? "bg-[var(--bg-elevated)] border-[var(--border-strong)] text-blue-400" 
+                        : "text-[var(--text-subtle)] hover:text-[var(--text)] border border-transparent"
                     }`}
                   >
                     {fi.file.split(" ")[0]}
@@ -744,13 +744,13 @@ export const AiPlaygroundTab: React.FC = () => {
             <div className="space-y-2.5 relative">
               <button
                 onClick={() => copyToClipboard(fastApiCodeblocks[activeCodeFile])}
-                className="absolute right-4 top-4 text-[9.5px] font-black uppercase text-neutral-400 hover:text-white bg-var(--bg-elevated) border border-var(--border) px-3 py-1.5 rounded-xl flex items-center gap-1 z-10 transition-all cursor-pointer"
+                className="absolute right-4 top-4 text-[9.5px] font-black uppercase text-[var(--text-muted)] hover:text-[var(--text)] bg-[var(--bg-elevated)] border border-[var(--border)] px-3 py-1.5 rounded-xl flex items-center gap-1 z-10 transition-all cursor-pointer"
               >
                 <Clipboard className="w-3.5 h-3.5" />
                 Copy File
               </button>
 
-              <pre className="p-4 pt-12 bg-[#040406]/95 border border-var(--border) rounded-2xl text-[10px] font-mono text-emerald-400/90 overflow-x-auto whitespace-pre leading-relaxed max-h-[460px] scrollbar-thin">
+              <pre className="p-4 pt-12 bg-[#040406]/95 border border-[var(--border)] rounded-2xl text-[10px] font-mono text-emerald-400/90 overflow-x-auto whitespace-pre leading-relaxed max-h-[460px] scrollbar-thin">
                 {fastApiCodeblocks[activeCodeFile]}
               </pre>
             </div>
@@ -761,8 +761,8 @@ export const AiPlaygroundTab: React.FC = () => {
 
         {/* RIGHTSIDE: DATABASE STRUCTURAL REPRESENTATIONS */}
         <div className="space-y-6">
-          <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-5 backdrop-blur-md space-y-4">
-            <h3 className="text-xs font-black text-white uppercase tracking-wider text-blue-400 border-b border-var(--border) pb-2 flex items-center gap-1.5">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-4">
+            <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-wider text-blue-400 border-b border-[var(--border)] pb-2 flex items-center gap-1.5">
               <Database className="w-4 h-4" />
               Relational CRM Db Schema
             </h3>
@@ -814,16 +814,16 @@ export const AiPlaygroundTab: React.FC = () => {
                   cols: ["id (UUID, Key)", "session_id (VARCHAR)", "sequence_json (JSON)", "updated_at (TIMESTAMP)"]
                 }
               ].map((sc, scIdx) => (
-                <div key={scIdx} className="p-3 bg-var(--bg-elevated)/30 border border-var(--border) rounded-2xl text-[11px] leading-normal font-sans space-y-1">
+                <div key={scIdx} className="p-3 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-2xl text-[11px] leading-normal font-sans space-y-1">
                   <div className="flex items-center justify-between font-mono text-[9.5px]">
                     <span className="text-blue-400 font-extrabold flex items-center gap-1">
-                      <CornerDownRight className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                      <CornerDownRight className="w-3.5 h-3.5 text-[var(--text-subtle)] shrink-0" />
                       TABLE: {sc.tbl}
                     </span>
-                    <span className="text-neutral-500 text-neutral-500 uppercase font-black tracking-widest text-[8px]" />
+                    <span className="text-[var(--text-subtle)] text-[var(--text-subtle)] uppercase font-black tracking-widest text-[8px]" />
                   </div>
                   
-                  <ul className="text-[10px] text-neutral-400 font-mono space-y-0.5 list-disc pl-4.5 pl-4">
+                  <ul className="text-[10px] text-[var(--text-muted)] font-mono space-y-0.5 list-disc pl-4.5 pl-4">
                     {sc.cols.map((cl, clIdx) => (
                       <li key={clIdx}>{cl}</li>
                     ))}

@@ -300,19 +300,19 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
     <div className="space-y-6">
       
       {/* HEADER CONTROLS SECTION */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-neutral-950/20 border border-var(--border) rounded-3xl p-6 backdrop-blur-md">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 glass-card rounded-3xl p-6 relative overflow-hidden">
         
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-550 text-blue-500" /> Executive Business Analytics <span className="bg-blue-500/10 text-blue-400 font-mono text-[9px] px-2 py-0.5 rounded-full font-black border border-blue-500/10">Investor Metrics Ready</span>
+          <h2 className="text-xl sm:text-2xl font-black font-display tracking-tight flex items-center gap-2" style={{ color: "var(--text)" }}>
+            <Activity className="w-5 h-5 text-blue-500" /> Executive Business Analytics <span className="badge-glow text-[10px] px-2.5 py-0.5 font-bold font-sans">Investor Metrics Ready</span>
           </h2>
-          <p className="text-xs text-neutral-400 text-neutral-400 font-medium">Measure real-world business performance, conversation funnel conversion, and AI knowledge base efficiencies.</p>
+          <p className="text-xs font-sans mt-1" style={{ color: "var(--text-muted)" }}>Measure real-world business performance, conversation funnel conversion, and AI knowledge base efficiencies.</p>
         </div>
 
         {/* Dynamic global timeframe presets and action tool buttons */}
         <div className="flex flex-wrap items-center gap-2">
           
-          <div className="bg-var(--bg-elevated)/40 border border-var(--border) p-1.5 rounded-xl flex items-center gap-1">
+          <div className="bg-[var(--bg-elevated)]/40 border border-[var(--border)] p-1.5 rounded-xl flex items-center gap-1">
             {(["today", "7days", "30days", "90days", "custom"] as const).map((r) => (
               <button
                 key={r}
@@ -323,8 +323,8 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
                 }}
                 className={`px-3 py-1 text-[10px] font-black rounded-lg transition-colors uppercase whitespace-nowrap cursor-pointer ${
                   activeRange === r 
-                    ? "bg-blue-600 text-white shadow-lg" 
-                    : "text-neutral-400 hover:text-white"
+                    ? "bg-blue-600 text-[var(--text)] shadow-lg" 
+                    : "text-[var(--text-muted)] hover:text-[var(--text)]"
                 }`}
               >
                 {r === "7days" ? "7 Days" : r === "30days" ? "30 Days" : r === "90days" ? "90 Days" : r}
@@ -335,7 +335,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
           <button
             id="btn-simulate-event"
             onClick={handleSimulateEvent}
-            className="bg-[#121215] hover:bg-var(--bg-elevated) text-neutral-300 hover:text-white border border-neutral-800 hover:border-neutral-700 text-[10.5px] font-black px-3.5 py-2.5 rounded-xl transition duration-200 cursor-pointer flex items-center gap-1.5"
+            className="bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] text-[var(--text)] hover:text-[var(--text)] border border-[var(--border)] hover:border-[var(--border-strong)] text-[10.5px] font-black px-3.5 py-2.5 rounded-xl transition duration-200 cursor-pointer flex items-center gap-1.5"
           >
             <Zap className="w-3.5 h-3.5 text-amber-400 animate-bounce" /> Simulate Event
           </button>
@@ -351,29 +351,29 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="p-5 bg-neutral-950/50 border border-blue-500/20 rounded-3xl backdrop-blur-md grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+            className="p-5 bg-[var(--bg-card)] border border-blue-500/20 rounded-3xl backdrop-blur-md grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
           >
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-neutral-400 tracking-wider flex items-center gap-1 mb-1.5">
+              <label className="text-[10px] uppercase font-extrabold text-[var(--text-muted)] tracking-wider flex items-center gap-1 mb-1.5">
                 <CalendarRange className="w-3 h-3 text-blue-400" /> Start Date
               </label>
               <input
                 type="date"
                 value={customStartDate}
                 onChange={(e) => setCustomStartDate(e.target.value)}
-                className="w-full bg-var(--bg-elevated) border border-neutral-800 text-xs px-3.5 py-2.5 rounded-xl text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] text-xs px-3.5 py-2.5 rounded-xl text-[var(--text)] focus:outline-none focus:border-[var(--brand)] cursor-pointer"
               />
             </div>
 
             <div>
-              <label className="text-[10px] uppercase font-extrabold text-neutral-400 tracking-wider flex items-center gap-1 mb-1.5">
+              <label className="text-[10px] uppercase font-extrabold text-[var(--text-muted)] tracking-wider flex items-center gap-1 mb-1.5">
                 <CalendarRange className="w-3 h-3 text-blue-400" /> End Date
               </label>
               <input
                 type="date"
                 value={customEndDate}
                 onChange={(e) => setCustomEndDate(e.target.value)}
-                className="w-full bg-var(--bg-elevated) border border-neutral-800 text-xs px-3.5 py-2.5 rounded-xl text-white focus:outline-none focus:border-blue-500/50 cursor-pointer"
+                className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] text-xs px-3.5 py-2.5 rounded-xl text-[var(--text)] focus:outline-none focus:border-[var(--brand)] cursor-pointer"
               />
             </div>
 
@@ -382,7 +382,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
                 setIsCustomDateApplied(true);
                 triggerNotification(` Filter set between dates: ${customStartDate} to ${customEndDate}`);
               }}
-              className="bg-blue-600 hover:bg-blue-500 text-white text-xs font-black py-2.5 rounded-xl transitions transition-colors cursor-pointer w-full text-center"
+              className="bg-blue-600 hover:bg-blue-500 text-[var(--text)] text-xs font-black py-2.5 rounded-xl transitions transition-colors cursor-pointer w-full text-center"
             >
               Apply Filter Window
             </button>
@@ -394,47 +394,47 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
         {/* Executive summary card */}
-        <div className="lg:col-span-2 bg-gradient-to-r from-blue-950/20 via-neutral-950 to-neutral-950 border border-var(--border) rounded-3xl p-6 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-500" />
+        <div className="lg:col-span-2 glass-card rounded-3xl p-6 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-500 pointer-events-none" style={{ background: "var(--brand-subtle)" }} />
           
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6">
             <div>
-              <div className="flex items-center gap-1.5 text-blue-400 text-xs font-extrabold uppercase">
-                <Sparkles className="w-4 h-4 animate-spin" /> Live Performance Abstract
+              <div className="flex items-center gap-1.5 text-[var(--brand)] text-xs font-extrabold uppercase font-sans">
+                <Sparkles className="w-4 h-4 animate-spin text-[var(--brand)]" /> Live Performance Abstract
               </div>
-              <h3 className="text-base font-black text-white mt-1">This Month Autofy Generated Value</h3>
+              <h3 className="text-base font-black font-display tracking-tight mt-1" style={{ color: "var(--text)" }}>This Month Autofy Generated Value</h3>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-[10.5px] text-green-400 bg-green-500/10 border border-green-500/20 font-black px-2.5 py-1 rounded-lg">
+              <span className="text-[10.5px] text-emerald-500 bg-green-500/10 border border-green-500/20 font-black px-2.5 py-1 rounded-lg">
                  +34% Net Growth
               </span>
-              <span className="text-[10px] text-neutral-500 font-bold">vs Last Month</span>
+              <span className="text-[10px] font-bold font-sans" style={{ color: "var(--text-subtle)" }}>vs Last Month</span>
             </div>
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             
-            <div className="p-4 bg-[#0a0a0d] border border-var(--border)/60 rounded-2xl">
-              <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">Leads Secured</p>
-              <h4 className="text-2xl font-black text-white mt-1.5">+125</h4>
-              <p className="text-[9px] text-green-400 font-semibold mt-1">▲ Conversion high</p>
+            <div className="p-4 rounded-2xl border" style={{ background: "var(--bg-elevated)", borderColor: "var(--border)" }}>
+              <p className="text-[10px] font-bold uppercase tracking-wider font-sans" style={{ color: "var(--text-subtle)" }}>Leads Secured</p>
+              <h4 className="text-2xl font-black mt-1.5 font-display" style={{ color: "var(--text)" }}>+125</h4>
+              <p className="text-[9px] text-emerald-500 font-semibold mt-1 font-sans">▲ Conversion high</p>
             </div>
 
-            <div className="p-4 bg-[#0a0a0d] border border-var(--border)/60 rounded-2xl">
-              <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">Appointments Locked</p>
-              <h4 className="text-2xl font-black text-white mt-1.5">+42</h4>
+            <div className="p-4 bg-[var(--bg-elevated)] border border-[var(--border)]/60 rounded-2xl">
+              <p className="text-[10px] text-[var(--text-subtle)] font-bold uppercase tracking-wider">Appointments Locked</p>
+              <h4 className="text-2xl font-black text-[var(--text)] mt-1.5">+42</h4>
               <p className="text-[9px] text-blue-400 font-semibold mt-1"> Sync with calendar</p>
             </div>
 
-            <div className="p-4 bg-[#0a0a0d] border border-var(--border)/60 rounded-2xl">
-              <p className="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">New Customers</p>
-              <h4 className="text-2xl font-black text-white mt-1.5">+18</h4>
+            <div className="p-4 bg-[var(--bg-elevated)] border border-[var(--border)]/60 rounded-2xl">
+              <p className="text-[10px] text-[var(--text-subtle)] font-bold uppercase tracking-wider">New Customers</p>
+              <h4 className="text-2xl font-black text-[var(--text)] mt-1.5">+18</h4>
               <p className="text-[9px] text-indigo-400 font-semibold mt-1"> High value tiers</p>
             </div>
 
             <div className="p-4 bg-gradient-to-br from-blue-900/15 to-neutral-950 border border-blue-500/20 rounded-2xl">
               <p className="text-[10px] text-blue-400 font-bold uppercase tracking-wider">Net Revenue Verified</p>
-              <h4 className="text-2xl font-black text-white font-mono mt-1.5">₹87,500</h4>
+              <h4 className="text-2xl font-black text-[var(--text)] font-mono mt-1.5">₹87,500</h4>
               <p className="text-[9px] text-emerald-400 font-bold mt-1"> Settled Sandbox</p>
             </div>
 
@@ -442,22 +442,22 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
         </div>
 
         {/* Reports scheduler widget container */}
-        <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-6 backdrop-blur-md flex flex-col justify-between space-y-4">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 backdrop-blur-md flex flex-col justify-between space-y-4">
           <div>
-            <h4 className="text-xs font-black text-white uppercase tracking-wider">Report Deliverability Node</h4>
-            <p className="text-[10.5px] text-neutral-500 mt-1">Export executive investor decks or program daily logs</p>
+            <h4 className="text-xs font-black text-[var(--text)] uppercase tracking-wider">Report Deliverability Node</h4>
+            <p className="text-[10.5px] text-[var(--text-subtle)] mt-1">Export executive investor decks or program daily logs</p>
           </div>
 
           <div className="grid grid-cols-2 gap-2">
             <button
               onClick={() => handleExportReport("pdf")}
-              className="py-2 px-3 border border-red-500/10 hover:border-red-500/30 bg-red-950/10 text-red-400 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+              className="py-2 px-3 border border-red-500/10 hover:border-red-500/30 bg-red-950/10 text-red-400 hover:text-[var(--text)] rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <FileText className="w-4 h-4" /> Export PDF
             </button>
             <button
               onClick={() => handleExportReport("excel")}
-              className="py-2 px-3 border border-emerald-500/10 hover:border-emerald-500/30 bg-emerald-950/10 text-emerald-400 hover:text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+              className="py-2 px-3 border border-emerald-500/10 hover:border-emerald-500/30 bg-emerald-950/10 text-emerald-400 hover:text-[var(--text)] rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               <FileSpreadsheet className="w-4 h-4" /> Export Excel
             </button>
@@ -466,13 +466,13 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
           <div className="flex gap-2 text-[10.5px]">
             <button
               onClick={() => handleScheduleReports("weekly")}
-              className="flex-1 text-center py-1.5 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) border border-neutral-800 text-neutral-300 rounded-lg text-[9.5px] font-semibold cursor-pointer"
+              className="flex-1 text-center py-1.5 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text)] rounded-lg text-[9.5px] font-semibold cursor-pointer"
             >
                Schedule Weekly
             </button>
             <button
               onClick={() => handleScheduleReports("monthly")}
-              className="flex-1 text-center py-1.5 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) border border-neutral-800 text-neutral-300 rounded-lg text-[9.5px] font-semibold cursor-pointer"
+              className="flex-1 text-center py-1.5 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text)] rounded-lg text-[9.5px] font-semibold cursor-pointer"
             >
                Schedule Monthly
             </button>
@@ -485,16 +485,16 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* KPI 1: Conversations */}
-        <div id="kpi-conversations" className="bg-[#08080a]/80 border border-var(--border) rounded-3xl p-5 hover:border-blue-500/20 transition-all duration-300">
+        <div id="kpi-conversations" className="bg-[#08080a]/80 border border-[var(--border)] rounded-3xl p-5 hover:border-blue-500/20 transition-all duration-300">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-neutral-400 text-neutral-400 uppercase font-black tracking-widest text-neutral-400">Total Conversations</span>
+            <span className="text-[10px] text-[var(--text-muted)] text-[var(--text-muted)] uppercase font-black tracking-widest text-[var(--text-muted)]">Total Conversations</span>
             <div className="text-[10px] text-emerald-400 font-extrabold flex items-center gap-0.5">
               <ArrowUpRight className="w-3.5 h-3.5" /> +{kpis.conversations.growth}%
             </div>
           </div>
           <div className="mt-4 flex items-baseline gap-2">
-            <h4 className="text-3xl font-black text-white font-mono">{kpis.conversations.value.toLocaleString()}</h4>
-            <span className="text-[10px] text-neutral-500 font-semibold">chats</span>
+            <h4 className="text-3xl font-black text-[var(--text)] font-mono">{kpis.conversations.value.toLocaleString()}</h4>
+            <span className="text-[10px] text-[var(--text-subtle)] font-semibold">chats</span>
           </div>
           {/* Sparkline visualization */}
           <div className="h-6 w-full mt-3 overflow-hidden rounded opacity-60">
@@ -507,16 +507,16 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
         </div>
 
         {/* KPI 2: Total Leads */}
-        <div id="kpi-leads" className="bg-[#08080a]/80 border border-var(--border) rounded-3xl p-5 hover:border-indigo-500/20 transition-all duration-300">
+        <div id="kpi-leads" className="bg-[#08080a]/80 border border-[var(--border)] rounded-3xl p-5 hover:border-indigo-500/20 transition-all duration-300">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-neutral-400 text-neutral-400 uppercase font-black tracking-widest text-neutral-400">Leads Captured</span>
+            <span className="text-[10px] text-[var(--text-muted)] text-[var(--text-muted)] uppercase font-black tracking-widest text-[var(--text-muted)]">Leads Captured</span>
             <div className="text-[10px] text-emerald-400 font-extrabold flex items-center gap-0.5">
               <ArrowUpRight className="w-3.5 h-3.5" /> +{kpis.leads.growth}%
             </div>
           </div>
           <div className="mt-4 flex items-baseline gap-2">
-            <h4 className="text-3xl font-black text-white font-mono">{kpis.leads.value.toLocaleString()}</h4>
-            <span className="text-[10px] text-neutral-500 font-semibold">contacts</span>
+            <h4 className="text-3xl font-black text-[var(--text)] font-mono">{kpis.leads.value.toLocaleString()}</h4>
+            <span className="text-[10px] text-[var(--text-subtle)] font-semibold">contacts</span>
           </div>
           {/* Sparkline visualization */}
           <div className="h-6 w-full mt-3 overflow-hidden rounded opacity-60">
@@ -529,16 +529,16 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
         </div>
 
         {/* KPI 3: Appointments */}
-        <div id="kpi-appointments" className="bg-[#08080a]/80 border border-var(--border) rounded-3xl p-5 hover:border-indigo-500/20 transition-all duration-300">
+        <div id="kpi-appointments" className="bg-[#08080a]/80 border border-[var(--border)] rounded-3xl p-5 hover:border-indigo-500/20 transition-all duration-300">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-neutral-400 text-neutral-400 uppercase font-black tracking-widest text-neutral-400">Appointments Booked</span>
+            <span className="text-[10px] text-[var(--text-muted)] text-[var(--text-muted)] uppercase font-black tracking-widest text-[var(--text-muted)]">Appointments Booked</span>
             <div className="text-[10px] text-emerald-400 font-extrabold flex items-center gap-0.5">
               <ArrowUpRight className="w-3.5 h-3.5" /> +{kpis.appointments.growth}%
             </div>
           </div>
           <div className="mt-4 flex items-baseline gap-2">
-            <h4 className="text-3xl font-black text-white font-mono">{kpis.appointments.value.toLocaleString()}</h4>
-            <span className="text-[10px] text-neutral-500 font-semibold">slots</span>
+            <h4 className="text-3xl font-black text-[var(--text)] font-mono">{kpis.appointments.value.toLocaleString()}</h4>
+            <span className="text-[10px] text-[var(--text-subtle)] font-semibold">slots</span>
           </div>
           {/* Sparkline visualization */}
           <div className="h-6 w-full mt-3 overflow-hidden rounded opacity-60">
@@ -551,16 +551,16 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
         </div>
 
         {/* KPI 4: Revenue Generated */}
-        <div id="kpi-revenue" className="bg-[#08080a]/80 border border-var(--border) rounded-3xl p-5 hover:border-emerald-500/20 transition-all duration-300">
+        <div id="kpi-revenue" className="bg-[#08080a]/80 border border-[var(--border)] rounded-3xl p-5 hover:border-emerald-500/20 transition-all duration-300">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-neutral-400 text-neutral-400 uppercase font-black tracking-widest text-neutral-400">Total Revenue Code</span>
+            <span className="text-[10px] text-[var(--text-muted)] text-[var(--text-muted)] uppercase font-black tracking-widest text-[var(--text-muted)]">Total Revenue Code</span>
             <div className="text-[10px] text-emerald-400 font-extrabold flex items-center gap-0.5">
               <ArrowUpRight className="w-3.5 h-3.5" /> +{kpis.revenue.growth}%
             </div>
           </div>
           <div className="mt-4 flex items-baseline gap-1">
-            <h4 className="text-3xl font-black text-white font-mono">₹{kpis.revenue.value.toLocaleString()}</h4>
-            <span className="text-[10px] text-neutral-500 font-semibold">gross</span>
+            <h4 className="text-3xl font-black text-[var(--text)] font-mono">₹{kpis.revenue.value.toLocaleString()}</h4>
+            <span className="text-[10px] text-[var(--text-subtle)] font-semibold">gross</span>
           </div>
           {/* Sparkline visualization */}
           <div className="h-6 w-full mt-3 overflow-hidden rounded opacity-60">
@@ -575,15 +575,15 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
       </div>
 
       {/* REVENUE INTEGRATED SEARCH AND HIGH-FIDELITY PERFORMANCE GRAPH */}
-      <div className="bg-[#08080a] border border-var(--border) rounded-3xl p-6 space-y-6">
+      <div className="bg-[#08080a] border border-[var(--border)] rounded-3xl p-6 space-y-6">
         
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-var(--border) pb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
           <div>
-            <h3 className="text-sm font-black text-white font-sans uppercase tracking-wider">Business Growth Viewport</h3>
-            <p className="text-[10.5px] text-neutral-500 font-medium font-sans">Toggle and evaluate dynamic timeline metrics verified by systems portal</p>
+            <h3 className="text-sm font-black text-[var(--text)] font-sans uppercase tracking-wider">Business Growth Viewport</h3>
+            <p className="text-[10.5px] text-[var(--text-subtle)] font-medium font-sans">Toggle and evaluate dynamic timeline metrics verified by systems portal</p>
           </div>
 
-          <div className="bg-var(--bg-elevated)/60 p-1 border border-var(--border) rounded-xl flex items-center gap-1">
+          <div className="bg-[var(--bg-elevated)]/60 p-1 border border-[var(--border)] rounded-xl flex items-center gap-1">
             {(["conversations", "leads", "appointments", "revenue"] as const).map(met => (
               <button
                 key={met}
@@ -594,8 +594,8 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
                 }}
                 className={`px-3 py-1 text-[10px] font-black rounded-lg transition capitalize whitespace-nowrap cursor-pointer ${
                   interactiveMetric === met 
-                    ? "bg-blue-600 text-white" 
-                    : "text-neutral-400 hover:text-white"
+                    ? "bg-blue-600 text-[var(--text)]" 
+                    : "text-[var(--text-muted)] hover:text-[var(--text)]"
                 }`}
               >
                 ● {met}
@@ -652,12 +652,12 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
         {/* 1. Lead Conversion Funnel */}
-        <div className="lg:col-span-3 bg-[#08080a] border border-var(--border) rounded-3xl p-6 space-y-4">
+        <div className="lg:col-span-3 bg-[#08080a] border border-[var(--border)] rounded-3xl p-6 space-y-4">
           <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+            <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-blue-500" /> Lead Conversion Funnel
             </h3>
-            <p className="text-[10.5px] text-neutral-500 font-medium">Verify conversion rate progression and dropping points during conversation journeys</p>
+            <p className="text-[10.5px] text-[var(--text-subtle)] font-medium">Verify conversion rate progression and dropping points during conversation journeys</p>
           </div>
 
           {/* Visual premium Funnel stages alignment */}
@@ -672,17 +672,17 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
                   {/* Backdrop glowing connector block */}
                   <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition duration-200" />
                   
-                  <div className="relative p-3.5 bg-var(--bg-elevated)/30 border border-var(--border) rounded-2xl flex items-center justify-between gap-4">
+                  <div className="relative p-3.5 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-2xl flex items-center justify-between gap-4">
                     
                     <div className="flex items-center gap-3">
-                      <div className="w-7 h-7 rounded-lg bg-neutral-950 flex items-center justify-center font-mono text-[11px] font-black text-blue-400">
+                      <div className="w-7 h-7 rounded-lg bg-[var(--bg-card)] flex items-center justify-center font-mono text-[11px] font-black text-blue-400">
                         {idx + 1}
                       </div>
 
                       <div className="space-y-0.5">
-                        <h4 className="text-[11.5px] font-extrabold text-white">{stage.stage}</h4>
-                        <div className="text-[9.5px] text-neutral-500 font-semibold flex items-center gap-1.5">
-                          <span>Verified Count: <strong className="text-white font-bold">{stage.count.toLocaleString()}</strong></span>
+                        <h4 className="text-[11.5px] font-extrabold text-[var(--text)]">{stage.stage}</h4>
+                        <div className="text-[9.5px] text-[var(--text-subtle)] font-semibold flex items-center gap-1.5">
+                          <span>Verified Count: <strong className="text-[var(--text)] font-bold">{stage.count.toLocaleString()}</strong></span>
                           {idx > 0 && (
                             <>
                               <span>•</span>
@@ -695,7 +695,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
                     </div>
 
                     <div className="text-right">
-                      <span className="text-[11px] font-black font-mono text-white bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded">
+                      <span className="text-[11px] font-black font-mono text-[var(--text)] bg-blue-500/10 border border-blue-500/20 px-2.5 py-1 rounded">
                         {percentOfTotal}% Vol
                       </span>
                     </div>
@@ -710,38 +710,38 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
         </div>
 
         {/* 2. AI Performance Dashboard and Scores */}
-        <div id="ai-performance-scores" className="lg:col-span-2 bg-[#08080a] border border-var(--border) rounded-3xl p-6 flex flex-col justify-between space-y-6">
+        <div id="ai-performance-scores" className="lg:col-span-2 bg-[#08080a] border border-[var(--border)] rounded-3xl p-6 flex flex-col justify-between space-y-6">
           
           <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+            <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-1.5">
               <Zap className="w-4 h-4 text-amber-400 animate-spin" /> AI Core Performance Dashboard
             </h3>
-            <p className="text-[10.5px] text-neutral-500 font-medium">Core neural model efficiency logs</p>
+            <p className="text-[10.5px] text-[var(--text-subtle)] font-medium">Core neural model efficiency logs</p>
           </div>
 
           <div className="space-y-3.5">
             
             {/* Average Response Time */}
-            <div className="p-4 bg-[#0a0a0c] border border-var(--border) rounded-2xl flex items-center justify-between">
+            <div className="p-4 bg-[#0a0a0c] border border-[var(--border)] rounded-2xl flex items-center justify-between">
               <div className="space-y-1">
-                <span className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wide flex items-center gap-1">
+                <span className="text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wide flex items-center gap-1">
                   <Clock3 className="w-3.5 h-3.5 text-blue-400" /> Avg Response Time
                 </span>
-                <p className="text-xs text-neutral-500 font-semibold">Latency across messaging webhooks</p>
+                <p className="text-xs text-[var(--text-subtle)] font-semibold">Latency across messaging webhooks</p>
               </div>
               <div className="text-right">
-                <h4 className="text-2xl font-black text-white font-mono">1.2s</h4>
+                <h4 className="text-2xl font-black text-[var(--text)] font-mono">1.2s</h4>
                 <span className="text-[9px] text-green-400 bg-green-500/5 px-2 py-0.5 rounded border border-green-500/10">-0.4s improvement</span>
               </div>
             </div>
 
             {/* AI Resolution Rate */}
-            <div className="p-4 bg-[#0a0a0c] border border-var(--border) rounded-2xl flex items-center justify-between">
+            <div className="p-4 bg-[#0a0a0c] border border-[var(--border)] rounded-2xl flex items-center justify-between">
               <div className="space-y-1">
-                <span className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wide flex items-center gap-1">
+                <span className="text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wide flex items-center gap-1">
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-450 text-emerald-400" /> AI Resolution Rate
                 </span>
-                <p className="text-xs text-neutral-500 font-semibold">Self-contained checkout completion</p>
+                <p className="text-xs text-[var(--text-subtle)] font-semibold">Self-contained checkout completion</p>
               </div>
               <div className="text-right">
                 <h4 className="text-2xl font-black text-emerald-405 text-emerald-400 font-mono">92%</h4>
@@ -750,26 +750,26 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
             </div>
 
             {/* Human Escalation Rate */}
-            <div className="p-4 bg-[#0a0a0c] border border-var(--border) rounded-2xl flex items-center justify-between">
+            <div className="p-4 bg-[#0a0a0c] border border-[var(--border)] rounded-2xl flex items-center justify-between">
               <div className="space-y-1">
-                <span className="text-[10.5px] font-bold text-neutral-400 uppercase tracking-wide flex items-center gap-1">
+                <span className="text-[10.5px] font-bold text-[var(--text-muted)] uppercase tracking-wide flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5 text-blue-400" /> Human Escalation
                 </span>
-                <p className="text-xs text-neutral-500 font-semibold">Fallback rate to human agents</p>
+                <p className="text-xs text-[var(--text-subtle)] font-semibold">Fallback rate to human agents</p>
               </div>
               <div className="text-right">
                 <h4 className="text-2xl font-black text-blue-400 font-mono">4%</h4>
-                <span className="text-[9px] text-neutral-500 bg-[#121215] px-2 py-0.5 rounded border border-neutral-800">Normal workload</span>
+                <span className="text-[9px] text-[var(--text-subtle)] bg-[var(--bg-elevated)] px-2 py-0.5 rounded border border-[var(--border)]">Normal workload</span>
               </div>
             </div>
 
             {/* Knowledge Accuracy & Customer Satisfaction CSAT */}
             <div className="grid grid-cols-2 gap-3">
               
-              <div className="p-3 bg-[#0a0a0c] border border-var(--border) rounded-xl relative">
-                <span className="text-[9.5px] text-neutral-400 uppercase font-bold">Knowledge Accuracy</span>
-                <p className="text-xl font-black text-white font-mono mt-1">96%</p>
-                <div className="w-full bg-var(--bg-elevated) h-1 rounded-full mt-2">
+              <div className="p-3 bg-[#0a0a0c] border border-[var(--border)] rounded-xl relative">
+                <span className="text-[9.5px] text-[var(--text-muted)] uppercase font-bold">Knowledge Accuracy</span>
+                <p className="text-xl font-black text-[var(--text)] font-mono mt-1">96%</p>
+                <div className="w-full bg-[var(--bg-elevated)] h-1 rounded-full mt-2">
                   <div className="bg-blue-600 h-full rounded-full" style={{ width: "96%" }}></div>
                 </div>
               </div>
@@ -777,7 +777,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
               <div className="p-3 bg-gradient-to-br from-indigo-950/10 to-neutral-950 border border-indigo-500/10 rounded-xl relative">
                 <span className="text-[9.5px] text-indigo-400 uppercase font-bold">Satisfaction Class</span>
                 <p className="text-xl font-black text-indigo-400 font-mono mt-1">4.8/5</p>
-                <div className="w-full bg-var(--bg-elevated) h-1 rounded-full mt-2">
+                <div className="w-full bg-[var(--bg-elevated)] h-1 rounded-full mt-2">
                   <div className="bg-indigo-500 h-full rounded-full" style={{ width: "92%" }}></div>
                 </div>
               </div>
@@ -794,19 +794,19 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
       <div id="conversation-analytics-grid" className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
         
         {/* Popular Categories & peak parameters breakdown */}
-        <div className="lg:col-span-2 bg-[#08080a] border border-var(--border) rounded-3xl p-6 space-y-5">
+        <div className="lg:col-span-2 bg-[#08080a] border border-[var(--border)] rounded-3xl p-6 space-y-5">
           <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
+            <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-1.5 animate-pulse">
               <MessageSquare className="w-4 h-4 text-blue-400" /> Conversational Analytics Portal
             </h3>
-            <p className="text-[10.5px] text-neutral-500 font-medium">Verify most popular categories addressed during chats with Autofy conversational node</p>
+            <p className="text-[10.5px] text-[var(--text-subtle)] font-medium">Verify most popular categories addressed during chats with Autofy conversational node</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             {/* Left: Popular category metrics bar charts */}
-            <div className="p-4 bg-var(--bg-elevated)/30 border border-var(--border)/80 rounded-2xl space-y-3.5">
-              <h4 className="text-xs font-bold text-white mb-2">Popular Categories Split</h4>
+            <div className="p-4 bg-[var(--bg-elevated)]/30 border border-[var(--border)]/80 rounded-2xl space-y-3.5">
+              <h4 className="text-xs font-bold text-[var(--text)] mb-2">Popular Categories Split</h4>
               
               <div className="space-y-3">
                 {[
@@ -818,10 +818,10 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
                 ].map((cat, idx) => (
                   <div key={idx} className="space-y-1">
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-neutral-400 font-semibold">{cat.name}</span>
-                      <span className="text-white font-mono font-bold">{cat.count} clicks</span>
+                      <span className="text-[var(--text-muted)] font-semibold">{cat.name}</span>
+                      <span className="text-[var(--text)] font-mono font-bold">{cat.count} clicks</span>
                     </div>
-                    <div className="w-full bg-neutral-950 h-2 rounded-full overflow-hidden">
+                    <div className="w-full bg-[var(--bg-card)] h-2 rounded-full overflow-hidden">
                       <div className={`h-full ${cat.color} rounded-full`} style={{ width: `${cat.percent}%` }} />
                     </div>
                   </div>
@@ -830,23 +830,23 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
             </div>
 
             {/* Right: Peak hours parameter info */}
-            <div className="p-4 bg-var(--bg-elevated)/30 border border-var(--border)/80 rounded-2xl flex flex-col justify-between space-y-4">
+            <div className="p-4 bg-[var(--bg-elevated)]/30 border border-[var(--border)]/80 rounded-2xl flex flex-col justify-between space-y-4">
               <div>
-                <h4 className="text-xs font-bold text-white mb-1">Peak Engagement Slots</h4>
-                <p className="text-[10px] text-neutral-500">Peak hours and active days traffic distribution</p>
+                <h4 className="text-xs font-bold text-[var(--text)] mb-1">Peak Engagement Slots</h4>
+                <p className="text-[10px] text-[var(--text-subtle)]">Peak hours and active days traffic distribution</p>
               </div>
 
               <div className="space-y-3 font-medium">
-                <div className="flex items-center justify-between text-[11px] border-b border-neutral-950 pb-2">
-                  <span className="text-neutral-400">Peak Hour Slot</span>
-                  <span className="text-white font-black">04:00 PM – 07:00 PM</span>
+                <div className="flex items-center justify-between text-[11px] border-b border-[var(--border)] pb-2">
+                  <span className="text-[var(--text-muted)]">Peak Hour Slot</span>
+                  <span className="text-[var(--text)] font-black">04:00 PM – 07:00 PM</span>
                 </div>
-                <div className="flex items-center justify-between text-[11px] border-b border-neutral-950 pb-2">
-                  <span className="text-neutral-400">Most Active Day</span>
-                  <span className="text-white font-black">Friday &amp; Saturday</span>
+                <div className="flex items-center justify-between text-[11px] border-b border-[var(--border)] pb-2">
+                  <span className="text-[var(--text-muted)]">Most Active Day</span>
+                  <span className="text-[var(--text)] font-black">Friday &amp; Saturday</span>
                 </div>
-                <div className="flex items-center justify-between text-[11px] border-b border-neutral-950 pb-2">
-                  <span className="text-neutral-400">Weekly Core Trend</span>
+                <div className="flex items-center justify-between text-[11px] border-b border-[var(--border)] pb-2">
+                  <span className="text-[var(--text-muted)]">Weekly Core Trend</span>
                   <span className="text-green-400 font-extrabold flex items-center gap-0.5">▲ +14% traffic velocity</span>
                 </div>
               </div>
@@ -863,33 +863,33 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
         </div>
 
         {/* Industry insights summary info */}
-        <div className="bg-[#08080a] border border-var(--border) rounded-3xl p-6 flex flex-col justify-between space-y-4 shadow-lg">
+        <div className="bg-[#08080a] border border-[var(--border)] rounded-3xl p-6 flex flex-col justify-between space-y-4 shadow-lg">
           <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+            <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-1.5">
               <Lightbulb className="w-4 h-4 text-emerald-450 text-emerald-400 animate-pulse" /> Industry Growth Insights
             </h3>
-            <p className="text-[10.5px] text-neutral-500 font-medium">Dynamic top performers recognized on the Autofy network</p>
+            <p className="text-[10.5px] text-[var(--text-subtle)] font-medium">Dynamic top performers recognized on the Autofy network</p>
           </div>
 
           <div className="space-y-3.5 font-medium">
             
-            <div className="p-3 bg-var(--bg-elevated)/40 border border-var(--border) rounded-xl space-y-0.5">
-              <span className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider">Best Performing Service</span>
-              <p className="text-[11.5px] font-black text-white">{revenueByGroup.industryInsights.bestService}</p>
+            <div className="p-3 bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-xl space-y-0.5">
+              <span className="text-[9px] uppercase font-bold text-[var(--text-muted)] tracking-wider">Best Performing Service</span>
+              <p className="text-[11.5px] font-black text-[var(--text)]">{revenueByGroup.industryInsights.bestService}</p>
             </div>
 
-            <div className="p-3 bg-var(--bg-elevated)/40 border border-var(--border) rounded-xl space-y-0.5">
-              <span className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider">Highest Converting Membership Plan</span>
+            <div className="p-3 bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-xl space-y-0.5">
+              <span className="text-[9px] uppercase font-bold text-[var(--text-muted)] tracking-wider">Highest Converting Membership Plan</span>
               <p className="text-[11.5px] font-black text-blue-400">{revenueByGroup.industryInsights.highestConvertingMembership}</p>
             </div>
 
-            <div className="p-3 bg-var(--bg-elevated)/40 border border-var(--border) rounded-xl space-y-0.5">
-              <span className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider">Most Requested Product Package</span>
-              <p className="text-[11.5px] font-black text-white truncate">{revenueByGroup.industryInsights.mostRequestedProduct}</p>
+            <div className="p-3 bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-xl space-y-0.5">
+              <span className="text-[9px] uppercase font-bold text-[var(--text-muted)] tracking-wider">Most Requested Product Package</span>
+              <p className="text-[11.5px] font-black text-[var(--text)] truncate">{revenueByGroup.industryInsights.mostRequestedProduct}</p>
             </div>
 
-            <div className="p-3 bg-var(--bg-elevated)/40 border border-var(--border) rounded-xl space-y-0.5">
-              <span className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider">Top Verified Revenue Stream</span>
+            <div className="p-3 bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-xl space-y-0.5">
+              <span className="text-[9px] uppercase font-bold text-[var(--text-muted)] tracking-wider">Top Verified Revenue Stream</span>
               <p className="text-[11.5px] font-black text-emerald-400">{revenueByGroup.industryInsights.topSource}</p>
             </div>
 
@@ -902,43 +902,43 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
       <div id="revenue-details-section" className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
         
         {/* Left: Revenue analytics by day & categories grouped */}
-        <div className="lg:col-span-2 bg-[#08080a] border border-var(--border) rounded-3xl p-6 space-y-5">
+        <div className="lg:col-span-2 bg-[#08080a] border border-[var(--border)] rounded-3xl p-6 space-y-5">
           <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+            <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-1.5">
               <DollarSign className="w-4 h-4 text-emerald-400" /> Revenue Stream Analytics
             </h3>
-            <p className="text-[10.5px] text-neutral-500 font-medium">Revenues split across Services, Membership subscription models, and physical products</p>
+            <p className="text-[10.5px] text-[var(--text-subtle)] font-medium">Revenues split across Services, Membership subscription models, and physical products</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             
             {/* Services breakdown progress list */}
-            <div className="p-4 bg-var(--bg-elevated)/20 border border-var(--border) rounded-2xl space-y-3">
-              <h4 className="text-xs font-black text-white uppercase tracking-wider border-b border-var(--border) pb-2">Revenue by Service</h4>
+            <div className="p-4 bg-[var(--bg-elevated)]/20 border border-[var(--border)] rounded-2xl space-y-3">
+              <h4 className="text-xs font-black text-[var(--text)] uppercase tracking-wider border-b border-[var(--border)] pb-2">Revenue by Service</h4>
               <div className="space-y-3">
                 {revenueByGroup.services.map((ser, index) => (
                   <div key={index} className="flex items-center justify-between text-[11px]">
                     <div className="flex items-center gap-2 max-w-[150px]">
                       <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: ser.color }} />
-                      <span className="text-neutral-400 truncate">{ser.name}</span>
+                      <span className="text-[var(--text-muted)] truncate">{ser.name}</span>
                     </div>
-                    <span className="text-white font-black font-mono">₹{ser.value.toLocaleString()}</span>
+                    <span className="text-[var(--text)] font-black font-mono">₹{ser.value.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Membership plans progress list */}
-            <div className="p-4 bg-var(--bg-elevated)/20 border border-var(--border) rounded-2xl space-y-3">
-              <h4 className="text-xs font-black text-white uppercase tracking-wider border-b border-var(--border) pb-2">Membership Splitting</h4>
+            <div className="p-4 bg-[var(--bg-elevated)]/20 border border-[var(--border)] rounded-2xl space-y-3">
+              <h4 className="text-xs font-black text-[var(--text)] uppercase tracking-wider border-b border-[var(--border)] pb-2">Membership Splitting</h4>
               <div className="space-y-3">
                 {revenueByGroup.memberships.map((mem, index) => (
                   <div key={index} className="flex items-center justify-between text-[11px]">
                     <div className="flex items-center gap-2 max-w-[150px]">
                       <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: mem.color }} />
-                      <span className="text-neutral-400 truncate">{mem.name}</span>
+                      <span className="text-[var(--text-muted)] truncate">{mem.name}</span>
                     </div>
-                    <span className="text-white font-black font-mono">₹{mem.value.toLocaleString()}</span>
+                    <span className="text-[var(--text)] font-black font-mono">₹{mem.value.toLocaleString()}</span>
                   </div>
                 ))}
               </div>
@@ -947,21 +947,21 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
           </div>
 
           {/* Core financial indicators */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-var(--bg-elevated)/35 border border-var(--border) p-4 rounded-2xl">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-[var(--bg-elevated)]/35 border border-[var(--border)] p-4 rounded-2xl">
             <div>
-              <p className="text-[8.5px] text-neutral-500 uppercase font-bold">Average Order Value</p>
-              <h5 className="text-sm font-black text-white font-mono mt-1">₹3,400</h5>
+              <p className="text-[8.5px] text-[var(--text-subtle)] uppercase font-bold">Average Order Value</p>
+              <h5 className="text-sm font-black text-[var(--text)] font-mono mt-1">₹3,400</h5>
             </div>
             <div>
-              <p className="text-[8.5px] text-neutral-500 uppercase font-bold">Estimated LTV</p>
+              <p className="text-[8.5px] text-[var(--text-subtle)] uppercase font-bold">Estimated LTV</p>
               <h5 className="text-sm font-black text-blue-400 font-mono mt-1">₹28,500</h5>
             </div>
             <div>
-              <p className="text-[8.5px] text-neutral-500 uppercase font-bold">Monthly Revenue (MRR)</p>
-              <h5 className="text-sm font-black text-white font-mono mt-1">₹87,500</h5>
+              <p className="text-[8.5px] text-[var(--text-subtle)] uppercase font-bold">Monthly Revenue (MRR)</p>
+              <h5 className="text-sm font-black text-[var(--text)] font-mono mt-1">₹87,500</h5>
             </div>
             <div>
-              <p className="text-[8.5px] text-neutral-500 uppercase font-bold">Recurring Share</p>
+              <p className="text-[8.5px] text-[var(--text-subtle)] uppercase font-bold">Recurring Share</p>
               <h5 className="text-sm font-black text-emerald-400 font-mono mt-1">72.3%</h5>
             </div>
           </div>
@@ -969,43 +969,43 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
         </div>
 
         {/* Customer retention metrics */}
-        <div className="bg-[#08080a] border border-var(--border) rounded-3xl p-6 flex flex-col justify-between space-y-4">
+        <div className="bg-[#08080a] border border-[var(--border)] rounded-3xl p-6 flex flex-col justify-between space-y-4">
           <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+            <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-1.5">
               <Users className="w-4 h-4 text-indigo-400" /> Customer Analytics
             </h3>
-            <p className="text-[10.5px] text-neutral-500 font-medium">Evaluate retention percentages and customer loyalty metrics</p>
+            <p className="text-[10.5px] text-[var(--text-subtle)] font-medium">Evaluate retention percentages and customer loyalty metrics</p>
           </div>
 
           <div className="space-y-3.5">
             
             <div className="grid grid-cols-2 gap-3.5">
-              <div className="p-3 bg-var(--bg-elevated)/40 border border-var(--border) rounded-xl text-center">
-                <span className="text-[9px] text-neutral-500 uppercase font-bold">New Registrants</span>
-                <p className="text-lg font-black text-white font-mono mt-0.5">+45</p>
+              <div className="p-3 bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-xl text-center">
+                <span className="text-[9px] text-[var(--text-subtle)] uppercase font-bold">New Registrants</span>
+                <p className="text-lg font-black text-[var(--text)] font-mono mt-0.5">+45</p>
               </div>
-              <div className="p-3 bg-var(--bg-elevated)/40 border border-var(--border) rounded-xl text-center">
-                <span className="text-[9px] text-neutral-500 uppercase font-bold">Returning Users</span>
+              <div className="p-3 bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-xl text-center">
+                <span className="text-[9px] text-[var(--text-subtle)] uppercase font-bold">Returning Users</span>
                 <p className="text-lg font-black text-blue-500 mt-0.5">142</p>
               </div>
             </div>
 
-            <div className="space-y-2 border-t border-var(--border) pt-3">
+            <div className="space-y-2 border-t border-[var(--border)] pt-3">
               <div className="flex items-center justify-between text-[11px] font-medium">
-                <span className="text-neutral-400">Customer Retention Rate</span>
+                <span className="text-[var(--text-muted)]">Customer Retention Rate</span>
                 <span className="text-emerald-400 font-bold">88.5%</span>
               </div>
-              <div className="w-full bg-neutral-950 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-[var(--bg-card)] h-2 rounded-full overflow-hidden">
                 <div className="h-full bg-emerald-500 rounded-full" style={{ width: "88%" }} />
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between text-[11px] font-medium">
-                <span className="text-neutral-400">Repeat Purchase Rate</span>
+                <span className="text-[var(--text-muted)]">Repeat Purchase Rate</span>
                 <span className="text-indigo-400 font-bold">42.1%</span>
               </div>
-              <div className="w-full bg-neutral-950 h-2 rounded-full overflow-hidden">
+              <div className="w-full bg-[var(--bg-card)] h-2 rounded-full overflow-hidden">
                 <div className="h-full bg-indigo-500 rounded-full" style={{ width: "42%" }} />
               </div>
             </div>
@@ -1013,9 +1013,9 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
           </div>
 
           {/* Top Customers Log link */}
-          <div className="p-3.5 bg-var(--bg-elevated)/35 border border-white/5 rounded-2xl flex items-center justify-between text-[11px] font-medium">
-            <span className="text-neutral-300">Top Customer this week:</span>
-            <strong className="text-white hover:underline cursor-pointer flex items-center gap-1 font-sans">
+          <div className="p-3.5 bg-[var(--bg-elevated)]/35 border border-white/5 rounded-2xl flex items-center justify-between text-[11px] font-medium">
+            <span className="text-[var(--text)]">Top Customer this week:</span>
+            <strong className="text-[var(--text)] hover:underline cursor-pointer flex items-center gap-1 font-sans">
               Vaibhav SG <ChevronRight className="w-3.5 h-3.5" />
             </strong>
           </div>
@@ -1025,19 +1025,19 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
       </div>
 
       {/* AI KNOWLEDGE EFFICIENCY ANALYTICS & SUGGESTION BOARD */}
-      <div className="bg-[#08080a] border border-var(--border) rounded-3xl p-6 space-y-6">
+      <div className="bg-[#08080a] border border-[var(--border)] rounded-3xl p-6 space-y-6">
         
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-var(--border) pb-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border)] pb-4">
           <div>
-            <h3 className="text-sm font-black text-white font-sans uppercase tracking-wider flex items-center gap-1.5">
+            <h3 className="text-sm font-black text-[var(--text)] font-sans uppercase tracking-wider flex items-center gap-1.5">
               <HelpCircle className="w-4 h-4 text-purple-400" /> AI Knowledge Accuracy &amp; Gap Detection
             </h3>
-            <p className="text-[10.5px] text-neutral-500 font-medium font-sans">Identify conversation queries addressing incomplete knowledge base entries</p>
+            <p className="text-[10.5px] text-[var(--text-subtle)] font-medium font-sans">Identify conversation queries addressing incomplete knowledge base entries</p>
           </div>
           
           <button
             onClick={() => triggerNotification(" Refreshed live crawl on WhatsApp logs...")}
-            className="text-xs font-black text-neutral-400 hover:text-white bg-var(--bg-elevated) border border-neutral-800 px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5"
+            className="text-xs font-black text-[var(--text-muted)] hover:text-[var(--text)] bg-[var(--bg-elevated)] border border-[var(--border)] px-3.5 py-1.5 rounded-xl transition cursor-pointer flex items-center gap-1.5"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Recrawl AI logs
           </button>
@@ -1049,29 +1049,29 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
           <div className="xl:col-span-2 overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[500px]">
               <thead>
-                <tr className="border-b border-var(--border) text-neutral-500 text-neutral-500 text-[10px] uppercase font-black tracking-widest pb-2">
+                <tr className="border-b border-[var(--border)] text-[var(--text-subtle)] text-[var(--text-subtle)] text-[10px] uppercase font-black tracking-widest pb-2">
                   <th className="pb-2 text-xs font-black">Issue Detected</th>
                   <th className="pb-2 text-xs font-black">Subject Covered</th>
                   <th className="pb-2 text-xs font-black">Detected Knowledge Gap</th>
                   <th className="pb-2 text-xs font-black text-right">Suggested Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-900/40 text-xs font-medium text-neutral-350 text-neutral-300">
+              <tbody className="divide-y divide-neutral-900/40 text-xs font-medium text-[var(--text-muted)] text-[var(--text)]">
                 {suggestedImprovements.map((imp) => (
-                  <tr key={imp.id} className="hover:bg-var(--bg-elevated)/30 transition duration-150">
+                  <tr key={imp.id} className="hover:bg-[var(--bg-elevated)]/30 transition duration-150">
                     <td className="py-3.5">
                       <span className="text-[10.5px] font-bold text-red-400 bg-red-500/5 border border-red-500/10 px-2 py-0.5 rounded">
                          {imp.issue}
                       </span>
                     </td>
-                    <td className="py-3.5 font-bold text-white max-w-[155px] truncate">{imp.subject}</td>
-                    <td className="py-3.5 text-neutral-400 text-[11px] max-w-[200px] truncate">{imp.gap}</td>
+                    <td className="py-3.5 font-bold text-[var(--text)] max-w-[155px] truncate">{imp.subject}</td>
+                    <td className="py-3.5 text-[var(--text-muted)] text-[11px] max-w-[200px] truncate">{imp.gap}</td>
                     <td className="py-3.5 text-right">
                       <button
                         onClick={() => {
                           triggerNotification(` Synced fix recommendation to AI Rules: "${imp.suggestion}"`);
                         }}
-                        className="px-2.5 py-1 text-[9.5px] font-black text-blue-400 hover:text-white hover:bg-blue-600 border border-blue-500/20 hover:border-transparent roundedtransition cursor-pointer"
+                        className="px-2.5 py-1 text-[9.5px] font-black text-blue-400 hover:text-[var(--text)] hover:bg-blue-600 border border-blue-500/20 hover:border-transparent roundedtransition cursor-pointer"
                       >
                         Apply Rule Fix
                       </button>
@@ -1083,26 +1083,26 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
           </div>
 
           {/* Most requested facts sidebar list */}
-          <div className="p-4 bg-var(--bg-elevated)/30 border border-var(--border) rounded-2xl space-y-4">
-            <h4 className="text-xs font-black text-white uppercase tracking-wider">Top Knowledge References</h4>
+          <div className="p-4 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-2xl space-y-4">
+            <h4 className="text-xs font-black text-[var(--text)] uppercase tracking-wider">Top Knowledge References</h4>
             
             <div className="space-y-3 font-medium text-[11px]">
               
-              <div className="flex items-center justify-between border-b border-neutral-950 pb-2">
-                <span className="text-neutral-400">Most Used FAQ</span>
-                <span className="text-white font-extrabold text-right truncate max-w-[150px]">What is AEW exhaust upgrade price?</span>
+              <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
+                <span className="text-[var(--text-muted)]">Most Used FAQ</span>
+                <span className="text-[var(--text)] font-extrabold text-right truncate max-w-[150px]">What is AEW exhaust upgrade price?</span>
               </div>
 
-              <div className="flex items-center justify-between border-b border-neutral-950 pb-2">
-                <span className="text-neutral-400">Most Referenced Service</span>
-                <span className="text-white font-extrabold text-right truncate max-w-[150px]">Sound tuning retrofit</span>
+              <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
+                <span className="text-[var(--text-muted)]">Most Referenced Service</span>
+                <span className="text-[var(--text)] font-extrabold text-right truncate max-w-[150px]">Sound tuning retrofit</span>
               </div>
 
               <div className="p-3 bg-blue-500/5 border border-blue-500/10 rounded-xl space-y-1">
                 <span className="text-[9.5px] font-black text-blue-400 uppercase tracking-wide flex items-center gap-1">
                    Autofy Knowledge Tip
                 </span>
-                <p className="text-[10px] text-neutral-400 mt-0.5">Answering refund policy variables in under 12 seconds elevates customer checkout conversions by ~18%.</p>
+                <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Answering refund policy variables in under 12 seconds elevates customer checkout conversions by ~18%.</p>
               </div>
 
             </div>
@@ -1116,13 +1116,13 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-sans">
         
         {/* Real-time system notifications log */}
-        <div className="md:col-span-2 bg-[#08080a] border border-var(--border) rounded-3xl p-6 space-y-4 shadow-xl">
+        <div className="md:col-span-2 bg-[#08080a] border border-[var(--border)] rounded-3xl p-6 space-y-4 shadow-xl">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+              <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-1.5">
                 <Bell className="w-4 h-4 text-emerald-400 animate-swing" /> Live Analytics Activity Feed
               </h3>
-              <p className="text-[10px] text-neutral-500 font-medium">Real-time notifications synchronized by secure system channels</p>
+              <p className="text-[10px] text-[var(--text-subtle)] font-medium">Real-time notifications synchronized by secure system channels</p>
             </div>
             <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-mono px-2 py-0.5 rounded-full font-black">
                Live Stream
@@ -1144,17 +1144,17 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
                     initial={{ opacity: 0, height: 0, y: -10 }}
                     animate={{ opacity: 1, height: "auto", y: 0 }}
                     exit={{ opacity: 0, height: 0 }}
-                    className="p-3 bg-var(--bg-elevated)/40 border border-var(--border) rounded-xl flex items-center justify-between gap-4 font-medium"
+                    className="p-3 bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-xl flex items-center justify-between gap-4 font-medium"
                   >
                     <div className="space-y-0.5">
                       <div className="flex items-center gap-2">
                         <span className={`text-[8.5px] font-extrabold uppercase px-1.5 rounded-full ${badgeTheme}`}>
                           {evt.title}
                         </span>
-                        <span className="text-[11px] text-white truncate max-w-[180px] sm:max-w-xs">{evt.detail}</span>
+                        <span className="text-[11px] text-[var(--text)] truncate max-w-[180px] sm:max-w-xs">{evt.detail}</span>
                       </div>
                     </div>
-                    <span className="text-[9px] text-neutral-500 font-mono italic shrink-0">{evt.time}</span>
+                    <span className="text-[9px] text-[var(--text-subtle)] font-mono italic shrink-0">{evt.time}</span>
                   </motion.div>
                 );
               })}
@@ -1163,35 +1163,35 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
         </div>
 
         {/* Business value summary scorecard details */}
-        <div className="bg-[#08080a] border border-var(--border) rounded-3xl p-6 flex flex-col justify-between space-y-4">
+        <div className="bg-[#08080a] border border-[var(--border)] rounded-3xl p-6 flex flex-col justify-between space-y-4">
           <div>
-            <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-1.5">
+            <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-blue-550 text-blue-550 text-blue-400" /> ROI Verified Node
             </h3>
-            <p className="text-[10px] text-neutral-500 font-medium">Autofy platform health parameters security metrics checklist</p>
+            <p className="text-[10px] text-[var(--text-subtle)] font-medium">Autofy platform health parameters security metrics checklist</p>
           </div>
 
           <div className="space-y-3 font-medium text-[11px]">
             
-            <div className="flex items-center justify-between text-neutral-400 text-neutral-400 border-b border-var(--border) pb-2">
-              <span className="text-neutral-400">Verified ROI Factor</span>
+            <div className="flex items-center justify-between text-[var(--text-muted)] text-[var(--text-muted)] border-b border-[var(--border)] pb-2">
+              <span className="text-[var(--text-muted)]">Verified ROI Factor</span>
               <span className="text-emerald-455 text-emerald-400 font-extrabold font-mono">18.5x Yield</span>
             </div>
 
-            <div className="flex items-center justify-between text-neutral-400 text-neutral-400 border-b border-var(--border) pb-2">
-              <span className="text-neutral-400">Active Customer Base</span>
-              <span className="text-white font-extrabold font-mono">187 customers</span>
+            <div className="flex items-center justify-between text-[var(--text-muted)] text-[var(--text-muted)] border-b border-[var(--border)] pb-2">
+              <span className="text-[var(--text-muted)]">Active Customer Base</span>
+              <span className="text-[var(--text)] font-extrabold font-mono">187 customers</span>
             </div>
 
-            <div className="flex items-center justify-between text-neutral-400 border-b border-var(--border) pb-2">
-              <span className="text-neutral-400">Google Calendar Autopay Sync</span>
+            <div className="flex items-center justify-between text-[var(--text-muted)] border-b border-[var(--border)] pb-2">
+              <span className="text-[var(--text-muted)]">Google Calendar Autopay Sync</span>
               <span className="text-blue-400 font-extrabold">Active </span>
             </div>
 
           </div>
 
-          <p className="text-[9.5px] text-neutral-500 font-medium leading-relaxed leading-relaxed pt-2">
-            Autofy has processed <strong className="text-white font-semibold">1,450 conversations</strong>, captured <strong className="text-white font-semibold">342 verified leads</strong>, and executed <strong className="text-white font-semibold">₹87,500 gross sales output</strong> sandbox parameters successfully in under 30 days.
+          <p className="text-[9.5px] text-[var(--text-subtle)] font-medium leading-relaxed leading-relaxed pt-2">
+            Autofy has processed <strong className="text-[var(--text)] font-semibold">1,450 conversations</strong>, captured <strong className="text-[var(--text)] font-semibold">342 verified leads</strong>, and executed <strong className="text-[var(--text)] font-semibold">₹87,500 gross sales output</strong> sandbox parameters successfully in under 30 days.
           </p>
         </div>
 

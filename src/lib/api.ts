@@ -81,12 +81,26 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   const url = path.startsWith("http") ? path : `${API_BASE}${path}`;
 
-  let res: Response;
-  try {
-    res = await fetch(url, { ...rest, headers: finalHeaders, body: finalBody });
-  } catch (networkErr) {
+  let res: Response | undefined;
+  let lastError: unknown;
+  const maxRetries = 2;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      res = await fetch(url, { ...rest, headers: finalHeaders, body: finalBody });
+      break; // Request succeeded (HTTP response received)
+    } catch (networkErr) {
+      lastError = networkErr;
+      if (attempt < maxRetries) {
+        // Wait 1 second before retrying to allow backend cold-start / socket reconnect
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+      }
+    }
+  }
+
+  if (!res) {
     // fetch only rejects on network failure / CORS — surface it as a 0-status ApiError.
-    throw new ApiError(0, "Network error — could not reach the server.", networkErr);
+    throw new ApiError(0, "Network error — could not reach the server. Please check connection.", lastError);
   }
 
   // 204 No Content
@@ -96,11 +110,28 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const payload = isJson ? await res.json().catch(() => null) : await res.text().catch(() => null);
 
   if (!res.ok) {
-    const message =
-      (isJson && payload && typeof payload === "object" && "detail" in payload
-        ? String((payload as Record<string, unknown>).detail)
-        : null) || `Request failed with status ${res.status}`;
-    throw new ApiError(res.status, message, payload);
+    // The backend uses two error shapes:
+    //   FastAPI default     → { detail: "..." }  (or a list for 422)
+    //   App error handler   → { success: false, error: { message: "..." } }
+    // Pull the human-readable message out of whichever we got, and keep the
+    // structured part as `detail` so callers can inspect field errors.
+    let message: string | null = null;
+    let detail: unknown = payload;
+
+    if (isJson && payload && typeof payload === "object") {
+      const p = payload as Record<string, unknown>;
+      const wrapped = p.error as Record<string, unknown> | undefined;
+      if (wrapped && typeof wrapped === "object" && typeof wrapped.message === "string") {
+        message = wrapped.message;
+        detail = wrapped.details ?? wrapped;
+      } else if ("detail" in p) {
+        const d = p.detail;
+        detail = d;
+        message = typeof d === "string" ? d : null;
+      }
+    }
+
+    throw new ApiError(res.status, message || `Request failed with status ${res.status}`, detail);
   }
 
   return payload as T;

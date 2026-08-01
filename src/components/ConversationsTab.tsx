@@ -460,20 +460,20 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
       {/* Upper control layout showing Page Title, Subtitle, and Empty State Switches */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-            Conversations <span className="text-xs bg-blue-500/10 text-blue-400 font-normal px-2.5 py-0.5 rounded-full border border-blue-500/20">Real-Time Sync</span>
+          <h2 className="text-xl sm:text-2xl font-black font-display tracking-tight flex items-center gap-2" style={{ color: "var(--text)" }}>
+            Conversations <span className="badge-glow text-[11px] px-2.5 py-0.5 font-bold font-sans">Real-Time Sync</span>
           </h2>
-          <p className="text-xs text-neutral-400">Manage all customer interactions from one place.</p>
+          <p className="text-xs font-sans" style={{ color: "var(--text-muted)" }}>Manage all customer interactions from one place.</p>
         </div>
 
         {/* Simulator mode controller & Empty State toggler */}
         <div className="flex items-center gap-3">
-          <label className="text-[11px] font-semibold text-neutral-400 flex items-center gap-1.5 bg-var(--bg-elevated) px-3/5 py-1.5 rounded-xl border border-var(--border)">
+          <label className="text-[11px] font-semibold text-[var(--text-muted)] flex items-center gap-1.5 bg-[var(--bg-elevated)] px-3/5 py-1.5 rounded-xl border border-[var(--border)]">
             <input 
               type="checkbox"
               checked={emptyState}
               onChange={(e) => setEmptyState(e.target.checked)}
-              className="rounded border-neutral-700 text-blue-600 focus:ring-blue-500 bg-neutral-950 w-3.5 h-3.5"
+              className="rounded border-[var(--border-strong)] text-blue-600 focus:ring-blue-500 bg-[var(--bg-card)] w-3.5 h-3.5"
             />
             Simulate Empty Inbox
           </label>
@@ -484,7 +484,7 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
               setEmptyState(false);
               triggerNotification(" Conversation records reset to demo values");
             }} 
-            className="px-3 py-1.5 bg-var(--bg-elevated) border border-var(--border) text-neutral-300 hover:text-white rounded-xl text-xs font-semibold hover:bg-neutral-800 transition cursor-pointer"
+            className="px-3 py-1.5 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text)] hover:text-[var(--text)] rounded-xl text-xs font-semibold hover:bg-[var(--bg-elevated)] transition cursor-pointer"
           >
             Reset Chats list
           </button>
@@ -494,17 +494,17 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
       {/* Analytics counter widget bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: <MessageSquare className="w-5 h-5 text-blue-400" />, label: "Today's Conversations", val: totalConversationsToday, sub: "+2 new minutes ago" },
-          { icon: <Sparkles className="w-5 h-5 text-purple-400" />, label: "AI Resolution Rate", val: `${aiResolutionRate}%`, sub: "Auto-pilot active" },
-          { icon: <AlertCircle className="w-5 h-5 text-red-400" />, label: "Human Escalations", val: humanEscalationsCount, sub: "Requires attention" },
-          { icon: <CheckCircle className="w-5 h-5 text-green-400" />, label: "Customer Satisfaction", val: satisfactionScore, sub: "Outstanding reviews" },
+          { icon: <MessageSquare className="w-5 h-5 text-pink-500" />, label: "Today's Conversations", val: totalConversationsToday, sub: "+2 new minutes ago" },
+          { icon: <Sparkles className="w-5 h-5 text-purple-500" />, label: "AI Resolution Rate", val: `${aiResolutionRate}%`, sub: "Auto-pilot active" },
+          { icon: <AlertCircle className="w-5 h-5 text-amber-500" />, label: "Human Escalations", val: humanEscalationsCount, sub: "Requires attention" },
+          { icon: <CheckCircle className="w-5 h-5 text-emerald-500" />, label: "Customer Satisfaction", val: satisfactionScore, sub: "Outstanding reviews" },
         ].map((item, idx) => (
-          <div key={idx} className="bg-neutral-950/40 border border-var(--border) p-4 rounded-2xl flex items-center gap-3.5 backdrop-blur-md hover:border-neutral-800 transition">
-            <div className="p-2.5 bg-var(--bg-elevated) rounded-xl">{item.icon}</div>
+          <div key={idx} className="glass-card p-4 rounded-2xl flex items-center gap-3.5 backdrop-blur-md">
+            <div className="p-2.5 rounded-xl border border-[var(--border)]" style={{ background: "var(--bg-elevated)" }}>{item.icon}</div>
             <div>
-              <p className="text-[10px] uppercase font-bold text-neutral-500 text-neutral-500 tracking-wider leading-none mb-1">{item.label}</p>
-              <h4 className="text-xl font-black text-white leading-none">{item.val}</h4>
-              <p className="text-[9.5px] text-neutral-500 mt-1 leading-none">{item.sub}</p>
+              <p className="text-[10px] uppercase font-bold tracking-wider leading-none mb-1 font-sans" style={{ color: "var(--text-subtle)" }}>{item.label}</p>
+              <h4 className="text-xl font-black font-display leading-none" style={{ color: "var(--text)" }}>{item.val}</h4>
+              <p className="text-[9.5px] mt-1 leading-none font-sans" style={{ color: "var(--text-muted)" }}>{item.sub}</p>
             </div>
           </div>
         ))}
@@ -517,15 +517,15 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
-            className="bg-neutral-950/40 border border-var(--border) p-12 text-center rounded-3xl backdrop-blur-md max-w-2xl mx-auto space-y-4"
+            className="bg-[var(--bg-card)] border border-[var(--border)] p-12 text-center rounded-3xl backdrop-blur-md max-w-2xl mx-auto space-y-4"
           >
             <div className="w-16 h-16 bg-blue-500/10 text-blue-400 rounded-full flex items-center justify-center mx-auto border border-blue-500/20">
               <MessageSquare className="w-8 h-8" />
             </div>
             
             <div className="space-y-1.5">
-              <h3 className="text-lg font-black text-white">Your customer conversations will appear here.</h3>
-              <p className="text-xs text-neutral-400 max-w-md mx-auto">
+              <h3 className="text-lg font-black text-[var(--text)]">Your customer conversations will appear here.</h3>
+              <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto">
                 Once you connect your WhatsApp Business line via the API integration gateway, you can instruct Autofy to auto-respond to leads and close appointments instantly.
               </p>
             </div>
@@ -537,7 +537,7 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
                   setConversations(INITIAL_CONVERSATIONS);
                   triggerNotification(" Sync link active: Demo WhatsApp initialized");
                 }}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-xs tracking-wide rounded-xl uppercase transition cursor-pointer shadow-lg shadow-blue-500/20"
+                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-[var(--text)] font-extrabold text-xs tracking-wide rounded-xl uppercase transition cursor-pointer shadow-lg shadow-blue-500/20"
               >
                 Connect WhatsApp Business Line
               </button>
@@ -552,20 +552,20 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
           >
             
             {/* COLUMN 1: LEFT SIDEBAR (CONVERSATION DIRECTORY LIST) - SPANS 3 COLS */}
-            <div className="xl:col-span-3 bg-neutral-950/40 border border-var(--border) rounded-3xl p-4 backdrop-blur-md flex flex-col h-[650px] relative">
+            <div className="xl:col-span-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-4 backdrop-blur-md flex flex-col h-[650px] relative">
               
               <div className="space-y-3 mb-4">
                 <div className="relative">
-                  <Search className="w-4 h-4 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <Search className="w-4 h-4 text-[var(--text-subtle)] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search conversations..."
-                    className="w-full bg-[#0a0a0c] border border-var(--border) rounded-xl pl-9 pr-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-[#0a0a0c] border border-[var(--border)] rounded-xl pl-9 pr-4 py-2.5 text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)]"
                   />
                   {search && (
-                    <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white">
+                    <button onClick={() => setSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-subtle)] hover:text-[var(--text)]">
                       <X className="w-3 h-3" />
                     </button>
                   )}
@@ -580,7 +580,7 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
                       className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1.5 rounded-lg border transition whitespace-nowrap cursor-pointer ${
                         filter === tabId
                           ? "bg-blue-600/10 border-blue-500/30 text-blue-400"
-                          : "bg-var(--bg-elevated) border-var(--border) text-neutral-400 hover:text-neutral-200"
+                          : "bg-[var(--bg-elevated)] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)]"
                       }`}
                     >
                       {tabId === "all" ? "All" : tabId === "ai" ? "AI Active" : tabId === "human" ? "Human" : tabId}
@@ -605,16 +605,16 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
                       }}
                       className={`w-full text-left p-3 rounded-2xl border transition flex items-start gap-2.5 cursor-pointer ${
                         isActive
-                          ? "bg-blue-600/10 border-blue-500/30 text-white"
-                          : "bg-var(--bg-elevated)/40 border-var(--border) hover:border-var(--border) hover:bg-var(--bg-elevated) text-neutral-400"
+                          ? "bg-blue-600/10 border-blue-500/30 text-[var(--text)]"
+                          : "bg-[var(--bg-elevated)]/40 border-[var(--border)] hover:border-[var(--border)] hover:bg-[var(--bg-elevated)] text-[var(--text-muted)]"
                       }`}
                     >
                       <div className="relative flex-shrink-0">
-                        <div className="w-9 h-9 rounded-full bg-neutral-800 text-sm font-black text-white flex items-center justify-center border border-neutral-700">
+                        <div className="w-9 h-9 rounded-full bg-[var(--bg-elevated)] text-sm font-black text-[var(--text)] flex items-center justify-center border border-[var(--border-strong)]">
                           {chat.name[0]}
                         </div>
                         {chat.unreadCount > 0 && (
-                          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-blue-500 text-[9px] font-black font-sans text-white rounded-full flex items-center justify-center">
+                          <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-blue-500 text-[9px] font-black font-sans text-[var(--text)] rounded-full flex items-center justify-center">
                             {chat.unreadCount}
                           </span>
                         )}
@@ -622,8 +622,8 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1 mb-0.5">
-                          <h4 className="text-xs font-bold text-white truncate max-w-[100px]">{chat.name}</h4>
-                          <span className="text-[8.5px] text-neutral-500 font-medium font-mono">{chat.time}</span>
+                          <h4 className="text-xs font-bold text-[var(--text)] truncate max-w-[100px]">{chat.name}</h4>
+                          <span className="text-[8.5px] text-[var(--text-subtle)] font-medium font-mono">{chat.time}</span>
                         </div>
                         
                         <p className="text-[11px] truncate leading-snug mb-1">{lastHistoryText}</p>
@@ -645,7 +645,7 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
                               <span className="w-1.5 h-1.5 rounded-full bg-red-500" /> Escalated
                             </span>
                           )}
-                          <span className="text-[8.5px] font-mono text-neutral-600 bg-neutral-950 px-1.5 py-0.5 rounded">
+                          <span className="text-[8.5px] font-mono text-[var(--text-subtle)] bg-[var(--bg-card)] px-1.5 py-0.5 rounded">
                             {chat.leadStatus}
                           </span>
                         </div>
@@ -656,26 +656,26 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
               </div>
 
               {/* Mini Help Indicator */}
-              <div className="absolute bottom-3 left-4 right-4 pt-2.5 border-t border-var(--border) bg-[#0a0a0c]/80 flex items-center justify-between text-[9px] text-neutral-500">
+              <div className="absolute bottom-3 left-4 right-4 pt-2.5 border-t border-[var(--border)] bg-[#0a0a0c]/80 flex items-center justify-between text-[9px] text-[var(--text-subtle)]">
                 <span>Active Channels: WhatsApp API</span>
                 <span className="animate-pulse w-2 h-2 rounded-full bg-green-500" />
               </div>
             </div>
 
             {/* COLUMN 2: CENTER ACTIVE CONVERSATION PANEL - SPANS 6 COLS */}
-            <div className="xl:col-span-6 bg-neutral-950/40 border border-var(--border) rounded-3xl overflow-hidden flex flex-col h-[650px]">
+            <div className="xl:col-span-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl overflow-hidden flex flex-col h-[650px]">
               
               {/* Active Chat Header */}
-              <div className="bg-var(--bg-elevated)/60 border-b border-var(--border) px-5 py-3 flex items-center justify-between gap-3 backdrop-blur-md">
+              <div className="bg-[var(--bg-elevated)]/60 border-b border-[var(--border)] px-5 py-3 flex items-center justify-between gap-3 backdrop-blur-md">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center justify-center font-black relative">
                     {activeChat.name[0]}
-                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-neutral-950 animate-pulse" />
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full border border-[var(--border)] animate-pulse" />
                   </div>
                   <div>
-                    <h3 className="text-xs sm:text-[13px] font-black text-white">{activeChat.name}</h3>
-                    <p className="text-[9.5px] text-neutral-400 font-mono flex items-center gap-1">
-                      {activeChat.phone} • {activeChat.businessType} <span className="text-neutral-600">|</span> 
+                    <h3 className="text-xs sm:text-[13px] font-black text-[var(--text)]">{activeChat.name}</h3>
+                    <p className="text-[9.5px] text-[var(--text-muted)] font-mono flex items-center gap-1">
+                      {activeChat.phone} • {activeChat.businessType} <span className="text-[var(--text-subtle)]">|</span> 
                       <span className="text-blue-400 font-bold">{activeChat.leadStatus}</span>
                     </p>
                   </div>
@@ -693,7 +693,7 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
                 
                 {/* Greeting banner info */}
                 <div className="text-center py-2">
-                  <span className="text-[9.5px] font-semibold text-neutral-500 bg-var(--bg-elevated) px-3 py-1 rounded-full">
+                  <span className="text-[9.5px] font-semibold text-[var(--text-subtle)] bg-[var(--bg-elevated)] px-3 py-1 rounded-full">
                     Chat started via {activeChat.source} • Transmissions encrypted
                   </span>
                 </div>
@@ -710,7 +710,7 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
                       {/* Mini Avatar */}
                       <div className={`w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 ${
                         isUser 
-                          ? "bg-neutral-800 text-white" 
+                          ? "bg-[var(--bg-elevated)] text-[var(--text)]" 
                           : isAi 
                             ? "bg-blue-600/20 text-blue-400 border border-blue-500/20" 
                             : "bg-purple-600/20 text-purple-400 border border-purple-500/20"
@@ -722,14 +722,14 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
                       <div className="space-y-1">
                         <div className={`p-3.5 rounded-2xl text-[11.5px] leading-relaxed whitespace-pre-wrap select-text ${
                           isUser
-                            ? "bg-[#111113] border border-var(--border) text-neutral-200 rounded-tl-none"
+                            ? "bg-[var(--bg-card)] border border-[var(--border)] text-[var(--text)] rounded-tl-none"
                             : isAi
-                              ? "bg-blue-600 text-white rounded-tr-none shadow shadow-blue-500/10"
-                              : "bg-purple-600 text-white rounded-tr-none shadow shadow-purple-500/10"
+                              ? "bg-blue-600 text-[var(--text)] rounded-tr-none shadow shadow-blue-500/10"
+                              : "bg-purple-600 text-[var(--text)] rounded-tr-none shadow shadow-purple-500/10"
                         }`}>
                           {msg.text}
                         </div>
-                        <p className={`text-[8.5px] text-neutral-500 font-mono tracking-tight ${isUser ? "text-left" : "text-right"}`}>
+                        <p className={`text-[8.5px] text-[var(--text-subtle)] font-mono tracking-tight ${isUser ? "text-left" : "text-right"}`}>
                           {msg.sender === "ai" ? "Autofy Agent" : msg.sender === "human" ? "Human Agent Override" : "Customer"} • {msg.time}
                         </p>
                       </div>
@@ -757,8 +757,8 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
               </div>
 
               {/* Quick Preset Templates tag line */}
-              <div className="px-4 py-2 border-t border-var(--border) bg-neutral-950/60 flex items-center gap-2 overflow-x-auto scrollbar-none">
-                <span className="text-[8.5px] font-black uppercase text-neutral-500 text-neutral-500 tracking-wider flex-shrink-0">Presets:</span>
+              <div className="px-4 py-2 border-t border-[var(--border)] bg-[var(--bg-card)] flex items-center gap-2 overflow-x-auto scrollbar-none">
+                <span className="text-[8.5px] font-black uppercase text-[var(--text-subtle)] text-[var(--text-subtle)] tracking-wider flex-shrink-0">Presets:</span>
                 <button 
                   onClick={() => setTypedMessage("What is the cost of our membership options?")}
                   className="px-2.5 py-1 text-[9.5px] text-blue-400 bg-blue-500/5 hover:bg-blue-500/10 border border-blue-500/20 rounded-full whitespace-nowrap cursor-pointer"
@@ -780,17 +780,17 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
               </div>
 
               {/* Message input bar */}
-              <form onSubmit={handleSendMessage} className="p-3 bg-[#0a0a0c] border-t border-var(--border) flex items-center gap-2">
+              <form onSubmit={handleSendMessage} className="p-3 bg-[#0a0a0c] border-t border-[var(--border)] flex items-center gap-2">
                 
                 {/* Accessory icons placeholders */}
                 <div className="flex items-center gap-1">
-                  <button type="button" onClick={() => triggerNotification(" File attachment clicked (PNG, PDF support enabled)")} className="p-2 text-neutral-500 hover:text-white hover:bg-var(--bg-elevated) rounded-xl" title="Attach file">
+                  <button type="button" onClick={() => triggerNotification(" File attachment clicked (PNG, PDF support enabled)")} className="p-2 text-[var(--text-subtle)] hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] rounded-xl" title="Attach file">
                     <Paperclip className="w-4 h-4" />
                   </button>
-                  <button type="button" onClick={() => triggerNotification(" Templates tray open")} className="p-2 text-neutral-500 hover:text-white hover:bg-var(--bg-elevated) rounded-xl" title="Templates list">
+                  <button type="button" onClick={() => triggerNotification(" Templates tray open")} className="p-2 text-[var(--text-subtle)] hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] rounded-xl" title="Templates list">
                     <BookOpen className="w-4 h-4" />
                   </button>
-                  <button type="button" onClick={() => { setTypedMessage(p => p + " "); }} className="p-2 text-neutral-500 hover:text-white hover:bg-var(--bg-elevated) rounded-xl" title="Emoji select">
+                  <button type="button" onClick={() => { setTypedMessage(p => p + " "); }} className="p-2 text-[var(--text-subtle)] hover:text-[var(--text)] hover:bg-[var(--bg-elevated)] rounded-xl" title="Emoji select">
                     <Smile className="w-4 h-4" />
                   </button>
                 </div>
@@ -800,13 +800,13 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
                   value={typedMessage}
                   onChange={(e) => setTypedMessage(e.target.value)}
                   placeholder="Type Message..."
-                  className="w-full bg-[#111113] border border-var(--border) rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-blue-500/50"
+                  className="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded-xl px-4 py-2.5 text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)]"
                 />
 
                 <div className="flex gap-1.5">
                   <button
                     type="submit"
-                    className="p-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-white transition cursor-pointer"
+                    className="p-2.5 bg-blue-600 hover:bg-blue-500 rounded-xl text-[var(--text)] transition cursor-pointer"
                     title="Send to trigger AI engine auto-response"
                   >
                     <Send className="w-4 h-4" />
@@ -818,7 +818,7 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
                       handleHumanSend(typedMessage);
                       setTypedMessage("");
                     }}
-                    className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-[10px] font-bold cursor-pointer transition whitespace-nowrap"
+                    className="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-[var(--text)] rounded-xl text-[10px] font-bold cursor-pointer transition whitespace-nowrap"
                     title="Manual team answer (bypasses robot)"
                   >
                     Override
@@ -832,9 +832,9 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
             <div className="xl:col-span-3 space-y-6">
               
               {/* Profile card */}
-              <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-5 backdrop-blur-md space-y-4">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-4">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-[10px] uppercase font-black text-neutral-500 tracking-wider">Customer Profile</h4>
+                  <h4 className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider">Customer Profile</h4>
                   <span className="text-[10px] bg-emerald-600/10 text-emerald-400 font-black font-mono border border-emerald-500/20 px-2 py-0.5 rounded-full">
                     Score: {activeChat.leadScore}
                   </span>
@@ -842,25 +842,25 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
 
                 <div className="space-y-2.5">
                   <div>
-                    <h3 className="text-sm font-black text-white">{activeChat.name}</h3>
-                    <p className="text-[10.5px] text-neutral-400">{activeChat.phone}</p>
-                    <p className="text-[10.5px] text-neutral-400">{activeChat.email}</p>
+                    <h3 className="text-sm font-black text-[var(--text)]">{activeChat.name}</h3>
+                    <p className="text-[10.5px] text-[var(--text-muted)]">{activeChat.phone}</p>
+                    <p className="text-[10.5px] text-[var(--text-muted)]">{activeChat.email}</p>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3.5 pt-3 border-t border-var(--border)/60 text-xs">
+                  <div className="grid grid-cols-2 gap-3.5 pt-3 border-t border-[var(--border)]/60 text-xs">
                     <div>
-                      <p className="text-[9px] text-neutral-500 font-bold uppercase">Lead Source</p>
-                      <p className="text-white font-medium">{activeChat.source}</p>
+                      <p className="text-[9px] text-[var(--text-subtle)] font-bold uppercase">Lead Source</p>
+                      <p className="text-[var(--text)] font-medium">{activeChat.source}</p>
                     </div>
                     <div>
-                      <p className="text-[9px] text-neutral-500 font-bold uppercase">Current Class</p>
-                      <p className="text-white font-medium">{activeChat.leadStatus}</p>
+                      <p className="text-[9px] text-[var(--text-subtle)] font-bold uppercase">Current Class</p>
+                      <p className="text-[var(--text)] font-medium">{activeChat.leadStatus}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Timeline activity flow */}
-                <div className="pt-4 border-t border-var(--border)/60 space-y-3">
+                <div className="pt-4 border-t border-[var(--border)]/60 space-y-3">
                   <p className="text-[9.5px] font-black tracking-widest text-[#5d5d6b] uppercase">Interaction Timeline</p>
                   
                   <div className="space-y-3.5">
@@ -868,14 +868,14 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
                       <div key={i} className="flex items-start gap-2.5 text-xs">
                         <div className="mt-0.5">
                           {tl.checked ? (
-                            <div className="w-4 h-4 rounded-full bg-blue-500 text-white flex items-center justify-center text-[10px]"><Check size={10} /></div>
+                            <div className="w-4 h-4 rounded-full bg-blue-500 text-[var(--text)] flex items-center justify-center text-[10px]"><Check size={10} /></div>
                           ) : (
-                            <div className="w-4 h-4 rounded-full border-2 border-neutral-700 bg-[#0a0a0c]" />
+                            <div className="w-4 h-4 rounded-full border-2 border-[var(--border-strong)] bg-[#0a0a0c]" />
                           )}
                         </div>
                         <div className="min-w-0 flex-1 leading-tight">
-                          <p className={`font-semibold ${tl.checked ? "text-neutral-200" : "text-neutral-500 text-neutral-500"}`}>{tl.event}</p>
-                          <p className="text-[9.5px] text-neutral-500 font-mono mt-0.5">{tl.date}</p>
+                          <p className={`font-semibold ${tl.checked ? "text-[var(--text)]" : "text-[var(--text-subtle)] text-[var(--text-subtle)]"}`}>{tl.event}</p>
+                          <p className="text-[9.5px] text-[var(--text-subtle)] font-mono mt-0.5">{tl.date}</p>
                         </div>
                       </div>
                     ))}
@@ -883,27 +883,27 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
                 </div>
 
                 {/* Quick Actions Panel */}
-                <div className="pt-4 border-t border-var(--border)/60 space-y-2">
-                  <p className="text-[9.5px] font-black tracking-widest text-neutral-500 uppercase">Immediate Team Actions</p>
+                <div className="pt-4 border-t border-[var(--border)]/60 space-y-2">
+                  <p className="text-[9.5px] font-black tracking-widest text-[var(--text-subtle)] uppercase">Immediate Team Actions</p>
                   
                   <div className="grid grid-cols-1 gap-2">
                     <button 
                       onClick={bookQuickAppointment}
-                      className="w-full py-2 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) hover:text-white border border-var(--border) rounded-xl text-[10.5px] text-neutral-300 font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full py-2 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)] border border-[var(--border)] rounded-xl text-[10.5px] text-[var(--text)] font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <Calendar className="w-3.5 h-3.5 text-blue-400" /> Book Appointment
                     </button>
                     
                     <button 
                       onClick={createPaymentLink}
-                      className="w-full py-2 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) hover:text-white border border-var(--border) rounded-xl text-[10.5px] text-neutral-300 font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full py-2 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)] border border-[var(--border)] rounded-xl text-[10.5px] text-[var(--text)] font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <CreditCard className="w-3.5 h-3.5 text-purple-400" /> Create Payment Link
                     </button>
 
                     <button 
                       onClick={assignHuman}
-                      className="w-full py-2 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) hover:text-white border border-var(--border) rounded-xl text-[10.5px] text-neutral-300 font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full py-2 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)] border border-[var(--border)] rounded-xl text-[10.5px] text-[var(--text)] font-bold flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <UserCheck className="w-3.5 h-3.5 text-yellow-400" /> Assign Human Agent
                     </button>
@@ -917,7 +917,7 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
                       </button>
                       <button 
                         onClick={exportLeadData}
-                        className="py-2 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) text-neutral-400 rounded-xl text-[10px] font-bold uppercase cursor-pointer text-center"
+                        className="py-2 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] rounded-xl text-[10px] font-bold uppercase cursor-pointer text-center"
                       >
                          Export
                       </button>
@@ -928,55 +928,55 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
               </div>
 
               {/* Bot response parameters card */}
-              <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-5 backdrop-blur-md space-y-3">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-white uppercase tracking-wider">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-3">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-[var(--text)] uppercase tracking-wider">
                   <Sparkles className="w-4 h-4 text-blue-400" />
                   <span>AI Response Insights</span>
                 </div>
                 
                 <div className="space-y-2.5 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="text-neutral-500">Knowledge Source:</span>
-                    <span className="text-white font-mono bg-var(--bg-elevated) px-2 py-0.5 rounded font-bold">{aiInsight.source}</span>
+                    <span className="text-[var(--text-subtle)]">Knowledge Source:</span>
+                    <span className="text-[var(--text)] font-mono bg-[var(--bg-elevated)] px-2 py-0.5 rounded font-bold">{aiInsight.source}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-neutral-500">Confidence Score:</span>
-                    <span className="text-emerald-400 font-mono font-bold bg-var(--bg-elevated) px-2 py-0.5 rounded">{aiInsight.confidence}</span>
+                    <span className="text-[var(--text-subtle)]">Confidence Score:</span>
+                    <span className="text-emerald-400 font-mono font-bold bg-[var(--bg-elevated)] px-2 py-0.5 rounded">{aiInsight.confidence}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-neutral-500">Response Speed:</span>
-                    <span className="text-blue-400 font-mono font-bold bg-var(--bg-elevated) px-2 py-0.5 rounded">{aiInsight.responseTime}</span>
+                    <span className="text-[var(--text-subtle)]">Response Speed:</span>
+                    <span className="text-blue-400 font-mono font-bold bg-[var(--bg-elevated)] px-2 py-0.5 rounded">{aiInsight.responseTime}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-neutral-500">FAQ ID Key Matched:</span>
-                    <span className="text-neutral-300 font-bold truncate max-w-[120px]">{aiInsight.faqMatched}</span>
+                    <span className="text-[var(--text-subtle)]">FAQ ID Key Matched:</span>
+                    <span className="text-[var(--text)] font-bold truncate max-w-[120px]">{aiInsight.faqMatched}</span>
                   </div>
                 </div>
               </div>
 
               {/* Floating notification activity feed banner */}
-              <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-4 backdrop-blur-md space-y-2.5">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-4 backdrop-blur-md space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-[10px] uppercase font-black text-neutral-500 tracking-wider">Real-Time Event Feed</h4>
+                  <h4 className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider">Real-Time Event Feed</h4>
                   <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping" />
                 </div>
                 
                 <div className="space-y-2 overflow-y-auto max-h-[140px] pr-1">
                   {alerts.map((alt) => (
-                    <div key={alt.id} className="p-2 bg-[#09090b]/80 border border-var(--border) rounded-xl text-[10px] relative font-sans leading-relaxed text-neutral-300 group">
+                    <div key={alt.id} className="p-2 bg-[var(--bg)]/80 border border-[var(--border)] rounded-xl text-[10px] relative font-sans leading-relaxed text-[var(--text)] group">
                       <button 
                         onClick={() => setAlerts(p => p.filter(a => a.id !== alt.id))} 
-                        className="absolute right-1 top-1 text-neutral-600 hover:text-white transition cursor-pointer"
+                        className="absolute right-1 top-1 text-[var(--text-subtle)] hover:text-[var(--text)] transition cursor-pointer"
                       >
                         <X className="w-2.5 h-2.5" />
                       </button>
                       <p className="pr-3 font-semibold">{alt.text}</p>
-                      <p className="text-[8px] text-neutral-500 text-neutral-500 font-mono text-right mt-1">{alt.time}</p>
+                      <p className="text-[8px] text-[var(--text-subtle)] text-[var(--text-subtle)] font-mono text-right mt-1">{alt.time}</p>
                     </div>
                   ))}
                   
                   {alerts.length === 0 && (
-                    <p className="text-[9.5px] text-center text-neutral-600 py-4 font-sans">No recent telemetry events</p>
+                    <p className="text-[9.5px] text-center text-[var(--text-subtle)] py-4 font-sans">No recent telemetry events</p>
                   )}
                 </div>
               </div>

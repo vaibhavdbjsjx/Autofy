@@ -273,13 +273,12 @@ export const CRMTab: React.FC<CRMTabProps> = ({
   return (
     <div className="space-y-8 text-left">
       
-      {/* HEADER SECTION */}
+      {/* Header section */}
       <div>
-        <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-          <Users className="w-6 h-6 text-indigo-400 stroke-[1.8]" />
+        <h2 className="text-xl sm:text-2xl font-black font-display tracking-tight" style={{ color: "var(--text)" }}>
           CRM Customer Module
         </h2>
-        <p className="text-xs text-neutral-400 mt-1">
+        <p className="text-xs font-sans mt-1" style={{ color: "var(--text-muted)" }}>
           Monitor life-time customer values, tag segments, update client notes, and view unified purchase history across all channels.
         </p>
       </div>
@@ -287,37 +286,37 @@ export const CRMTab: React.FC<CRMTabProps> = ({
       {/* METRIC KPI BLOCK */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-5 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">
+        <div className="glass-card p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-bold tracking-widest block font-sans" style={{ color: "var(--text-subtle)" }}>
             Total Customers
           </span>
-          <p className="text-2xl font-black text-white mt-1">
+          <p className="text-2xl font-black font-display mt-1" style={{ color: "var(--text)" }}>
             {analytics.totalCustomers}
           </p>
-          <p className="text-[10px] text-green-400 mt-1.5 font-bold flex items-center gap-1">
+          <p className="text-[10px] text-emerald-500 mt-1.5 font-bold flex items-center gap-1 font-sans">
             <TrendingUp className="w-3.5 h-3.5" />
             <span>Active WhatsApp responders</span>
           </p>
         </div>
 
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-5 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">
+        <div className="glass-card p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-bold tracking-widest block font-sans" style={{ color: "var(--text-subtle)" }}>
             Total Projected LTV
           </span>
-          <p className="text-2xl font-black text-emerald-400 mt-1">
+          <p className="text-2xl font-black font-display text-emerald-500 mt-1">
             ₹{analytics.overallLTV.toLocaleString()}
           </p>
-          <p className="text-[10px] text-neutral-400 mt-1.5 font-bold">Accumulated shop orders value</p>
+          <p className="text-[10px] mt-1.5 font-bold font-sans" style={{ color: "var(--text-muted)" }}>Accumulated shop orders value</p>
         </div>
 
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-5 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">
+        <div className="glass-card p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-bold tracking-widest block font-sans" style={{ color: "var(--text-subtle)" }}>
             Avg Value per Profile
           </span>
-          <p className="text-2xl font-black text-indigo-400 mt-1">
+          <p className="text-2xl font-black font-display text-indigo-500 mt-1">
             ₹{analytics.avgLTV.toLocaleString()}
           </p>
-          <p className="text-[10px] text-neutral-400 mt-1.5 font-bold">Standard customer ticket sizing</p>
+          <p className="text-[10px] mt-1.5 font-bold font-sans" style={{ color: "var(--text-muted)" }}>Standard customer ticket sizing</p>
         </div>
 
       </div>
@@ -325,13 +324,14 @@ export const CRMTab: React.FC<CRMTabProps> = ({
       {/* SEARCH AND FILTERS */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "var(--text-subtle)" }} />
           <input
             type="text"
             placeholder="Search name, phone, email, tags..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#111113] border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:outline-none transition-colors"
+            className="w-full rounded-xl py-2 pl-9 pr-4 text-xs focus:outline-none transition-colors font-sans"
+            style={{ background: "var(--input-bg)", border: "1px solid var(--border)", color: "var(--text)" }}
           />
         </div>
 
@@ -343,7 +343,7 @@ export const CRMTab: React.FC<CRMTabProps> = ({
               className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                 selectedSegment === seg
                   ? "bg-white text-black border-white"
-                  : "bg-var(--bg-elevated) border-white/[0.08] text-neutral-300 hover:bg-neutral-800"
+                  : "bg-[var(--bg-elevated)] border-[var(--border)] text-[var(--text)] hover:bg-[var(--bg-elevated)]"
               }`}
             >
               {seg}
@@ -356,9 +356,9 @@ export const CRMTab: React.FC<CRMTabProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* CUSTOMERS DIRECTORY LEFT */}
-        <div className="lg:col-span-4 bg-[#0c0c0e] border border-white/[0.08] rounded-3xl p-5 space-y-4">
-          <div className="flex justify-between items-center border-b border-white/[0.08] pb-3">
-            <span className="text-xs uppercase font-extrabold text-neutral-400">Customer Directory</span>
+        <div className="lg:col-span-4 bg-[#0c0c0e] border border-[var(--border)] rounded-3xl p-5 space-y-4">
+          <div className="flex justify-between items-center border-b border-[var(--border)] pb-3">
+            <span className="text-xs uppercase font-extrabold text-[var(--text-muted)]">Customer Directory</span>
             <span className="text-[11px] text-indigo-400 font-bold font-mono">{profiles.length} Listed</span>
           </div>
 
@@ -375,28 +375,28 @@ export const CRMTab: React.FC<CRMTabProps> = ({
                   className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all ${
                     isSelected 
                       ? "bg-white/[0.05] border-indigo-500/40" 
-                      : "bg-black/[0.1] border-white/[0.03] hover:bg-white/[0.02]"
+                      : "bg-black/[0.1] border-[var(--border)] hover:bg-white/[0.02]"
                   }`}
                 >
                   <div className="flex justify-between items-start gap-2">
                     <div>
-                      <h4 className="text-xs font-black text-white">{p.name}</h4>
-                      <p className="text-[10px] text-neutral-400 mt-0.5">{p.phone}</p>
+                      <h4 className="text-xs font-black text-[var(--text)]">{p.name}</h4>
+                      <p className="text-[10px] text-[var(--text-muted)] mt-0.5">{p.phone}</p>
                     </div>
 
                     <span className={`px-2 py-0.5 text-[8.5px] font-black uppercase text-center tracking-wider rounded ${
                       isVIP ? "bg-purple-500/10 text-purple-400" :
                       isHigh ? "bg-amber-500/10 text-amber-400" :
                       p.segment === "Returning Customer" ? "bg-blue-500/10 text-blue-400" :
-                      "bg-neutral-500/10 text-neutral-400"
+                      "bg-[var(--text-subtle)]/10 text-[var(--text-muted)]"
                     }`}>
                       {p.segment}
                     </span>
                   </div>
 
-                  <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-white/[0.04]">
-                    <span className="text-[10px] text-neutral-500 font-medium">LTV:</span>
-                    <span className="text-[10.5px] text-white font-extrabold font-mono">
+                  <div className="flex justify-between items-center mt-3 pt-2.5 border-t border-[var(--border)]">
+                    <span className="text-[10px] text-[var(--text-subtle)] font-medium">LTV:</span>
+                    <span className="text-[10.5px] text-[var(--text)] font-extrabold font-mono">
                       ₹{p.lifetime_value.toLocaleString()}
                     </span>
                   </div>
@@ -407,20 +407,20 @@ export const CRMTab: React.FC<CRMTabProps> = ({
         </div>
 
         {/* PROFILE INFORMATION PANELS RIGHT */}
-        <div className="lg:col-span-8 bg-[#0c0c0e] border border-white/[0.08] rounded-3xl p-6 space-y-6">
+        <div className="lg:col-span-8 bg-[#0c0c0e] border border-[var(--border)] rounded-3xl p-6 space-y-6">
           {activeProfile ? (
             <div className="space-y-6 text-left">
               
               {/* Profile Top Row Title */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border)] pb-5">
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-lg font-black text-white">{activeProfile.name}</h3>
+                    <h3 className="text-lg font-black text-[var(--text)]">{activeProfile.name}</h3>
                     <span className="text-xs uppercase font-extrabold px-2.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400">
                       {activeProfile.segment}
                     </span>
                   </div>
-                  <p className="text-xs text-neutral-400 flex items-center gap-1.5 font-mono">
+                  <p className="text-xs text-[var(--text-muted)] flex items-center gap-1.5 font-mono">
                     <span>{activeProfile.email || "No Email"}</span>
                     <span>•</span>
                     <span>{activeProfile.phone || "No Phone"}</span>
@@ -429,7 +429,7 @@ export const CRMTab: React.FC<CRMTabProps> = ({
 
                 <button
                   onClick={handleOpenEdit}
-                  className="px-3.5 py-1.5 bg-white hover:bg-neutral-200 text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer flex items-center gap-1 shadow"
+                  className="px-3.5 py-1.5 bg-white hover:bg-[var(--text)] text-black font-extrabold text-xs rounded-xl transition-all cursor-pointer flex items-center gap-1 shadow"
                 >
                   <Edit2 className="w-3.5 h-3.5" /> Edit Profile Attributes
                 </button>
@@ -438,35 +438,35 @@ export const CRMTab: React.FC<CRMTabProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* Custom Notes Section */}
-                <div className="space-y-3 bg-[#0a0a0c] border border-white/[0.04] p-5 rounded-2xl">
+                <div className="space-y-3 bg-[#0a0a0c] border border-[var(--border)] p-5 rounded-2xl">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase text-neutral-400 tracking-wider">Internal Team Notes</span>
+                    <span className="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-wider">Internal Team Notes</span>
                   </div>
-                  <p className="text-xs text-neutral-200 leading-relaxed font-sans italic">
+                  <p className="text-xs text-[var(--text)] leading-relaxed font-sans italic">
                     "{activeProfile.notes || "No custom workspace notes recorded on this profile yet."}"
                   </p>
 
-                  <div className="pt-2 border-t border-white/[0.04] flex flex-wrap gap-1.5">
+                  <div className="pt-2 border-t border-[var(--border)] flex flex-wrap gap-1.5">
                     {activeProfile.tags ? activeProfile.tags.split(",").map((tag, idx) => (
-                      <span key={idx} className="bg-neutral-800 text-neutral-300 text-[9.5px] px-2 py-0.5 rounded-lg border border-white/[0.03]">
+                      <span key={idx} className="bg-[var(--bg-elevated)] text-[var(--text)] text-[9.5px] px-2 py-0.5 rounded-lg border border-[var(--border)]">
                         #{tag.trim()}
                       </span>
                     )) : (
-                      <span className="text-[10px] text-neutral-500">No profile tags assigned.</span>
+                      <span className="text-[10px] text-[var(--text-subtle)]">No profile tags assigned.</span>
                     )}
                   </div>
                 </div>
 
                 {/* Purchase Lifetime Value KPI Container */}
-                <div className="space-y-3 bg-[#0a0a0c] border border-white/[0.04] p-5 rounded-2xl flex flex-col justify-between">
+                <div className="space-y-3 bg-[#0a0a0c] border border-[var(--border)] p-5 rounded-2xl flex flex-col justify-between">
                   <div className="space-y-1">
-                    <span className="text-[10px] font-black uppercase text-[#9CA3AF] tracking-wider">LTV Indicators</span>
+                    <span className="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-wider">LTV Indicators</span>
                     <p className="text-2xl font-black text-emerald-400 mt-1">₹{activeProfile.lifetime_value.toLocaleString()}</p>
                   </div>
                   
-                  <div className="space-y-1 pt-3.5 border-t border-white/[0.04]">
-                    <span className="text-[10px] text-neutral-400 block">Conversion Source:</span>
-                    <span className="text-xs text-white font-medium">Auto-captured VIP via WhatsApp Gateway</span>
+                  <div className="space-y-1 pt-3.5 border-t border-[var(--border)]">
+                    <span className="text-[10px] text-[var(--text-muted)] block">Conversion Source:</span>
+                    <span className="text-xs text-[var(--text)] font-medium">Auto-captured VIP via WhatsApp Gateway</span>
                   </div>
                 </div>
 
@@ -477,26 +477,26 @@ export const CRMTab: React.FC<CRMTabProps> = ({
                 
                 {/* 1. PURCHASE HISTORY LIST */}
                 <div className="space-y-3.5 text-left">
-                  <div className="flex justify-between items-center border-b border-white/[0.05] pb-2">
-                    <h5 className="text-[10.5px] font-black uppercase text-[#9CA3AF] tracking-wider flex items-center gap-1.5">
+                  <div className="flex justify-between items-center border-b border-[var(--border)] pb-2">
+                    <h5 className="text-[10.5px] font-black uppercase text-[var(--text-muted)] tracking-wider flex items-center gap-1.5">
                       <ShoppingBag className="w-3.5 h-3.5 text-indigo-400" />
                       Purchase Catalog ({activeProfile.purchase_history.length})
                     </h5>
                   </div>
 
                   {activeProfile.purchase_history.length === 0 ? (
-                    <div className="text-center p-9 border border-white/[0.03] rounded-2xl bg-black/[0.1]">
-                      <p className="text-xs text-neutral-500">No product orders synced.</p>
+                    <div className="text-center p-9 border border-[var(--border)] rounded-2xl bg-black/[0.1]">
+                      <p className="text-xs text-[var(--text-subtle)]">No product orders synced.</p>
                     </div>
                   ) : (
                     <div className="space-y-2.5 max-h-72 overflow-y-auto">
                       {activeProfile.purchase_history.map((ord, idx) => (
-                        <div key={idx} className="p-3 bg-black border border-white/[0.03] rounded-xl text-left">
+                        <div key={idx} className="p-3 bg-black border border-[var(--border)] rounded-xl text-left">
                           <div className="flex justify-between">
-                            <span className="text-[11px] font-black text-white">{ord.order_id}</span>
-                            <span className="text-[10px] text-neutral-500">{ord.date}</span>
+                            <span className="text-[11px] font-black text-[var(--text)]">{ord.order_id}</span>
+                            <span className="text-[10px] text-[var(--text-subtle)]">{ord.date}</span>
                           </div>
-                          <p className="text-xs text-neutral-300 mt-1 font-bold">{ord.items}</p>
+                          <p className="text-xs text-[var(--text)] mt-1 font-bold">{ord.items}</p>
                           <p className="text-xs text-emerald-400 font-bold font-mono mt-1.5">₹{ord.amount.toLocaleString()}</p>
                         </div>
                       ))}
@@ -506,14 +506,14 @@ export const CRMTab: React.FC<CRMTabProps> = ({
 
                 {/* 2. INTERACTION EVENT FEED */}
                 <div className="space-y-3.5 text-left">
-                  <div className="flex justify-between items-center border-b border-white/[0.05] pb-2">
-                    <h5 className="text-[10.5px] font-black uppercase text-[#9CA3AF] tracking-wider flex items-center gap-1.5">
+                  <div className="flex justify-between items-center border-b border-[var(--border)] pb-2">
+                    <h5 className="text-[10.5px] font-black uppercase text-[var(--text-muted)] tracking-wider flex items-center gap-1.5">
                       <Clock className="w-3.5 h-3.5 text-indigo-400" />
                       Interaction Feed
                     </h5>
                     <button
                       onClick={() => setIsLoggingEvent(true)}
-                      className="px-2 py-0.5 border border-[#3E3E42] hover:bg-neutral-800 text-[9.5px] font-bold rounded cursor-pointer"
+                      className="px-2 py-0.5 border border-[#3E3E42] hover:bg-[var(--bg-elevated)] text-[9.5px] font-bold rounded cursor-pointer"
                     >
                       + Log Event
                     </button>
@@ -521,10 +521,10 @@ export const CRMTab: React.FC<CRMTabProps> = ({
 
                   <div className="space-y-3 max-h-72 overflow-y-auto">
                     {activeProfile.interaction_history.map((log, idx) => (
-                      <div key={idx} className="p-3.5 bg-black/[0.2] border border-white/[0.03] rounded-xl space-y-1 text-left relative">
-                        <div className="absolute top-3.5 right-3.5 text-[9.5px] font-mono text-neutral-500">{log.date}</div>
-                        <h6 className="text-xs font-black text-white">{log.event}</h6>
-                        <p className="text-[11px] text-[#D1D5DB] leading-relaxed mt-1 font-sans">{log.notes}</p>
+                      <div key={idx} className="p-3.5 bg-black/[0.2] border border-[var(--border)] rounded-xl space-y-1 text-left relative">
+                        <div className="absolute top-3.5 right-3.5 text-[9.5px] font-mono text-[var(--text-subtle)]">{log.date}</div>
+                        <h6 className="text-xs font-black text-[var(--text)]">{log.event}</h6>
+                        <p className="text-[11px] text-[var(--text-muted)] leading-relaxed mt-1 font-sans">{log.notes}</p>
                       </div>
                     ))}
                   </div>
@@ -535,7 +535,7 @@ export const CRMTab: React.FC<CRMTabProps> = ({
             </div>
           ) : (
             <div className="text-center py-20">
-              <p className="text-xs text-[#9CA3AF]">No customer profile fits active segment query.</p>
+              <p className="text-xs text-[var(--text-muted)]">No customer profile fits active segment query.</p>
             </div>
           )}
         </div>
@@ -545,32 +545,32 @@ export const CRMTab: React.FC<CRMTabProps> = ({
       {/* EDIT PROFILE PROPERTIES OVERLAY */}
       {isEditing && activeProfile && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0C0C0E] border border-neutral-800 rounded-3xl p-6 max-w-lg w-full space-y-4 text-left shadow-2xl">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 max-w-lg w-full space-y-4 text-left shadow-2xl">
             <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider font-sans">
+              <h4 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider font-sans">
                 Adjust CRM Profile Details: {activeProfile.name}
               </h4>
-              <p className="text-xs text-neutral-400 mt-1">Configure segmentation brackets, hashtags, and internal notes.</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Configure segmentation brackets, hashtags, and internal notes.</p>
             </div>
 
-            <div className="space-y-3.5 text-xs text-neutral-300">
+            <div className="space-y-3.5 text-xs text-[var(--text)]">
               
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300">Name:</label>
+                  <label className="text-xs font-bold text-[var(--text)]">Name:</label>
                   <input
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="w-full bg-black border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2 px-3 text-xs text-white uppercase font-black"
+                    className="w-full bg-black border border-[var(--border)] focus:border-[var(--brand)] rounded-xl py-2 px-3 text-xs text-[var(--text)] uppercase font-black"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300">Segment Tier:</label>
+                  <label className="text-xs font-bold text-[var(--text)]">Segment Tier:</label>
                   <select
                     value={editSegment}
                     onChange={(e) => setEditSegment(e.target.value)}
-                    className="w-full bg-black border border-white/[0.08] text-white focus:border-indigo-500/50 rounded-xl py-2 px-3 text-xs focus:outline-none"
+                    className="w-full bg-black border border-[var(--border)] text-[var(--text)] focus:border-[var(--brand)] rounded-xl py-2 px-3 text-xs focus:outline-none"
                   >
                     <option value="VIP">VIP</option>
                     <option value="Returning Customer">Returning Customer</option>
@@ -582,43 +582,43 @@ export const CRMTab: React.FC<CRMTabProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300">Email Address:</label>
+                  <label className="text-xs font-bold text-[var(--text)]">Email Address:</label>
                   <input
                     type="email"
                     value={editEmail}
                     onChange={(e) => setEditEmail(e.target.value)}
-                    className="w-full bg-black border border-white/[0.08] rounded-xl py-2 px-3 text-xs text-white focus:outline-none"
+                    className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)] focus:outline-none"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300">Phone Contact (Intl):</label>
+                  <label className="text-xs font-bold text-[var(--text)]">Phone Contact (Intl):</label>
                   <input
                     type="text"
                     value={editPhone}
                     onChange={(e) => setEditPhone(e.target.value)}
-                    className="w-full bg-black border border-white/[0.08] rounded-xl py-2 px-3 text-xs text-white focus:outline-none"
+                    className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)] focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-neutral-300">Tags (comma-separated):</label>
+                <label className="text-xs font-bold text-[var(--text)]">Tags (comma-separated):</label>
                 <input
                   type="text"
                   value={editTags}
                   onChange={(e) => setEditTags(e.target.value)}
                   placeholder="bullet, premium, exhaust"
-                  className="w-full bg-black border border-white/[0.08] rounded-xl py-2 px-3 text-xs text-white focus:outline-none"
+                  className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)] focus:outline-none"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-neutral-300">Internal Segment Details / Notes:</label>
+                <label className="text-xs font-bold text-[var(--text)]">Internal Segment Details / Notes:</label>
                 <textarea
                   rows={3}
                   value={editNotes}
                   onChange={(e) => setEditNotes(e.target.value)}
-                  className="w-full bg-black border border-white/[0.08] rounded-xl py-2 px-3 text-xs text-white focus:outline-none leading-relaxed"
+                  className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)] focus:outline-none leading-relaxed"
                 />
               </div>
 
@@ -627,13 +627,13 @@ export const CRMTab: React.FC<CRMTabProps> = ({
             <div className="flex justify-end gap-3.5 pt-2">
               <button
                 onClick={() => setIsEditing(false)}
-                className="px-4 py-2 text-xs bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.08] text-neutral-300 font-extrabold rounded-xl cursor-pointer"
+                className="px-4 py-2 text-xs bg-white/[0.02] hover:bg-white/[0.06] border border-[var(--border)] text-[var(--text)] font-extrabold rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveEdit}
-                className="px-5 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl cursor-pointer"
+                className="px-5 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-[var(--text)] font-extrabold rounded-xl cursor-pointer"
               >
                 Save Details
               </button>
@@ -645,34 +645,34 @@ export const CRMTab: React.FC<CRMTabProps> = ({
       {/* LOG ENTIRE RECONCILIATION EVENT OVERLAY */}
       {isLoggingEvent && activeProfile && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0C0C0E] border border-neutral-800 rounded-3xl p-6 max-w-md w-full space-y-4 text-left shadow-2xl">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 max-w-md w-full space-y-4 text-left shadow-2xl">
             <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider font-sans">
+              <h4 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider font-sans">
                 Log Workspace Client Event
               </h4>
-              <p className="text-xs text-neutral-400 mt-1">Insert direct notes regarding offline calls, visits, or manual shipments.</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Insert direct notes regarding offline calls, visits, or manual shipments.</p>
             </div>
 
             <div className="space-y-3">
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-neutral-300">Event name / Action title:</label>
+                <label className="text-xs font-bold text-[var(--text)]">Event name / Action title:</label>
                 <input
                   type="text"
                   placeholder="e.g. Telephone Call, Showroom Visit"
                   value={customEventTitle}
                   onChange={(e) => setCustomEventTitle(e.target.value)}
-                  className="w-full bg-black border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2 px-3 text-xs text-white"
+                  className="w-full bg-black border border-[var(--border)] focus:border-[var(--brand)] rounded-xl py-2 px-3 text-xs text-[var(--text)]"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-neutral-300">Detailed logs description:</label>
+                <label className="text-xs font-bold text-[var(--text)]">Detailed logs description:</label>
                 <textarea
                   rows={3}
                   placeholder="What was discussed or concluded?"
                   value={customEventNotes}
                   onChange={(e) => setCustomEventNotes(e.target.value)}
-                  className="w-full bg-black border border-white/[0.08] rounded-xl py-2 px-3 text-xs text-white leading-relaxed"
+                  className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)] leading-relaxed"
                 />
               </div>
             </div>
@@ -680,13 +680,13 @@ export const CRMTab: React.FC<CRMTabProps> = ({
             <div className="flex justify-end gap-3.5 pt-1">
               <button
                 onClick={() => setIsLoggingEvent(false)}
-                className="px-4 py-2 text-xs border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] text-neutral-300 font-extrabold rounded-xl cursor-pointer"
+                className="px-4 py-2 text-xs border border-[var(--border)] bg-white/[0.02] hover:bg-white/[0.06] text-[var(--text)] font-extrabold rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleAddInteractionEvent}
-                className="px-5 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl cursor-pointer shadow"
+                className="px-5 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-[var(--text)] font-extrabold rounded-xl cursor-pointer shadow"
               >
                 Add Timeline Log
               </button>

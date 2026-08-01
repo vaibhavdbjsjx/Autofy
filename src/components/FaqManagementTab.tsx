@@ -216,7 +216,7 @@ export const FaqManagementTab: React.FC = () => {
     <div id="faq-management-module" className="space-y-8 font-sans">
       
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-var(--border) pb-6 relative">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[var(--border)] pb-6 relative">
         
         {/* Dynamic Success Toast */}
         <AnimatePresence>
@@ -225,7 +225,7 @@ export const FaqManagementTab: React.FC = () => {
               initial={{ y: -15, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -15, opacity: 0 }}
-              className="absolute top-0 right-0 bg-[#0f0f13] border border-blue-500/30 text-white px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 z-50 text-xs font-bold"
+              className="absolute top-0 right-0 bg-[var(--bg-card)] border border-blue-500/30 text-[var(--text)] px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2 z-50 text-xs font-bold"
             >
               <CheckCircle className="w-4 h-4 text-green-400" />
               {notification}
@@ -234,11 +234,11 @@ export const FaqManagementTab: React.FC = () => {
         </AnimatePresence>
 
         <div>
-          <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-xl font-black text-[var(--text)] tracking-tight flex items-center gap-2">
             <HelpCircle className="w-5 h-5 text-blue-500" />
             FAQ Management
           </h2>
-          <p className="text-xs text-neutral-400 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             Teach Autofy how to answer common customer questions, handle RAG inquiries, and build confidence charts.
           </p>
         </div>
@@ -247,7 +247,7 @@ export const FaqManagementTab: React.FC = () => {
           <button
             onClick={handleGenerateAIFAQs}
             disabled={isGenerating}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-var(--bg-elevated) border border-var(--border) hover:bg-neutral-800 text-neutral-200 text-xs font-bold rounded-xl transition-all cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[var(--bg-elevated)] border border-[var(--border)] hover:bg-[var(--bg-elevated)] text-[var(--text)] text-xs font-bold rounded-xl transition-all cursor-pointer"
           >
             {isGenerating ? "Synthesizing RAG..." : "Generate FAQs Using AI"}
             <Sparkles className="w-4 h-4 text-blue-400 animate-pulse" />
@@ -255,7 +255,7 @@ export const FaqManagementTab: React.FC = () => {
 
           <button
             onClick={() => setShowAddForm(!showAddForm)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-550 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow-lg shadow-blue-500/10"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-550 text-[var(--text)] text-xs font-bold rounded-xl transition-all cursor-pointer shadow-lg shadow-blue-500/10"
           >
             {showAddForm ? "Show FAQ Table" : "Add FAQ"}
             <Plus className="w-4 h-4" />
@@ -267,41 +267,41 @@ export const FaqManagementTab: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         
         {/* Metric 1 */}
-        <div className="p-5 bg-neutral-950/40 border border-var(--border) rounded-3xl backdrop-blur-md">
-          <p className="text-[10px] text-neutral-500 uppercase font-black tracking-wider mb-2">Most Asked Question</p>
+        <div className="p-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl backdrop-blur-md">
+          <p className="text-[10px] text-[var(--text-subtle)] uppercase font-black tracking-wider mb-2">Most Asked Question</p>
           {mostAsked ? (
             <div className="space-y-1.5">
-              <p className="text-xs font-bold text-white truncate">{mostAsked.question}</p>
+              <p className="text-xs font-bold text-[var(--text)] truncate">{mostAsked.question}</p>
               <div className="flex items-center gap-2">
                 <span className="bg-blue-600/10 text-blue-400 font-mono text-[9px] px-1.5 py-0.5 rounded font-bold">
                   {mostAsked.queriesCount} queries
                 </span>
-                <span className="text-[10px] text-neutral-500">Auto replied</span>
+                <span className="text-[10px] text-[var(--text-subtle)]">Auto replied</span>
               </div>
             </div>
           ) : (
-            <p className="text-xs text-neutral-500">No data logged yet.</p>
+            <p className="text-xs text-[var(--text-subtle)]">No data logged yet.</p>
           )}
         </div>
 
         {/* Metric 2 */}
-        <div className="p-5 bg-neutral-950/40 border border-var(--border) rounded-3xl backdrop-blur-md">
-          <p className="text-[10px] text-neutral-500 uppercase font-black tracking-wider mb-2">Confidence Run Rate</p>
+        <div className="p-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl backdrop-blur-md">
+          <p className="text-[10px] text-[var(--text-subtle)] uppercase font-black tracking-wider mb-2">Confidence Run Rate</p>
           <div className="space-y-1.5">
             <p className="text-xl font-mono font-black text-green-400">92.4%</p>
-            <p className="text-[9.5px] text-neutral-400">Average NLP confidence score this period</p>
+            <p className="text-[9.5px] text-[var(--text-muted)]">Average NLP confidence score this period</p>
           </div>
         </div>
 
         {/* Metric 3: Low Confidence Queries */}
-        <div className="p-5 bg-neutral-950/40 border border-var(--border) rounded-3xl backdrop-blur-md">
-          <p className="text-[10px] text-neutral-500 uppercase font-bold tracking-wider mb-2 text-amber-500 flex items-center gap-1">
+        <div className="p-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl backdrop-blur-md">
+          <p className="text-[10px] text-[var(--text-subtle)] uppercase font-bold tracking-wider mb-2 text-amber-500 flex items-center gap-1">
             <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
             Low Confidence Answers
           </p>
           <div className="space-y-1 max-h-[50px] overflow-y-auto pr-1">
             {lowConfidenceLogs.map((log, idx) => (
-              <div key={idx} className="flex justify-between text-[10px] items-center text-neutral-300">
+              <div key={idx} className="flex justify-between text-[10px] items-center text-[var(--text)]">
                 <span className="truncate max-w-[80%]">"{log.query}"</span>
                 <span className="font-mono text-amber-400 text-[9px]">{log.confScore}</span>
               </div>
@@ -310,7 +310,7 @@ export const FaqManagementTab: React.FC = () => {
         </div>
 
         {/* Metric 4: Unassigned Queries */}
-        <div className="p-5 bg-neutral-950/40 border border-var(--border) rounded-3xl backdrop-blur-md">
+        <div className="p-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl backdrop-blur-md">
           <p className="text-[10px] text-amber-400/80 uppercase font-black tracking-wider mb-2 flex items-center gap-1">
             <MessageCircle className="w-3.5 h-3.5 text-amber-400" />
             Missing FAQ Suggestions
@@ -324,7 +324,7 @@ export const FaqManagementTab: React.FC = () => {
                   setNewCategory(sg.suggestedCat as FAQItem["category"]);
                   setShowAddForm(true);
                 }}
-                className="w-full text-left flex justify-between text-[10px] items-center text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                className="w-full text-left flex justify-between text-[10px] items-center text-[var(--text-muted)] hover:text-[var(--text)] transition-colors cursor-pointer"
               >
                 <span className="truncate max-w-[80%] select-text">"{sg.text}"</span>
                 <span className="font-bold text-blue-400 hover:underline">{sg.count}x</span>
@@ -344,45 +344,45 @@ export const FaqManagementTab: React.FC = () => {
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
-            className="p-6 bg-neutral-950/40 border border-var(--border) rounded-3xl backdrop-blur-md"
+            className="p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl backdrop-blur-md"
           >
-            <div className="border-b border-var(--border) pb-3 mb-5">
-              <h3 className="text-sm font-black text-white uppercase tracking-wider text-blue-400">Configure Custom FAQ answer</h3>
-              <p className="text-[10.5px] text-neutral-500">Provide high-confidence direct bot answers for matching user questions.</p>
+            <div className="border-b border-[var(--border)] pb-3 mb-5">
+              <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider text-blue-400">Configure Custom FAQ answer</h3>
+              <p className="text-[10.5px] text-[var(--text-subtle)]">Provide high-confidence direct bot answers for matching user questions.</p>
             </div>
 
             <form onSubmit={handleSubmitFAQ} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-black tracking-wider text-neutral-500">Target Customer Query (What customers ask)</label>
+                <label className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)]">Target Customer Query (What customers ask)</label>
                 <input
                   type="text"
                   required
                   placeholder="E.g. Is there designated parking near your building entrance?"
                   value={newQuestion}
                   onChange={(e) => setNewQuestion(e.target.value)}
-                  className="w-full bg-[#0a0a0c] border border-var(--border) p-3 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500/50"
+                  className="w-full bg-[#0a0a0c] border border-[var(--border)] p-3 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)]"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-black tracking-wider text-neutral-500">Automated Bot Reply Payout Text</label>
+                <label className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)]">Automated Bot Reply Payout Text</label>
                 <textarea
                   rows={4}
                   required
                   placeholder="Yes, we provide safe underground multi-level parking completely free for the first 2 hours. Just validate your registration slip at our checkout bay."
                   value={newAnswer}
                   onChange={(e) => setNewAnswer(e.target.value)}
-                  className="w-full bg-[#0a0a0c] border border-var(--border) p-3 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500/50"
+                  className="w-full bg-[#0a0a0c] border border-[var(--border)] p-3 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)]"
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-black tracking-wider text-neutral-500">FAQ Category</label>
+                  <label className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)]">FAQ Category</label>
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value as FAQItem["category"])}
-                    className="w-full bg-[#0a0a0c] border border-var(--border) p-2.5 rounded-xl text-xs text-neutral-300 focus:outline-none"
+                    className="w-full bg-[#0a0a0c] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none"
                   >
                     {categoriesList.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -391,11 +391,11 @@ export const FaqManagementTab: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-black tracking-wider text-neutral-500">RAG Priority Level</label>
+                  <label className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)]">RAG Priority Level</label>
                   <select
                     value={newPriority}
                     onChange={(e) => setNewPriority(e.target.value as FAQItem["priority"])}
-                    className="w-full bg-[#0a0a0c] border border-var(--border) p-2.5 rounded-xl text-xs text-neutral-300 focus:outline-none"
+                    className="w-full bg-[#0a0a0c] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none"
                   >
                     <option value="Low">Low (General helpful facts)</option>
                     <option value="Medium">Medium (Active services facts)</option>
@@ -410,7 +410,7 @@ export const FaqManagementTab: React.FC = () => {
                   type="button"
                   onClick={() => setNewStatus(!newStatus)}
                   className={`w-7 h-4 rounded-full p-0.5 transition-all outline-none ${
-                    newStatus ? "bg-blue-600" : "bg-neutral-800"
+                    newStatus ? "bg-blue-600" : "bg-[var(--bg-elevated)]"
                   }`}
                 >
                   <div className={`w-3 h-3 rounded-full bg-white transition-all ${
@@ -418,8 +418,8 @@ export const FaqManagementTab: React.FC = () => {
                   }`} />
                 </button>
                 <div>
-                  <p className="text-xs font-bold text-white">Active Status</p>
-                  <p className="text-[10px] text-neutral-500">Indexed for immediate matching in live chats</p>
+                  <p className="text-xs font-bold text-[var(--text)]">Active Status</p>
+                  <p className="text-[10px] text-[var(--text-subtle)]">Indexed for immediate matching in live chats</p>
                 </div>
               </div>
 
@@ -427,13 +427,13 @@ export const FaqManagementTab: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowAddForm(false)}
-                  className="flex-1 py-3 text-xs font-bold text-neutral-400 bg-var(--bg-elevated) hover:bg-neutral-800 border border-var(--border) rounded-xl cursor-pointer"
+                  className="flex-1 py-3 text-xs font-bold text-[var(--text-muted)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-3 text-xs font-bold text-white bg-blue-600 hover:bg-blue-550 rounded-xl cursor-pointer shadow-lg shadow-blue-500/10"
+                  className="flex-1 py-3 text-xs font-bold text-[var(--text)] bg-blue-600 hover:bg-blue-550 rounded-xl cursor-pointer shadow-lg shadow-blue-500/10"
                 >
                   Save and Index Pairs
                 </button>
@@ -459,7 +459,7 @@ export const FaqManagementTab: React.FC = () => {
                     </div>
                     <button
                       onClick={() => setAiSuggestions([])}
-                      className="p-1 hover:bg-var(--bg-elevated) rounded-xl text-neutral-400"
+                      className="p-1 hover:bg-[var(--bg-elevated)] rounded-xl text-[var(--text-muted)]"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -467,7 +467,7 @@ export const FaqManagementTab: React.FC = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {aiSuggestions.map((item, idx) => (
-                      <div key={idx} className="p-4 bg-neutral-950/60 border border-var(--border) rounded-2xl flex flex-col justify-between gap-4">
+                      <div key={idx} className="p-4 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl flex flex-col justify-between gap-4">
                         <div className="space-y-2">
                           <div className="flex justify-between items-center">
                             <span className="text-[9px] bg-blue-650 bg-blue-600/15 text-blue-400 border border-blue-500/20 rounded px-1.5 py-0.5 font-bold uppercase">
@@ -477,12 +477,12 @@ export const FaqManagementTab: React.FC = () => {
                               {item.priority} Priority
                             </span>
                           </div>
-                          <p className="text-xs font-bold text-white">"{item.question}"</p>
-                          <p className="text-[10.5px] text-neutral-400 leading-normal line-clamp-3">"{item.answer}"</p>
+                          <p className="text-xs font-bold text-[var(--text)]">"{item.question}"</p>
+                          <p className="text-[10.5px] text-[var(--text-muted)] leading-normal line-clamp-3">"{item.answer}"</p>
                         </div>
                         <button
                           onClick={() => handleAddSuggestedFAQ(item, idx)}
-                          className="w-full py-2 bg-blue-600 hover:bg-blue-550 text-white font-bold text-[10px] rounded-xl transition-all cursor-pointer"
+                          className="w-full py-2 bg-blue-600 hover:bg-blue-550 text-[var(--text)] font-bold text-[10px] rounded-xl transition-all cursor-pointer"
                         >
                           Approve & Index +
                         </button>
@@ -503,7 +503,7 @@ export const FaqManagementTab: React.FC = () => {
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer whitespace-nowrap ${
                     activeCategory === "All"
                       ? "bg-blue-600/15 border-blue-500/25 text-blue-400 font-extrabold"
-                      : "bg-neutral-950 border-var(--border) hover:border-var(--border) text-neutral-400"
+                      : "bg-[var(--bg-card)] border-[var(--border)] hover:border-[var(--border)] text-[var(--text-muted)]"
                   }`}
                 >
                   All Categories
@@ -515,7 +515,7 @@ export const FaqManagementTab: React.FC = () => {
                     className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer whitespace-nowrap ${
                       activeCategory === cat
                         ? "bg-blue-600/15 border-blue-500/25 text-blue-400 font-extrabold"
-                        : "bg-neutral-950 border-var(--border) hover:border-var(--border) text-neutral-400"
+                        : "bg-[var(--bg-card)] border-[var(--border)] hover:border-[var(--border)] text-[var(--text-muted)]"
                     }`}
                   >
                     {cat}
@@ -525,24 +525,24 @@ export const FaqManagementTab: React.FC = () => {
 
               {/* Keyword Search matching box */}
               <div className="relative w-full md:w-64">
-                <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-[var(--text-subtle)] absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search questions or keyword..."
-                  className="w-full bg-neutral-950/40 border border-var(--border) rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500/40"
+                  className="w-full bg-[var(--bg-card)] border border-[var(--border)] rounded-xl py-2 pl-9 pr-4 text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-blue-500/40"
                 />
               </div>
 
             </div>
 
             {/* RENDER TABLE OF FAQs */}
-            <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-6 backdrop-blur-md">
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 backdrop-blur-md">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs font-sans">
                   <thead>
-                    <tr className="border-b border-var(--border) text-[10px] text-neutral-500 text-neutral-500 font-bold uppercase tracking-widest">
+                    <tr className="border-b border-[var(--border)] text-[10px] text-[var(--text-subtle)] text-[var(--text-subtle)] font-bold uppercase tracking-widest">
                       <th className="py-3 px-2">Question Asked</th>
                       <th className="py-3 px-2">Automated Reply Text</th>
                       <th className="py-3 px-2">Category</th>
@@ -555,13 +555,13 @@ export const FaqManagementTab: React.FC = () => {
                     {filteredFAQs.map((f) => (
                       <tr key={f.id} className="hover:bg-white/2 transition-colors">
                         <td className="py-4 px-2 max-w-[200px]">
-                          <p className="font-bold text-white leading-relaxed select-text">"{f.question}"</p>
+                          <p className="font-bold text-[var(--text)] leading-relaxed select-text">"{f.question}"</p>
                         </td>
                         <td className="py-4 px-2 max-w-[320px]">
-                          <p className="text-neutral-300 leading-relaxed select-text">"{f.answer}"</p>
+                          <p className="text-[var(--text)] leading-relaxed select-text">"{f.answer}"</p>
                         </td>
                         <td className="py-4 px-2">
-                          <span className="px-2 py-0.5 rounded bg-var(--bg-elevated) text-neutral-400 font-bold border border-var(--border)">
+                          <span className="px-2 py-0.5 rounded bg-[var(--bg-elevated)] text-[var(--text-muted)] font-bold border border-[var(--border)]">
                             {f.category}
                           </span>
                         </td>
@@ -573,12 +573,12 @@ export const FaqManagementTab: React.FC = () => {
                               ? "bg-amber-500/10 text-amber-400 border border-amber-500/25"
                               : f.priority === "Medium"
                               ? "bg-blue-600/10 text-blue-400 border border-blue-500/25"
-                              : "bg-var(--bg-elevated) text-neutral-400"
+                              : "bg-[var(--bg-elevated)] text-[var(--text-muted)]"
                           }`}>
                             {f.priority}
                           </span>
                         </td>
-                        <td className="py-4 px-2 font-mono text-center font-bold text-neutral-500">
+                        <td className="py-4 px-2 font-mono text-center font-bold text-[var(--text-subtle)]">
                           {f.queriesCount}
                         </td>
                         <td className="py-4 px-2 text-right">
@@ -588,14 +588,14 @@ export const FaqManagementTab: React.FC = () => {
                               className={`px-2 py-1 text-[10px] rounded hover:opacity-80 font-bold cursor-pointer ${
                                 f.isActive 
                                   ? "bg-green-600/10 text-green-400 border border-green-500/20" 
-                                  : "bg-var(--bg-elevated) text-neutral-500 border border-var(--border)"
+                                  : "bg-[var(--bg-elevated)] text-[var(--text-subtle)] border border-[var(--border)]"
                               }`}
                             >
                               {f.isActive ? "Indexed" : "Muted"}
                             </button>
                             <button
                               onClick={() => deleteFAQ(f.id)}
-                              className="p-1.5 text-neutral-500 hover:text-red-400 transition-colors cursor-pointer"
+                              className="p-1.5 text-[var(--text-subtle)] hover:text-red-400 transition-colors cursor-pointer"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -605,7 +605,7 @@ export const FaqManagementTab: React.FC = () => {
                     ))}
                     {filteredFAQs.length === 0 && (
                       <tr>
-                        <td colSpan={6} className="text-center py-8 text-neutral-500 text-xs italic">
+                        <td colSpan={6} className="text-center py-8 text-[var(--text-subtle)] text-xs italic">
                           No FAQs matched these filtered parameters. Check category or click Create FAQ.
                         </td>
                       </tr>

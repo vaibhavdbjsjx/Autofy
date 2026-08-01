@@ -31,6 +31,7 @@ export interface OnboardingData {
   // Step 4: Payment Setup
   paymentMethod: "upi" | "razorpay" | "phonepe" | null;
   upiId?: string;
+  qrCodeImage?: string;
   razorpayKey?: string;
   phonepeMerchantId?: string;
 }

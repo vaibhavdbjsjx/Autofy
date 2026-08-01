@@ -207,20 +207,20 @@ Let me know which package works best for your schedule, and I can send you a sec
     <div id="membership-plans-module" className="space-y-8 font-sans">
       
       {/* HEADER ROW */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-var(--border) pb-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-[var(--border)] pb-6">
         <div>
-          <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-xl font-black text-[var(--text)] tracking-tight flex items-center gap-2">
             <CreditCard className="w-5 h-5 text-blue-500" />
             Membership Plans
           </h2>
-          <p className="text-xs text-neutral-400 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             Create and manage memberships, subscriptions, and recurring subscription plans.
           </p>
         </div>
 
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-550 text-white text-xs font-bold rounded-xl transition-all self-start shadow-lg shadow-blue-500/10 cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-550 text-[var(--text)] text-xs font-bold rounded-xl transition-all self-start shadow-lg shadow-blue-500/10 cursor-pointer"
         >
           {showAddForm ? "View Active Plan List" : "Add Membership Plan"}
           <Plus className="w-4 h-4" />
@@ -261,14 +261,14 @@ Let me know which package works best for your schedule, and I can send you a sec
         ].map((stat, idx) => {
           const IconComp = stat.icon;
           return (
-            <div key={idx} className="p-5 bg-neutral-950/40 border border-var(--border) rounded-3xl backdrop-blur-md flex items-center justify-between">
+            <div key={idx} className="p-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl backdrop-blur-md flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-[10px] text-neutral-500 font-extrabold uppercase tracking-widest">{stat.title}</p>
+                <p className="text-[10px] text-[var(--text-subtle)] font-extrabold uppercase tracking-widest">{stat.title}</p>
                 <p className={`text-xl font-black ${stat.color}`}>{stat.value}</p>
-                <p className="text-[9.5px] text-neutral-400 font-medium">{stat.detail}</p>
+                <p className="text-[9.5px] text-[var(--text-muted)] font-medium">{stat.detail}</p>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-var(--bg-elevated) flex items-center justify-center border border-var(--border)">
-                <IconComp className="w-5 h-5 text-neutral-400" />
+              <div className="w-10 h-10 rounded-xl bg-[var(--bg-elevated)] flex items-center justify-center border border-[var(--border)]">
+                <IconComp className="w-5 h-5 text-[var(--text-muted)]" />
               </div>
             </div>
           );
@@ -282,11 +282,11 @@ Let me know which package works best for your schedule, and I can send you a sec
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
-            className="p-6 bg-neutral-950/40 border border-var(--border) rounded-3xl backdrop-blur-md space-y-6"
+            className="p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl backdrop-blur-md space-y-6"
           >
-            <div className="border-b border-var(--border) pb-4">
-              <h3 className="text-sm font-black text-white uppercase tracking-wider text-blue-400">Launch New Membership Plan</h3>
-              <p className="text-[10.5px] text-neutral-500">Configure subscription intervals, discounts, joining fees, and benefits.</p>
+            <div className="border-b border-[var(--border)] pb-4">
+              <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider text-blue-400">Launch New Membership Plan</h3>
+              <p className="text-[10.5px] text-[var(--text-subtle)]">Configure subscription intervals, discounts, joining fees, and benefits.</p>
             </div>
 
             <form onSubmit={handleCreatePlan} className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -294,23 +294,23 @@ Let me know which package works best for your schedule, and I can send you a sec
               {/* Left Column: Basic Info */}
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-black tracking-wider text-neutral-500">Plan Title</label>
+                  <label className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)]">Plan Title</label>
                   <input
                     type="text"
                     required
                     placeholder="E.g. VIP Quarterly Conditioning"
                     value={planName}
                     onChange={(e) => setPlanName(e.target.value)}
-                    className="w-full bg-[#0a0a0c] border border-var(--border) px-3.5 py-2.5 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-[#0a0a0c] border border-[var(--border)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)]"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-black tracking-wider text-neutral-500">Duration Interval</label>
+                  <label className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)]">Duration Interval</label>
                   <select
                     value={duration}
                     onChange={(e) => setDuration(e.target.value as MembershipPlan["duration"])}
-                    className="w-full bg-[#0a0a0c] border border-var(--border) p-2.5 rounded-xl text-xs text-neutral-300 focus:outline-none focus:border-blue-500/50"
+                    className="w-full bg-[#0a0a0c] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)]"
                   >
                     <option value="Daily">Daily</option>
                     <option value="Weekly">Weekly</option>
@@ -323,57 +323,57 @@ Let me know which package works best for your schedule, and I can send you a sec
 
                 <div className="grid grid-cols-3 gap-3">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-black tracking-wider text-neutral-500">Price (₹)</label>
+                    <label className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)]">Price (₹)</label>
                     <input
                       type="number"
                       required
                       placeholder="E.g. 5000"
                       value={price}
                       onChange={(e) => setPrice(e.target.value)}
-                      className="w-full bg-[#0a0a0c] border border-var(--border) p-2.5 rounded-xl text-xs text-white focus:outline-none"
+                      className="w-full bg-[#0a0a0c] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-black tracking-wider text-neutral-500">Discounted (₹)</label>
+                    <label className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)]">Discounted (₹)</label>
                     <input
                       type="number"
                       placeholder="E.g. 3999"
                       value={discountPrice}
                       onChange={(e) => setDiscountPrice(e.target.value)}
-                      className="w-full bg-[#0a0a0c] border border-var(--border) p-2.5 rounded-xl text-xs text-white focus:outline-none"
+                      className="w-full bg-[#0a0a0c] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none"
                     />
                   </div>
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-black tracking-wider text-neutral-500">Joining Fee (₹)</label>
+                    <label className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)]">Joining Fee (₹)</label>
                     <input
                       type="number"
                       placeholder="Free (0)"
                       value={joiningFee}
                       onChange={(e) => setJoiningFee(e.target.value)}
-                      className="w-full bg-[#0a0a0c] border border-var(--border) p-2.5 rounded-xl text-xs text-white focus:outline-none"
+                      className="w-full bg-[#0a0a0c] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-black tracking-wider text-neutral-500">Description</label>
+                  <label className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)]">Description</label>
                   <textarea
                     rows={2}
                     placeholder="Describe what subscribers get under this tier..."
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full bg-[#0a0a0c] border border-var(--border) p-3 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none"
+                    className="w-full bg-[#0a0a0c] border border-[var(--border)] p-3 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-black tracking-wider text-neutral-500">Terms & Conditions</label>
+                  <label className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)]">Terms & Conditions</label>
                   <textarea
                     rows={2}
                     placeholder="Refund, freeze requests rules, cancellation bounds..."
                     value={terms}
                     onChange={(e) => setTerms(e.target.value)}
-                    className="w-full bg-[#0a0a0c] border border-var(--border) p-3 rounded-xl text-xs text-white placeholder-neutral-500 focus:outline-none"
+                    className="w-full bg-[#0a0a0c] border border-[var(--border)] p-3 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none"
                   />
                 </div>
 
@@ -381,29 +381,29 @@ Let me know which package works best for your schedule, and I can send you a sec
                   <button
                     type="button"
                     onClick={() => setIsActive(!isActive)}
-                    className="text-neutral-400 focus:outline-none"
+                    className="text-[var(--text-muted)] focus:outline-none"
                   >
                     {isActive ? (
                       <ToggleRight className="w-10 h-6 text-green-400 stroke-[1.5]" />
                     ) : (
-                      <ToggleLeft className="w-10 h-6 text-neutral-600 stroke-[1.5]" />
+                      <ToggleLeft className="w-10 h-6 text-[var(--text-subtle)] stroke-[1.5]" />
                     )}
                   </button>
                   <div>
-                    <p className="text-xs font-bold text-white">Plan Availability Status</p>
-                    <p className="text-[10px] text-neutral-500">Currently active and searchable by customers on WhatsApp bot</p>
+                    <p className="text-xs font-bold text-[var(--text)]">Plan Availability Status</p>
+                    <p className="text-[10px] text-[var(--text-subtle)]">Currently active and searchable by customers on WhatsApp bot</p>
                   </div>
                 </div>
               </div>
 
               {/* Right Column: Benefits Builder */}
-              <div className="space-y-4 bg-var(--bg-elevated)/10 p-5 border border-var(--border) rounded-3xl">
+              <div className="space-y-4 bg-[var(--bg-elevated)]/10 p-5 border border-[var(--border)] rounded-3xl">
                 <div>
-                  <h4 className="text-xs font-extrabold text-white uppercase tracking-wider flex items-center gap-1.5">
+                  <h4 className="text-xs font-extrabold text-[var(--text)] uppercase tracking-wider flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4 text-blue-400" />
                     Interactive Benefits Builder
                   </h4>
-                  <p className="text-[10px] text-neutral-500 mt-0.5">Toggle default suggestions or craft raw unlimited packages.</p>
+                  <p className="text-[10px] text-[var(--text-subtle)] mt-0.5">Toggle default suggestions or craft raw unlimited packages.</p>
                 </div>
 
                 {/* Suggestions badges */}
@@ -418,7 +418,7 @@ Let me know which package works best for your schedule, and I can send you a sec
                         className={`px-3 py-1.5 text-[10.5px] font-bold rounded-xl border transition-all cursor-pointer ${
                           isSelected
                             ? "bg-blue-600/15 border-blue-500/30 text-blue-400"
-                            : "bg-neutral-950 border-var(--border) hover:border-neutral-800 text-neutral-400"
+                            : "bg-[var(--bg-card)] border-[var(--border)] hover:border-[var(--border)] text-[var(--text-muted)]"
                         }`}
                       >
                         {isSelected ? <Check size={13} className="inline mr-1" /> : <Plus size={13} className="inline mr-1" />}
@@ -430,7 +430,7 @@ Let me know which package works best for your schedule, and I can send you a sec
 
                 {/* Custom input builder row */}
                 <div className="pt-2">
-                  <label className="text-[10px] uppercase font-black tracking-wider text-neutral-500 block mb-1">Add Custom Benefit</label>
+                  <label className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)] block mb-1">Add Custom Benefit</label>
                   <div className="flex gap-2">
                     <input
                       type="text"
@@ -443,12 +443,12 @@ Let me know which package works best for your schedule, and I can send you a sec
                           handleAddBenefit();
                         }
                       }}
-                      className="flex-1 bg-[#0a0a0c] border border-var(--border) px-3.5 py-2.5 rounded-xl text-xs text-white focus:outline-none"
+                      className="flex-1 bg-[#0a0a0c] border border-[var(--border)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none"
                     />
                     <button
                       type="button"
                       onClick={handleAddBenefit}
-                      className="px-3.5 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) border border-var(--border) rounded-xl text-xs text-white font-bold cursor-pointer"
+                      className="px-3.5 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl text-xs text-[var(--text)] font-bold cursor-pointer"
                     >
                       Add
                     </button>
@@ -457,11 +457,11 @@ Let me know which package works best for your schedule, and I can send you a sec
 
                 {/* Active draft benefits list */}
                 <div className="space-y-1.5 pt-2">
-                  <p className="text-[10px] uppercase font-black tracking-wider text-neutral-500">Draft Benefit Pack ({customBenefits.length})</p>
+                  <p className="text-[10px] uppercase font-black tracking-wider text-[var(--text-subtle)]">Draft Benefit Pack ({customBenefits.length})</p>
                   <div className="max-h-[140px] overflow-y-auto space-y-2 pr-1">
                     {customBenefits.map((bf, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-2.5 bg-neutral-950 border border-var(--border) rounded-xl">
-                        <span className="text-xs text-neutral-300 flex items-center gap-2">
+                      <div key={idx} className="flex items-center justify-between p-2.5 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl">
+                        <span className="text-xs text-[var(--text)] flex items-center gap-2">
                           <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                           {bf}
                         </span>
@@ -475,7 +475,7 @@ Let me know which package works best for your schedule, and I can send you a sec
                       </div>
                     ))}
                     {customBenefits.length === 0 && (
-                      <p className="text-center text-[10.5px] text-neutral-500 py-3 italic">No benefits attached yet. Please attach at least 1 benefit.</p>
+                      <p className="text-center text-[10.5px] text-[var(--text-subtle)] py-3 italic">No benefits attached yet. Please attach at least 1 benefit.</p>
                     )}
                   </div>
                 </div>
@@ -485,13 +485,13 @@ Let me know which package works best for your schedule, and I can send you a sec
                   <button
                     type="button"
                     onClick={() => setShowAddForm(false)}
-                    className="flex-1 py-3 text-xs font-bold text-neutral-400 bg-var(--bg-elevated) border border-var(--border) hover:bg-neutral-800 rounded-xl transition-all cursor-pointer"
+                    className="flex-1 py-3 text-xs font-bold text-[var(--text-muted)] bg-[var(--bg-elevated)] border border-[var(--border)] hover:bg-[var(--bg-elevated)] rounded-xl transition-all cursor-pointer"
                   >
                     Discard Changes
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 text-xs font-bold text-white bg-blue-600 hover:bg-blue-550 rounded-xl transition-all shadow-lg shadow-blue-500/10 cursor-pointer"
+                    className="flex-1 py-3 text-xs font-bold text-[var(--text)] bg-blue-600 hover:bg-blue-550 rounded-xl transition-all shadow-lg shadow-blue-500/10 cursor-pointer"
                   >
                     Authorize and Launch
                   </button>
@@ -507,9 +507,9 @@ Let me know which package works best for your schedule, and I can send you a sec
             <div className="lg:col-span-2 space-y-6">
               
               {/* TABLE ENCLOSURE */}
-              <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-6 backdrop-blur-md">
-                <div className="flex items-center justify-between mb-4 pb-2 border-b border-var(--border)/60">
-                  <h3 className="text-xs font-black text-white uppercase tracking-wider">Active Operational Plans</h3>
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 backdrop-blur-md">
+                <div className="flex items-center justify-between mb-4 pb-2 border-b border-[var(--border)]/60">
+                  <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-wider">Active Operational Plans</h3>
                   <span className="text-[10px] font-bold text-blue-400 font-mono uppercase bg-blue-600/10 px-2 py-0.5 rounded">
                     {plans.length} items catalogued
                   </span>
@@ -518,7 +518,7 @@ Let me know which package works best for your schedule, and I can send you a sec
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-xs font-sans">
                     <thead>
-                      <tr className="border-b border-var(--border) text-[10px] text-neutral-500 font-black uppercase tracking-widest">
+                      <tr className="border-b border-[var(--border)] text-[10px] text-[var(--text-subtle)] font-black uppercase tracking-widest">
                         <th className="py-3 px-2">Plan Name</th>
                         <th className="py-3 px-2">Duration</th>
                         <th className="py-3 px-2">Price</th>
@@ -531,20 +531,20 @@ Let me know which package works best for your schedule, and I can send you a sec
                       {plans.map((p) => (
                         <tr key={p.id} className="hover:bg-white/2 transition-colors">
                           <td className="py-3.5 px-2">
-                            <p className="font-bold text-white leading-snug">{p.name}</p>
-                            <p className="text-[10px] text-neutral-500 truncate max-w-[140px]">{p.description}</p>
+                            <p className="font-bold text-[var(--text)] leading-snug">{p.name}</p>
+                            <p className="text-[10px] text-[var(--text-subtle)] truncate max-w-[140px]">{p.description}</p>
                           </td>
-                          <td className="py-3.5 px-2 font-semibold text-neutral-300">
+                          <td className="py-3.5 px-2 font-semibold text-[var(--text)]">
                             {p.duration}
                           </td>
                           <td className="py-3.5 px-2 font-mono">
                             {p.discountPrice ? (
                               <div className="space-y-0.5">
                                 <span className="block text-blue-400 font-extrabold">₹{p.discountPrice}</span>
-                                <span className="block text-[9px] text-neutral-500 line-through">₹{p.price}</span>
+                                <span className="block text-[9px] text-[var(--text-subtle)] line-through">₹{p.price}</span>
                               </div>
                             ) : (
-                              <span className="text-neutral-300 font-extrabold">₹{p.price}</span>
+                              <span className="text-[var(--text)] font-extrabold">₹{p.price}</span>
                             )}
                           </td>
                           <td className="py-3.5 px-2">
@@ -559,7 +559,7 @@ Let me know which package works best for your schedule, and I can send you a sec
                               {p.isActive ? "Active" : "Inactive"}
                             </button>
                           </td>
-                          <td className="py-3.5 px-2 text-center font-mono font-bold text-neutral-400">
+                          <td className="py-3.5 px-2 text-center font-mono font-bold text-[var(--text-muted)]">
                             {p.isActive ? p.subscribersCount : "—"}
                           </td>
                           <td className="py-3.5 px-2 text-right">
@@ -567,14 +567,14 @@ Let me know which package works best for your schedule, and I can send you a sec
                               <button
                                 onClick={() => togglePlanActive(p.id)}
                                 title={p.isActive ? "Deactivate plan" : "Activate plan"}
-                                className="p-1 px-2 text-[10px] bg-var(--bg-elevated) hover:bg-neutral-800 border border-var(--border) hover:border-neutral-800 text-neutral-400 rounded-lg transition-colors cursor-pointer"
+                                className="p-1 px-2 text-[10px] bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] border border-[var(--border)] hover:border-[var(--border)] text-[var(--text-muted)] rounded-lg transition-colors cursor-pointer"
                               >
                                 Toggle
                               </button>
                               <button
                                 onClick={() => handleDeletePlan(p.id)}
                                 title="Delete Plan"
-                                className="p-1.5 text-neutral-500 hover:text-red-400 transition-colors cursor-pointer"
+                                className="p-1.5 text-[var(--text-subtle)] hover:text-red-400 transition-colors cursor-pointer"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
@@ -584,7 +584,7 @@ Let me know which package works best for your schedule, and I can send you a sec
                       ))}
                       {plans.length === 0 && (
                         <tr>
-                          <td colSpan={6} className="text-center py-8 text-neutral-500 text-xs italic">
+                          <td colSpan={6} className="text-center py-8 text-[var(--text-subtle)] text-xs italic">
                             No plans created. Click Add Membership Plan to configure one.
                           </td>
                         </tr>
@@ -599,16 +599,16 @@ Let me know which package works best for your schedule, and I can send you a sec
                 {plans.map((p) => {
                   if (!p.isActive) return null;
                   return (
-                    <div key={`benefits-grid-${p.id}`} className="bg-neutral-950/20 border border-var(--border) rounded-3xl p-5 space-y-3.5">
+                    <div key={`benefits-grid-${p.id}`} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-3.5">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-black text-white">{p.name} Benefits</span>
-                        <span className="text-[10px] text-neutral-500 font-mono">{p.benefits.length} perks</span>
+                        <span className="text-xs font-black text-[var(--text)]">{p.name} Benefits</span>
+                        <span className="text-[10px] text-[var(--text-subtle)] font-mono">{p.benefits.length} perks</span>
                       </div>
                       <div className="flex flex-wrap gap-1.5 h-24 overflow-y-auto content-start pr-1">
                         {p.benefits.map((bf, idx) => (
                           <span
                             key={idx}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10.5px] font-semibold bg-neutral-950 border border-var(--border) rounded-xl text-neutral-300"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10.5px] font-semibold bg-[var(--bg-card)] border border-[var(--border)] rounded-xl text-[var(--text)]"
                           >
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
                             {bf}
@@ -626,20 +626,20 @@ Let me know which package works best for your schedule, and I can send you a sec
             <div className="space-y-6">
               
               {/* GLOWING AI PREVIEW CARD */}
-              <div className="bg-[#0b0c10] border border-blue-500/20 rounded-3xl p-6 relative overflow-hidden space-y-4 shadow-xl">
+              <div className="bg-[var(--bg-card)] border border-blue-500/20 rounded-3xl p-6 relative overflow-hidden space-y-4 shadow-xl">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl pointer-events-none" />
                 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-[18px] h-[18px] text-blue-400 animate-pulse" />
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">AI Response Preview</h3>
+                    <h3 className="text-xs font-bold text-[var(--text)] uppercase tracking-wider">AI Response Preview</h3>
                   </div>
                   <span className="text-[8.5px] font-black uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full font-sans">
                     Live Simulator
                   </span>
                 </div>
 
-                <p className="text-[11px] text-neutral-400 leading-normal">
+                <p className="text-[11px] text-[var(--text-muted)] leading-normal">
                   How Autofy answers prospective queries automatically on WhatsApp based on your actual active plans listed:
                 </p>
 
@@ -648,23 +648,23 @@ Let me know which package works best for your schedule, and I can send you a sec
                   
                   {/* Incoming Client message */}
                   <div className="flex items-end gap-2.5 max-w-[85%]">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-amber-500 to-red-500 text-[9px] font-black font-sans text-center text-white flex items-center justify-center shadow-lg">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-amber-500 to-red-500 text-[9px] font-black font-sans text-center text-[var(--text)] flex items-center justify-center shadow-lg">
                       C
                     </div>
-                    <div className="p-3 bg-var(--bg-elevated) border border-var(--border) rounded-2xl rounded-bl-none">
-                      <p className="text-[10px] text-neutral-500 font-extrabold uppercase font-sans tracking-wide leading-none mb-1">Customer</p>
-                      <p className="text-xs text-white leading-snug">"What membership plans do you have?"</p>
+                    <div className="p-3 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-2xl rounded-bl-none">
+                      <p className="text-[10px] text-[var(--text-subtle)] font-extrabold uppercase font-sans tracking-wide leading-none mb-1">Customer</p>
+                      <p className="text-xs text-[var(--text)] leading-snug">"What membership plans do you have?"</p>
                     </div>
                   </div>
 
                   {/* Outgoing AI Bot message */}
                   <div className="flex items-end gap-2.5 max-w-[95%] ml-auto flex-row-reverse">
                     <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shadow-md">
-                      <Sparkles className="w-3.5 h-3.5 text-white" />
+                      <Sparkles className="w-3.5 h-3.5 text-[var(--text)]" />
                     </div>
                     <div className="p-4 bg-blue-950/20 border border-blue-500/15 rounded-2xl rounded-br-none space-y-1.5">
                       <p className="text-[10px] text-blue-400 font-black uppercase font-sans tracking-widest leading-none mb-1">Autofy Assistant</p>
-                      <pre className="text-[10.5px] text-neutral-200 leading-relaxed font-sans whitespace-pre-wrap select-text">
+                      <pre className="text-[10.5px] text-[var(--text)] leading-relaxed font-sans whitespace-pre-wrap select-text">
                         {simulatedAIResponse}
                       </pre>
                     </div>
@@ -675,11 +675,11 @@ Let me know which package works best for your schedule, and I can send you a sec
               </div>
 
               {/* ADVICE CAPSULE */}
-              <div className="p-5 bg-neutral-950/40 border border-var(--border) rounded-3xl flex gap-3.5">
-                <AlertCircle className="w-5 h-5 text-neutral-500 flex-shrink-0" />
+              <div className="p-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl flex gap-3.5">
+                <AlertCircle className="w-5 h-5 text-[var(--text-subtle)] flex-shrink-0" />
                 <div className="space-y-1">
-                  <p className="text-xs font-bold text-white">Dynamic Catalogue Integration</p>
-                  <p className="text-[10.5px] text-neutral-400 leading-relaxed">
+                  <p className="text-xs font-bold text-[var(--text)]">Dynamic Catalogue Integration</p>
+                  <p className="text-[10.5px] text-[var(--text-muted)] leading-relaxed">
                     Whenever you launch, toggle, or edit a membership tier here, your Autofy RAG model instantly re-indexes its answers. No manual training, reload, or code pushes are ever required.
                   </p>
                 </div>

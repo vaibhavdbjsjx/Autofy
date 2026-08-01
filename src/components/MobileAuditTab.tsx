@@ -671,24 +671,24 @@ groups:
   return (
     <div className="space-y-8 text-left">
       {/* MASTER TOP BENTO LOGO BANNER */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--border)] pb-5">
         <div>
           <div className="flex items-center gap-2.5">
             <Shield className="w-5 h-5 text-indigo-400" />
-            <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+            <h2 className="text-xl font-black text-[var(--text)] tracking-tight flex items-center gap-2">
               Enterprise Control & Launch Readiness Suite
               <span className="bg-indigo-500/10 text-indigo-300 text-[10px] uppercase font-black tracking-widest px-2 py-0.5 rounded border border-indigo-500/10">
                 PROD
               </span>
             </h2>
           </div>
-          <p className="text-xs text-neutral-400 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             Production grade audit tools covering security, relational database health, monitoring pipelines, simulated testing, and strict Go/No-Go readiness matrices.
           </p>
         </div>
 
         {/* Master Tabs Section */}
-        <div className="flex flex-wrap gap-1 bg-[#111113] border border-white/[0.08] p-1 rounded-xl select-none">
+        <div className="flex flex-wrap gap-1 bg-[var(--bg-card)] border border-[var(--border)] p-1 rounded-xl select-none">
           {[
             { id: "security", label: " Hardening", count: 8 },
             { id: "database", label: " Database Optimizer", count: 7 },
@@ -703,7 +703,7 @@ groups:
               className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
                 activeSegment === seg.id
                   ? "bg-white text-black font-extrabold"
-                  : "text-neutral-400 hover:text-white hover:bg-neutral-800"
+                  : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--bg-elevated)]"
               }`}
             >
               {seg.label}
@@ -720,23 +720,23 @@ groups:
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Dynamic policy controls column */}
             <div className="lg:col-span-4 space-y-6">
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-5">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-5">
                 <div>
                   <h3 className="text-xs font-black text-[#A1A1AA] uppercase tracking-wider">
                     Policy Configuration Panel
                   </h3>
-                  <p className="text-[10.5px] text-neutral-400 mt-0.5">
+                  <p className="text-[10.5px] text-[var(--text-muted)] mt-0.5">
                     Toggle filters to live harden the FastAPI endpoint servers and monitor defensive updates in real time.
                   </p>
                 </div>
 
                 {/* Score panel */}
-                <div className="bg-black/30 border border-white/[0.03] rounded-2xl p-4 flex items-center justify-between">
+                <div className="bg-black/30 border border-[var(--border)] rounded-2xl p-4 flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-neutral-500 uppercase font-black">
+                    <span className="text-[10px] text-[var(--text-subtle)] uppercase font-black">
                       Autofy Hardening Level
                     </span>
-                    <h4 className="text-2xl font-black text-white mt-1">
+                    <h4 className="text-2xl font-black text-[var(--text)] mt-1">
                       {securityScore}%
                     </h4>
                   </div>
@@ -762,11 +762,11 @@ groups:
                       <div
                         key={item.key}
                         onClick={() => toggleHardener(item.key as any)}
-                        className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/[0.01] hover:bg-neutral-800/40 cursor-pointer transition select-none"
+                        className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-[var(--border)] hover:bg-[var(--bg-elevated)]/40 cursor-pointer transition select-none"
                       >
                         <div className="pr-4">
-                          <span className="text-xs font-bold text-white block">{item.label}</span>
-                          <span className="text-[9.5px] text-neutral-400 block mt-0.5 leading-normal">{item.desc}</span>
+                          <span className="text-xs font-bold text-[var(--text)] block">{item.label}</span>
+                          <span className="text-[9.5px] text-[var(--text-muted)] block mt-0.5 leading-normal">{item.desc}</span>
                         </div>
                         <div className="flex-shrink-0">
                           {checked ? (
@@ -774,7 +774,7 @@ groups:
                               Enabled <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
                             </span>
                           ) : (
-                            <span className="text-neutral-500 text-xs font-bold flex items-center gap-1">
+                            <span className="text-[var(--text-subtle)] text-xs font-bold flex items-center gap-1">
                               Disabled <CircleDotIcon />
                             </span>
                           )}
@@ -786,13 +786,13 @@ groups:
               </div>
 
               {/* Simulation Sandbox Panel */}
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-4">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-4">
                 <div>
                   <h3 className="text-xs font-black text-red-400 uppercase tracking-wider flex items-center gap-1.5">
                     <Bug className="w-4 h-4 text-red-500" />
                     Penetration Sandbox simulator
                   </h3>
-                  <p className="text-[10.5px] text-neutral-400 mt-0.5">
+                  <p className="text-[10.5px] text-[var(--text-muted)] mt-0.5">
                     Launch artificial dictionary exploits against FastAPI login routes to evaluate your policy adjustments.
                   </p>
                 </div>
@@ -801,7 +801,7 @@ groups:
                   <button
                     onClick={executeSimulatedAttack}
                     disabled={simulatedAttack === "running"}
-                    className="w-full py-2.5 bg-red-650 hover:bg-red-600 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer disabled:opacity-40 bg-red-950/20 border border-red-500/20"
+                    className="w-full py-2.5 bg-red-650 hover:bg-red-600 text-[var(--text)] font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer disabled:opacity-40 bg-red-950/20 border border-red-500/20"
                   >
                     {simulatedAttack === "running" ? (
                       <>
@@ -816,7 +816,7 @@ groups:
                 </div>
 
                 {simulatedAttack !== "idle" && (
-                  <div className="p-3 bg-black rounded-xl border border-white/[0.03] space-y-2">
+                  <div className="p-3 bg-black rounded-xl border border-[var(--border)] space-y-2">
                     <span className="text-[10px] font-mono uppercase text-red-400 font-bold block">
                       Exploit Simulation Log:
                     </span>
@@ -829,7 +829,7 @@ groups:
                               ? "text-emerald-400"
                               : log.includes("") || log.includes("")
                               ? "text-red-400 animate-pulse font-bold"
-                              : "text-neutral-300"
+                              : "text-[var(--text)]"
                           }
                         >
                           {log}
@@ -843,21 +843,21 @@ groups:
 
             {/* Code blueprint column */}
             <div className="lg:col-span-8 flex flex-col space-y-4">
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-6 flex-1 flex flex-col justify-between">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 flex-1 flex flex-col justify-between">
                 <div>
-                  <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/[0.06] pb-4 mb-4 gap-4">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[var(--border)] pb-4 mb-4 gap-4">
                     <div>
-                      <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                      <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-2">
                         <Terminal className="w-4 h-4 text-indigo-400" />
                         Backend Security Implementation Code
                       </h3>
-                      <p className="text-xs text-neutral-400 mt-0.5 font-sans">
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5 font-sans">
                         Production ready Python files tailored for FastAPI and passlib/bcrypt libraries.
                       </p>
                     </div>
 
                     {/* File selection inside code block */}
-                    <div className="flex bg-[#18181B] p-1 rounded-xl border border-white/[0.04]">
+                    <div className="flex bg-[#18181B] p-1 rounded-xl border border-[var(--border)]">
                       {[
                         { id: "middleware", label: " middleware.py" },
                         { id: "jwt", label: " jwt_auth.py" },
@@ -869,8 +869,8 @@ groups:
                           onClick={() => setSelectedSecurityFile(view.id as any)}
                           className={`px-2.5 py-1 rounded text-[10.5px] font-black transition cursor-pointer ${
                             selectedSecurityFile === view.id
-                              ? "bg-[#27272A] text-white"
-                              : "text-neutral-400 hover:text-white"
+                              ? "bg-[#27272A] text-[var(--text)]"
+                              : "text-[var(--text-muted)] hover:text-[var(--text)]"
                           }`}
                         >
                           {view.label}
@@ -879,7 +879,7 @@ groups:
                     </div>
                   </div>
 
-                  <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-teal-400 overflow-x-auto border border-white/[0.05] leading-relaxed max-h-[500px]">
+                  <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-teal-400 overflow-x-auto border border-[var(--border)] leading-relaxed max-h-[500px]">
                     {codeTemplates[selectedSecurityFile]}
                   </pre>
                 </div>
@@ -903,12 +903,12 @@ groups:
         <div className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             <div className="lg:col-span-4 space-y-6">
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-5">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-5">
                 <div>
                   <h3 className="text-xs font-black text-[#A1A1AA] uppercase tracking-wider">
                     Database Schema Optimizer
                   </h3>
-                  <p className="text-[10.5px] text-neutral-400 mt-0.5">
+                  <p className="text-[10.5px] text-[var(--text-muted)] mt-0.5">
                     Configure database indices, soft delete fields, and cursor pagination parameters.
                   </p>
                 </div>
@@ -925,11 +925,11 @@ groups:
                       <div
                         key={item.key}
                         onClick={() => toggleDbOptimization(item.key as any)}
-                        className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-white/[0.01] hover:bg-neutral-800/40 cursor-pointer transition select-none"
+                        className="flex items-center justify-between p-3 rounded-xl bg-black/20 border border-[var(--border)] hover:bg-[var(--bg-elevated)]/40 cursor-pointer transition select-none"
                       >
                         <div className="pr-4">
-                          <span className="text-xs font-bold text-white block">{item.label}</span>
-                          <span className="text-[9.5px] text-neutral-400 block mt-0.5 leading-normal">{item.desc}</span>
+                          <span className="text-xs font-bold text-[var(--text)] block">{item.label}</span>
+                          <span className="text-[9.5px] text-[var(--text-muted)] block mt-0.5 leading-normal">{item.desc}</span>
                         </div>
                         <div className="flex-shrink-0">
                           {active ? (
@@ -937,7 +937,7 @@ groups:
                               Optimized <Check className="w-4 h-4 text-emerald-400" />
                             </span>
                           ) : (
-                            <span className="text-neutral-500 text-xs font-bold">Standard</span>
+                            <span className="text-[var(--text-subtle)] text-xs font-bold">Standard</span>
                           )}
                         </div>
                       </div>
@@ -947,19 +947,19 @@ groups:
               </div>
 
               {/* Benchmark panel */}
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-4">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-4">
                 <div>
                   <h3 className="text-xs font-black text-indigo-400 tracking-wider uppercase">
                     Speed Benchmark Simulator
                   </h3>
-                  <p className="text-[10.5px] text-neutral-400 mt-0.5">
+                  <p className="text-[10.5px] text-[var(--text-muted)] mt-0.5">
                     Compare query speeds under heavy pagination and sorting conditions.
                   </p>
                 </div>
 
                 {/* Simulated speed bar */}
-                <div className="p-4 bg-black rounded-xl border border-white/[0.03] space-y-3">
-                  <div className="flex justify-between text-[11px] font-mono text-neutral-300">
+                <div className="p-4 bg-black rounded-xl border border-[var(--border)] space-y-3">
+                  <div className="flex justify-between text-[11px] font-mono text-[var(--text)]">
                     <span>Target: 150K records query fetch</span>
                     <span>
                       Speed:{" "}
@@ -969,7 +969,7 @@ groups:
                     </span>
                   </div>
 
-                  <div className="w-full h-2 bg-var(--bg-elevated) rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-[var(--bg-elevated)] rounded-full overflow-hidden">
                     <div
                       className={`h-full transition-all duration-1000 ${
                         simulatedQuerySpeed === "unoptimized"
@@ -984,7 +984,7 @@ groups:
 
                 <button
                   onClick={runDbSpeedBenchmark}
-                  className="w-full py-2 bg-white text-black font-extrabold text-xs rounded-xl cursor-pointer hover:bg-neutral-200 transition"
+                  className="w-full py-2 bg-white text-black font-extrabold text-xs rounded-xl cursor-pointer hover:bg-[var(--text)] transition"
                 >
                   Run Query Speed Benchmark
                 </button>
@@ -993,20 +993,20 @@ groups:
 
             {/* Code list */}
             <div className="lg:col-span-8 flex flex-col space-y-4">
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-6 flex-1 flex flex-col justify-between">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 flex-1 flex flex-col justify-between">
                 <div>
-                  <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/[0.06] pb-4 mb-4 gap-4">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[var(--border)] pb-4 mb-4 gap-4">
                     <div>
-                      <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                      <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-2">
                         <Database className="w-4 h-4 text-emerald-400" />
                         SQL & SQLAlchemy Schema Best Practices
                       </h3>
-                      <p className="text-xs text-neutral-400 mt-0.5 font-sans">
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5 font-sans">
                         Relational constraints, soft deletion strategies, and cursor paging libraries.
                       </p>
                     </div>
 
-                    <div className="flex bg-[#18181B] p-1 rounded-xl border border-white/[0.04]">
+                    <div className="flex bg-[#18181B] p-1 rounded-xl border border-[var(--border)]">
                       {[
                         { id: "indexes", label: " SQL Indexes" },
                         { id: "soft_delete", label: " Soft Delete" },
@@ -1018,8 +1018,8 @@ groups:
                           onClick={() => setSelectedDbCodeView(view.id as any)}
                           className={`px-2.5 py-1 rounded text-[10.5px] font-black transition cursor-pointer ${
                             selectedDbCodeView === view.id
-                              ? "bg-[#27272A] text-white"
-                              : "text-neutral-400 hover:text-white"
+                              ? "bg-[#27272A] text-[var(--text)]"
+                              : "text-[var(--text-muted)] hover:text-[var(--text)]"
                           }`}
                         >
                           {view.label}
@@ -1028,25 +1028,25 @@ groups:
                     </div>
                   </div>
 
-                  <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-emerald-400 overflow-x-auto border border-white/[0.05] leading-relaxed max-h-[500px]">
+                  <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-emerald-400 overflow-x-auto border border-[var(--border)] leading-relaxed max-h-[500px]">
                     {codeTemplates[selectedDbCodeView as keyof typeof codeTemplates]}
                   </pre>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  <div className="p-4 bg-var(--bg-elevated) border border-white/[0.03] rounded-2xl space-y-1">
+                  <div className="p-4 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-2xl space-y-1">
                     <span className="text-[10.5px] text-[#A1A1AA] uppercase tracking-wider font-extrabold block">
                       Archiving Strategy
                     </span>
-                    <p className="text-[11px] text-neutral-400 leading-normal font-sans">
+                    <p className="text-[11px] text-[var(--text-muted)] leading-normal font-sans">
                       Automatically dump orders & tickets older than 365 days into AWS S3 cold glacier buckets, preserving high-speed operations on the primary transactional database.
                     </p>
                   </div>
-                  <div className="p-4 bg-var(--bg-elevated) border border-white/[0.03] rounded-2xl space-y-1">
+                  <div className="p-4 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-2xl space-y-1">
                     <span className="text-[10.5px] text-[#A1A1AA] uppercase tracking-wider font-extrabold block">
                       Slow Query Prevention
                     </span>
-                    <p className="text-[11px] text-neutral-400 leading-normal font-sans">
+                    <p className="text-[11px] text-[var(--text-muted)] leading-normal font-sans">
                       Install <code>pg_stat_statements</code> on Postgres. Configure database query timeouts set at <code>statement_timeout = 8000</code> to prevent long locks from halting endpoints.
                     </p>
                   </div>
@@ -1065,14 +1065,14 @@ groups:
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Live activity log feed */}
             <div className="lg:col-span-5 space-y-6">
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-4">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-4">
                 <div className="flex justify-between items-center">
                   <div>
                     <h3 className="text-xs font-black text-[#A1A1AA] uppercase tracking-wider flex items-center gap-1.5">
                       <Activity className="w-4 h-4 text-emerald-400" />
                       Live Central Event Stream
                     </h3>
-                    <p className="text-[10px] text-neutral-400 mt-0.5">
+                    <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
                       Dynamic structured log outputs captured server-side inside Autofy containers.
                     </p>
                   </div>
@@ -1080,13 +1080,13 @@ groups:
                   <div className="flex gap-1.5">
                     <button
                       onClick={() => setIsLogsPaused(!isLogsPaused)}
-                      className="px-2.5 py-1 text-[10px] font-black uppercase rounded bg-neutral-800 text-white cursor-pointer hover:bg-neutral-700"
+                      className="px-2.5 py-1 text-[10px] font-black uppercase rounded bg-[var(--bg-elevated)] text-[var(--text)] cursor-pointer hover:bg-[var(--bg-elevated)]"
                     >
                       {isLogsPaused ? "Resume" : "Pause"}
                     </button>
                     <button
                       onClick={() => setLiveLogs([])}
-                      className="px-2.5 py-1 text-[10px] font-black uppercase rounded bg-neutral-800 text-neutral-400 cursor-pointer hover:bg-neutral-700"
+                      className="px-2.5 py-1 text-[10px] font-black uppercase rounded bg-[var(--bg-elevated)] text-[var(--text-muted)] cursor-pointer hover:bg-[var(--bg-elevated)]"
                     >
                       Clear
                     </button>
@@ -1094,7 +1094,7 @@ groups:
                 </div>
 
                 {/* Filters */}
-                <div className="flex flex-wrap gap-1 bg-[#18181b] p-1 rounded-xl border border-white/[0.03]">
+                <div className="flex flex-wrap gap-1 bg-[var(--bg-elevated)] p-1 rounded-xl border border-[var(--border)]">
                   {[
                     { id: "all", label: "All Logs" },
                     { id: "api", label: "API Requests" },
@@ -1108,8 +1108,8 @@ groups:
                       onClick={() => setActiveLogFilter(flt.id as any)}
                       className={`px-2 py-1 rounded text-[10px] font-black transition cursor-pointer ${
                         activeLogFilter === flt.id
-                          ? "bg-[#27272A] text-white"
-                          : "text-neutral-500 hover:text-white"
+                          ? "bg-[#27272A] text-[var(--text)]"
+                          : "text-[var(--text-subtle)] hover:text-[var(--text)]"
                       }`}
                     >
                       {flt.label}
@@ -1120,10 +1120,10 @@ groups:
                 {/* Term container */}
                 <div
                   ref={logContainerRef}
-                  className="bg-black rounded-2xl p-4 border border-white/[0.04] h-[340px] overflow-y-auto space-y-2 font-mono text-[10.5px]"
+                  className="bg-black rounded-2xl p-4 border border-[var(--border)] h-[340px] overflow-y-auto space-y-2 font-mono text-[10.5px]"
                 >
                   {liveLogs.length === 0 ? (
-                    <div className="h-full flex items-center justify-center text-neutral-600 italic">
+                    <div className="h-full flex items-center justify-center text-[var(--text-subtle)] italic">
                       Waiting for incoming log traces...
                     </div>
                   ) : (
@@ -1131,19 +1131,19 @@ groups:
                       .filter((lg) => activeLogFilter === "all" || lg.type === activeLogFilter)
                       .map((lg) => (
                         <div key={lg.id} className="text-left leading-relaxed">
-                          <span className="text-neutral-500 text-[9px] mr-1.5">{lg.timestamp}</span>
+                          <span className="text-[var(--text-subtle)] text-[9px] mr-1.5">{lg.timestamp}</span>
                           <span
                             className={`px-1 rounded text-[9px] font-black uppercase mr-1.5 ${
                               lg.level === "ERROR"
                                 ? "bg-red-500/10 text-red-400"
                                 : lg.level === "WARNING"
                                 ? "bg-amber-500/10 text-amber-400"
-                                : "bg-neutral-800 text-neutral-400"
+                                : "bg-[var(--bg-elevated)] text-[var(--text-muted)]"
                             }`}
                           >
                             {lg.level}
                           </span>
-                          <span className="text-neutral-400 mr-1 text-[9px] font-semibold">{`[${lg.type.toUpperCase()}]`}</span>
+                          <span className="text-[var(--text-muted)] mr-1 text-[9px] font-semibold">{`[${lg.type.toUpperCase()}]`}</span>
                           <span className={lg.color}>{lg.message}</span>
                         </div>
                       ))
@@ -1152,41 +1152,41 @@ groups:
               </div>
 
               {/* Sentry & Posthog integration selectors */}
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-4">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-4">
                 <div>
                   <h3 className="text-xs font-black text-indigo-400 uppercase tracking-wider">
                     Third-Party Monitoring Hub
                   </h3>
-                  <p className="text-[10.5px] text-neutral-400 mt-0.5">
+                  <p className="text-[10.5px] text-[var(--text-muted)] mt-0.5">
                     Direct integration controls deploying performance exceptions tracking pipelines.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-black/20 border border-white/[0.02] rounded-xl flex items-center justify-between">
+                  <div className="p-3 bg-black/20 border border-[var(--border)] rounded-xl flex items-center justify-between">
                     <div>
-                      <span className="text-xs font-bold text-white block">Sentry Exception</span>
-                      <span className="text-[9.5px] text-neutral-400 block mt-0.5">24/7 client error logs</span>
+                      <span className="text-xs font-bold text-[var(--text)] block">Sentry Exception</span>
+                      <span className="text-[9.5px] text-[var(--text-muted)] block mt-0.5">24/7 client error logs</span>
                     </div>
                     <button
                       onClick={() => setSentryEnabled(!sentryEnabled)}
                       className={`w-10 h-6 rounded-full p-0.5 transition-colors cursor-pointer flex ${
-                        sentryEnabled ? "bg-emerald-500 justify-end" : "bg-neutral-800 justify-start"
+                        sentryEnabled ? "bg-emerald-500 justify-end" : "bg-[var(--bg-elevated)] justify-start"
                       }`}
                     >
                       <span className="w-5 h-5 rounded-full bg-white shadow-sm" />
                     </button>
                   </div>
 
-                  <div className="p-3 bg-black/20 border border-white/[0.02] rounded-xl flex items-center justify-between">
+                  <div className="p-3 bg-black/20 border border-[var(--border)] rounded-xl flex items-center justify-between">
                     <div>
-                      <span className="text-xs font-bold text-white block">PostHog Analytics</span>
-                      <span className="text-[9.5px] text-neutral-400 block mt-0.5">Captures customer flows</span>
+                      <span className="text-xs font-bold text-[var(--text)] block">PostHog Analytics</span>
+                      <span className="text-[9.5px] text-[var(--text-muted)] block mt-0.5">Captures customer flows</span>
                     </div>
                     <button
                       onClick={() => setPostHogEnabled(!postHogEnabled)}
                       className={`w-10 h-6 rounded-full p-0.5 transition-colors cursor-pointer flex ${
-                        postHogEnabled ? "bg-emerald-500 justify-end" : "bg-neutral-800 justify-start"
+                        postHogEnabled ? "bg-emerald-500 justify-end" : "bg-[var(--bg-elevated)] justify-start"
                       }`}
                     >
                       <span className="w-5 h-5 rounded-full bg-white shadow-sm" />
@@ -1198,20 +1198,20 @@ groups:
 
             {/* Code template for configuration */}
             <div className="lg:col-span-7 flex flex-col space-y-4">
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-6 flex-1 flex flex-col justify-between">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 flex-1 flex flex-col justify-between">
                 <div>
-                  <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/[0.06] pb-4 mb-4 gap-4">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[var(--border)] pb-4 mb-4 gap-4">
                     <div>
-                      <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                      <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-2">
                         <Server className="w-4 h-4 text-purple-400" />
                         Logging Schema & Tracing Configs
                       </h3>
-                      <p className="text-xs text-neutral-400 mt-0.5 font-sans">
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5 font-sans">
                         Structured structlog schema outputs paired with analytical reporting integration configs.
                       </p>
                     </div>
 
-                    <div className="flex bg-[#18181B] p-1 rounded-xl border border-white/[0.04]">
+                    <div className="flex bg-[#18181B] p-1 rounded-xl border border-[var(--border)]">
                       {[
                         { id: "structure", label: " Log Setup" },
                         { id: "sentry_cfg", label: " Sentry Config" },
@@ -1222,8 +1222,8 @@ groups:
                           onClick={() => setSelectedLoggingView(view.id as any)}
                           className={`px-2.5 py-1 rounded text-[10.5px] font-black transition cursor-pointer ${
                             selectedLoggingView === view.id
-                              ? "bg-[#27272A] text-white"
-                              : "text-neutral-400 hover:text-white"
+                              ? "bg-[#27272A] text-[var(--text)]"
+                              : "text-[var(--text-muted)] hover:text-[var(--text)]"
                           }`}
                         >
                           {view.label}
@@ -1232,7 +1232,7 @@ groups:
                     </div>
                   </div>
 
-                  <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-purple-400 overflow-x-auto border border-white/[0.05] leading-relaxed max-h-[380px]">
+                  <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-purple-400 overflow-x-auto border border-[var(--border)] leading-relaxed max-h-[380px]">
                     {codeTemplates[selectedLoggingView as keyof typeof codeTemplates]}
                   </pre>
                 </div>
@@ -1257,24 +1257,24 @@ groups:
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Test Run execution trigger console */}
             <div className="lg:col-span-5 space-y-6">
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-4">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-4">
                 <div>
                   <h3 className="text-xs font-black text-[#A1A1AA] uppercase tracking-wider">
                     PyTest Core Test Suite Console
                   </h3>
-                  <p className="text-[10px] text-neutral-400 mt-0.5">
+                  <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
                     Launch visual mock pytest containers verifying client logic and backend REST query boundaries.
                   </p>
                 </div>
 
                 {/* Score bar */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-black/30 border border-white/[0.03] rounded-2xl text-center">
-                    <span className="text-[9.5px] text-neutral-500 block">Total Assertions</span>
-                    <strong className="text-white text-base font-bold font-mono">82 Passed / 0 Failed</strong>
+                  <div className="p-3 bg-black/30 border border-[var(--border)] rounded-2xl text-center">
+                    <span className="text-[9.5px] text-[var(--text-subtle)] block">Total Assertions</span>
+                    <strong className="text-[var(--text)] text-base font-bold font-mono">82 Passed / 0 Failed</strong>
                   </div>
-                  <div className="p-3 bg-black/30 border border-white/[0.03] rounded-2xl text-center">
-                    <span className="text-[9.5px] text-neutral-500 block">Code Coverage Goal</span>
+                  <div className="p-3 bg-black/30 border border-[var(--border)] rounded-2xl text-center">
+                    <span className="text-[9.5px] text-[var(--text-subtle)] block">Code Coverage Goal</span>
                     <strong className="text-emerald-400 text-base font-bold font-mono">
                       {testCoveragePercent > 0 ? `${testCoveragePercent}%` : "Pending"}
                     </strong>
@@ -1284,7 +1284,7 @@ groups:
                 <button
                   onClick={runAutomatedTestsSuite}
                   disabled={testExecutionState === "running"}
-                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer disabled:opacity-40"
+                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-[var(--text)] font-extrabold text-xs rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer disabled:opacity-40"
                 >
                   {testExecutionState === "running" ? (
                     <>
@@ -1298,13 +1298,13 @@ groups:
                 </button>
 
                 {testExecutionState !== "idle" && (
-                  <div className="bg-black rounded-xl p-4 border border-white/[0.04]">
+                  <div className="bg-black rounded-xl p-4 border border-[var(--border)]">
                     <span className="text-[10px] font-mono text-indigo-400 uppercase tracking-wider block mb-2">
                       PyTest Terminal Session Output:
                     </span>
                     <div className="space-y-1.5 font-mono text-[10.5px]">
                       {testsLog.map((logStr, i) => (
-                        <div key={i} className="text-neutral-300 leading-normal text-left">
+                        <div key={i} className="text-[var(--text)] leading-normal text-left">
                           {logStr}
                         </div>
                       ))}
@@ -1314,11 +1314,11 @@ groups:
               </div>
 
               {/* Quality assurance block */}
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-2">
-                <span className="text-xs font-black uppercase text-neutral-400 tracking-wider block">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-2">
+                <span className="text-xs font-black uppercase text-[var(--text-muted)] tracking-wider block">
                   Quality Assurance Targets
                 </span>
-                <ul className="space-y-2 text-xs text-neutral-400">
+                <ul className="space-y-2 text-xs text-[var(--text-muted)]">
                   <li className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-450 flex-shrink-0" />
                     <span>Frontend Jest/RTL snapshot test targets covering multiple resolution break points.</span>
@@ -1337,20 +1337,20 @@ groups:
 
             {/* Test Case definition workspace */}
             <div className="lg:col-span-7 flex flex-col space-y-4">
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-6 flex-1 flex flex-col justify-between">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 flex-1 flex flex-col justify-between">
                 <div>
-                  <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/[0.06] pb-4 mb-4 gap-4">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[var(--border)] pb-4 mb-4 gap-4">
                     <div>
-                      <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
+                      <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-2">
                         <Terminal className="w-4 h-4 text-indigo-400" />
                         Automated PyTest & Jest Configurations
                       </h3>
-                      <p className="text-xs text-neutral-400 mt-0.5 font-sans">
+                      <p className="text-xs text-[var(--text-muted)] mt-0.5 font-sans">
                         Quality test schema models verifying route accessibility thresholds.
                       </p>
                     </div>
 
-                    <div className="flex bg-[#18181B] p-1 rounded-xl border border-white/[0.04]">
+                    <div className="flex bg-[#18181B] p-1 rounded-xl border border-[var(--border)]">
                       {[
                         { id: "cases", label: " Test Cases" },
                         { id: "coverage", label: " Coverage Plan" },
@@ -1361,8 +1361,8 @@ groups:
                           onClick={() => setSelectedTestDocView(view.id as any)}
                           className={`px-2.5 py-1 rounded text-[10.5px] font-black transition cursor-pointer ${
                             selectedTestDocView === view.id
-                              ? "bg-[#27272A] text-white"
-                              : "text-neutral-400 hover:text-white"
+                              ? "bg-[#27272A] text-[var(--text)]"
+                              : "text-[var(--text-muted)] hover:text-[var(--text)]"
                           }`}
                         >
                           {view.label}
@@ -1371,7 +1371,7 @@ groups:
                     </div>
                   </div>
 
-                  <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-indigo-400 overflow-x-auto border border-white/[0.05] leading-relaxed max-h-[380px]">
+                  <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-indigo-400 overflow-x-auto border border-[var(--border)] leading-relaxed max-h-[380px]">
                     {selectedTestDocView === "cases" && `import pytest
 from httpx import AsyncClient
 from backend.main import app
@@ -1463,8 +1463,8 @@ jobs:
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Health Score Overview */}
             <div className="lg:col-span-4 space-y-6">
-              <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-6 text-center space-y-4">
-                <span className="text-[10px] tracking-widest text-[#9CA3AF] uppercase font-black block">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 text-center space-y-4">
+                <span className="text-[10px] tracking-widest text-[var(--text-muted)] uppercase font-black block">
                   Autofy Readiness Metrics
                 </span>
                 
@@ -1479,8 +1479,8 @@ jobs:
                   </div>
                 </div>
 
-                <div className="p-3 bg-[#111113] border border-white/[0.04] rounded-2xl">
-                  <span className="text-[10px] text-neutral-500 block uppercase font-bold">
+                <div className="p-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl">
+                  <span className="text-[10px] text-[var(--text-subtle)] block uppercase font-bold">
                     Go / No-Go Launch Decision
                   </span>
 
@@ -1501,14 +1501,14 @@ jobs:
                             setGoNoGo("no_go");
                             triggerNotification("Decision Locked: NO-GO (Deploy blocked pending audit revisions)");
                           }}
-                          className="px-4 py-1.5 bg-red-600 text-white font-black text-xs rounded-lg transition cursor-pointer"
+                          className="px-4 py-1.5 bg-red-600 text-[var(--text)] font-black text-xs rounded-lg transition cursor-pointer"
                         >
                           Sign NO-GO
                         </button>
                       </div>
                       <button
                         onClick={executeAutoHealing}
-                        className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-indigo-600 hover:bg-indigo-505 bg-gradient-to-r from-indigo-600 to-indigo-500 text-white font-extrabold text-[10.5px] uppercase tracking-wider rounded-lg transition active:scale-[0.98] cursor-pointer"
+                        className="w-full flex items-center justify-center gap-1.5 py-2.5 bg-indigo-600 hover:bg-indigo-505 bg-gradient-to-r from-indigo-600 to-indigo-500 text-[var(--text)] font-extrabold text-[10.5px] uppercase tracking-wider rounded-lg transition active:scale-[0.98] cursor-pointer"
                       >
                         <Zap className="w-3.5 h-3.5 text-amber-300 fill-amber-300" />
                         <span>Run Auto-Heal Fixes</span>
@@ -1521,7 +1521,7 @@ jobs:
                       <div className="flex items-center gap-1">
                         DECISION LOCKED: GO FOR LAUNCH
                       </div>
-                      <span className="text-[9px] text-neutral-400 font-medium">All systems audited & healed</span>
+                      <span className="text-[9px] text-[var(--text-muted)] font-medium">All systems audited & healed</span>
                     </div>
                   )}
 
@@ -1532,17 +1532,17 @@ jobs:
                   )}
                 </div>
 
-                <div className="text-left bg-black/40 border border-white/[0.02] p-4 rounded-xl space-y-2">
+                <div className="text-left bg-black/40 border border-[var(--border)] p-4 rounded-xl space-y-2">
                   <span className="text-[10.5px] font-black text-[#A1A1AA] uppercase tracking-wider block">
                     Enterprise Risk Metrics:
                   </span>
                   <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div className="bg-var(--bg-elevated) border border-white/[0.02] p-2 rounded-xl text-center">
-                      <span className="text-[9px] text-neutral-500 block">Severe Faults</span>
-                      <strong className="text-white font-bold font-mono">0 Isolated</strong>
+                    <div className="bg-[var(--bg-elevated)] border border-[var(--border)] p-2 rounded-xl text-center">
+                      <span className="text-[9px] text-[var(--text-subtle)] block">Severe Faults</span>
+                      <strong className="text-[var(--text)] font-bold font-mono">0 Isolated</strong>
                     </div>
-                    <div className="bg-var(--bg-elevated) border border-white/[0.02] p-2 rounded-xl text-center">
-                      <span className="text-[9px] text-neutral-500 block">Performance Index</span>
+                    <div className="bg-[var(--bg-elevated)] border border-[var(--border)] p-2 rounded-xl text-center">
+                      <span className="text-[9px] text-[var(--text-subtle)] block">Performance Index</span>
                       <strong className="text-emerald-400 font-bold font-mono">Exceptional</strong>
                     </div>
                   </div>
@@ -1550,17 +1550,17 @@ jobs:
               </div>
 
               {/* General classification layout table */}
-              <div className="bg-[#0C0C0E] border border-white/[0.08] p-5 rounded-3xl text-left space-y-3">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] p-5 rounded-3xl text-left space-y-3">
                 <div>
-                  <h4 className="text-xs uppercase font-black text-[#9CA3AF] tracking-wider">
+                  <h4 className="text-xs uppercase font-black text-[var(--text-muted)] tracking-wider">
                     Risk Prioritization Map
                   </h4>
-                  <p className="text-[10px] text-neutral-400 mt-0.5">Classification checklist priorities before public launch.</p>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-0.5">Classification checklist priorities before public launch.</p>
                 </div>
 
-                <div className="border border-white/[0.03] rounded-xl overflow-hidden text-xs">
-                  <table className="w-full text-left text-neutral-200">
-                    <thead className="bg-[#111113] text-[9px] uppercase font-black text-neutral-400 border-b border-white/[0.03]">
+                <div className="border border-[var(--border)] rounded-xl overflow-hidden text-xs">
+                  <table className="w-full text-left text-[var(--text)]">
+                    <thead className="bg-[var(--bg-card)] text-[9px] uppercase font-black text-[var(--text-muted)] border-b border-[var(--border)]">
                       <tr>
                         <th className="px-3 py-2">Exploit Name</th>
                         <th className="px-3 py-2">Threat</th>
@@ -1569,18 +1569,18 @@ jobs:
                     </thead>
                     <tbody className="divide-y divide-white/[0.03] text-[10.5px]">
                       <tr>
-                        <td className="px-3 py-2 font-bold text-white">XSS Injections</td>
-                        <td className="px-3 py-2 text-neutral-400 font-sans">Moderate</td>
+                        <td className="px-3 py-2 font-bold text-[var(--text)]">XSS Injections</td>
+                        <td className="px-3 py-2 text-[var(--text-muted)] font-sans">Moderate</td>
                         <td className="px-3 py-2"><span className="text-emerald-400 font-extrabold uppercase text-[8px] bg-emerald-500/10 px-1 py-0.2 rounded">Passed</span></td>
                       </tr>
                       <tr>
-                        <td className="px-3 py-2 font-bold text-white">OAuth Spikes</td>
-                        <td className="px-3 py-2 text-neutral-400 font-sans">High</td>
+                        <td className="px-3 py-2 font-bold text-[var(--text)]">OAuth Spikes</td>
+                        <td className="px-3 py-2 text-[var(--text-muted)] font-sans">High</td>
                         <td className="px-3 py-2"><span className="text-emerald-400 font-extrabold uppercase text-[8px] bg-emerald-500/10 px-1 py-0.2 rounded">Passed</span></td>
                       </tr>
                       <tr>
-                        <td className="px-3 py-2 font-bold text-white">Brute Force</td>
-                        <td className="px-3 py-2 text-neutral-400 font-sans">Extreme</td>
+                        <td className="px-3 py-2 font-bold text-[var(--text)]">Brute Force</td>
+                        <td className="px-3 py-2 text-[var(--text-muted)] font-sans">Extreme</td>
                         <td className="px-3 py-2"><span className="text-amber-400 font-extrabold uppercase text-[8px] bg-amber-500/10 px-1 py-0.2 rounded">Review</span></td>
                       </tr>
                     </tbody>
@@ -1594,8 +1594,8 @@ jobs:
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 
                 {/* P0 Critical Tasks */}
-                <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-4">
-                  <span className="text-xs uppercase font-black text-indigo-400 tracking-wider block border-b border-white/[0.06] pb-2 flex items-center gap-1.5">
+                <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-4">
+                  <span className="text-xs uppercase font-black text-indigo-400 tracking-wider block border-b border-[var(--border)] pb-2 flex items-center gap-1.5">
                     <ShieldAlert className="w-4 h-4 text-indigo-400 flex-shrink-0" />
                     P0 Critical Fixes & Hardening
                   </span>
@@ -1605,12 +1605,12 @@ jobs:
                       <div
                         key={item.id}
                         onClick={() => toggleChecklist(p0Checklist, setP0Checklist, item.id)}
-                        className="flex items-start gap-3 p-3 bg-black/20 hover:bg-white/[0.01] rounded-xl cursor-pointer select-none transition border border-white/[0.02]"
+                        className="flex items-start gap-3 p-3 bg-black/20 hover:bg-white/[0.01] rounded-xl cursor-pointer select-none transition border border-[var(--border)]"
                       >
                         <span className="mt-0.5 text-indigo-400 flex-shrink-0">
-                          {item.done ? <CheckSquare className="w-4 h-4 text-indigo-400" /> : <Square className="w-4 h-4 text-neutral-600" />}
+                          {item.done ? <CheckSquare className="w-4 h-4 text-indigo-400" /> : <Square className="w-4 h-4 text-[var(--text-subtle)]" />}
                         </span>
-                        <span className={`text-[11px] text-left leading-relaxed font-sans ${item.done ? "text-neutral-500 line-through" : "text-neutral-200"}`}>
+                        <span className={`text-[11px] text-left leading-relaxed font-sans ${item.done ? "text-[var(--text-subtle)] line-through" : "text-[var(--text)]"}`}>
                           {item.text}
                         </span>
                       </div>
@@ -1619,8 +1619,8 @@ jobs:
                 </div>
 
                 {/* P1 Important improvements */}
-                <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-4">
-                  <span className="text-xs uppercase font-black text-indigo-400 tracking-wider block border-b border-white/[0.06] pb-2 flex items-center gap-1.5">
+                <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-4">
+                  <span className="text-xs uppercase font-black text-indigo-400 tracking-wider block border-b border-[var(--border)] pb-2 flex items-center gap-1.5">
                     <AlertTriangle className="w-4 h-4 text-indigo-400 flex-shrink-0" />
                     P1 Performance & DB Hardening
                   </span>
@@ -1630,12 +1630,12 @@ jobs:
                       <div
                         key={item.id}
                         onClick={() => toggleChecklist(p1Checklist, setP1Checklist, item.id)}
-                        className="flex items-start gap-3 p-3 bg-black/20 hover:bg-white/[0.01] rounded-xl cursor-pointer select-none transition border border-white/[0.02]"
+                        className="flex items-start gap-3 p-3 bg-black/20 hover:bg-white/[0.01] rounded-xl cursor-pointer select-none transition border border-[var(--border)]"
                       >
                         <span className="mt-0.5 text-indigo-400 flex-shrink-0">
-                          {item.done ? <CheckSquare className="w-4 h-4 text-indigo-400" /> : <Square className="w-4 h-4 text-neutral-600" />}
+                          {item.done ? <CheckSquare className="w-4 h-4 text-indigo-400" /> : <Square className="w-4 h-4 text-[var(--text-subtle)]" />}
                         </span>
-                        <span className={`text-[11px] text-left leading-relaxed font-sans ${item.done ? "text-neutral-500 line-through" : "text-neutral-200"}`}>
+                        <span className={`text-[11px] text-left leading-relaxed font-sans ${item.done ? "text-[var(--text-subtle)] line-through" : "text-[var(--text)]"}`}>
                           {item.text}
                         </span>
                       </div>
@@ -1644,8 +1644,8 @@ jobs:
                 </div>
 
                 {/* Launch Sequence checks */}
-                <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-4">
-                  <span className="text-xs uppercase font-black text-indigo-400 tracking-wider block border-b border-white/[0.06] pb-2 flex items-center gap-1.5">
+                <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-4">
+                  <span className="text-xs uppercase font-black text-indigo-400 tracking-wider block border-b border-[var(--border)] pb-2 flex items-center gap-1.5">
                     <RocketIcon />
                     Go-Live Flight Checklist
                   </span>
@@ -1655,12 +1655,12 @@ jobs:
                       <div
                         key={item.id}
                         onClick={() => toggleChecklist(launchSequenceChecklist, setLaunchSequenceChecklist, item.id)}
-                        className="flex items-start gap-3 p-3 bg-black/20 hover:bg-white/[0.01] rounded-xl cursor-pointer select-none transition border border-white/[0.02]"
+                        className="flex items-start gap-3 p-3 bg-black/20 hover:bg-white/[0.01] rounded-xl cursor-pointer select-none transition border border-[var(--border)]"
                       >
                         <span className="mt-0.5 text-indigo-400 flex-shrink-0">
-                          {item.done ? <CheckSquare className="w-4 h-4 text-indigo-400" /> : <Square className="w-4 h-4 text-neutral-600" />}
+                          {item.done ? <CheckSquare className="w-4 h-4 text-indigo-400" /> : <Square className="w-4 h-4 text-[var(--text-subtle)]" />}
                         </span>
-                        <span className={`text-[11px] text-left leading-relaxed font-sans ${item.done ? "text-neutral-500 line-through" : "text-neutral-200"}`}>
+                        <span className={`text-[11px] text-left leading-relaxed font-sans ${item.done ? "text-[var(--text-subtle)] line-through" : "text-[var(--text)]"}`}>
                           {item.text}
                         </span>
                       </div>
@@ -1669,8 +1669,8 @@ jobs:
                 </div>
 
                 {/* First Customers & Beyond */}
-                <div className="bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-4">
-                  <span className="text-xs uppercase font-black text-indigo-400 tracking-wider block border-b border-white/[0.06] pb-2 flex items-center gap-1.5">
+                <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-4">
+                  <span className="text-xs uppercase font-black text-indigo-400 tracking-wider block border-b border-[var(--border)] pb-2 flex items-center gap-1.5">
                     <Users className="w-4 h-4 text-indigo-400 flex-shrink-0" />
                     First Customers (1 to 10 Customers)
                   </span>
@@ -1680,12 +1680,12 @@ jobs:
                       <div
                         key={item.id}
                         onClick={() => toggleChecklist(firstCustomersChecklist, setFirstCustomersChecklist, item.id)}
-                        className="flex items-start gap-3 p-3 bg-black/20 hover:bg-white/[0.01] rounded-xl cursor-pointer select-none transition border border-white/[0.02]"
+                        className="flex items-start gap-3 p-3 bg-black/20 hover:bg-white/[0.01] rounded-xl cursor-pointer select-none transition border border-[var(--border)]"
                       >
                         <span className="mt-0.5 text-indigo-400 flex-shrink-0">
-                          {item.done ? <CheckSquare className="w-4 h-4 text-indigo-400" /> : <Square className="w-4 h-4 text-neutral-600" />}
+                          {item.done ? <CheckSquare className="w-4 h-4 text-indigo-400" /> : <Square className="w-4 h-4 text-[var(--text-subtle)]" />}
                         </span>
-                        <span className={`text-[11px] text-left leading-relaxed font-sans ${item.done ? "text-neutral-500 line-through" : "text-neutral-200"}`}>
+                        <span className={`text-[11px] text-left leading-relaxed font-sans ${item.done ? "text-[var(--text-subtle)] line-through" : "text-[var(--text)]"}`}>
                           {item.text}
                         </span>
                       </div>
@@ -1696,32 +1696,32 @@ jobs:
               </div>
 
               {/* Master Scaling Checklist Plan */}
-              <div className="bg-[#0C0C0E] border border-white/[0.08] p-6 rounded-3xl text-left space-y-4">
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] p-6 rounded-3xl text-left space-y-4">
                 <div>
                   <h4 className="text-xs uppercase font-black text-indigo-400 tracking-wider">
                      Horizontal Scaling Plan (Autofy Next-Gen Platform)
                   </h4>
-                  <p className="text-[10.5px] text-neutral-400 mt-1 font-sans">
+                  <p className="text-[10.5px] text-[var(--text-muted)] mt-1 font-sans">
                     Guaranteed strategy sustaining up to 100K active daily concurrent database handles.
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-sans">
-                  <div className="p-4 bg-var(--bg-elevated) border border-white/[0.03] rounded-2xl space-y-1">
-                    <strong className="text-white text-[11px] font-bold block">1. Redis Session Caching</strong>
-                    <p className="text-[10.5px] text-neutral-400 leading-normal">
+                  <div className="p-4 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-2xl space-y-1">
+                    <strong className="text-[var(--text)] text-[11px] font-bold block">1. Redis Session Caching</strong>
+                    <p className="text-[10.5px] text-[var(--text-muted)] leading-normal">
                       Store session contexts on distributed Redis nodes memory to reduce FastAPI overhead and achieve sub-millisecond route parsing.
                     </p>
                   </div>
-                  <div className="p-4 bg-var(--bg-elevated) border border-white/[0.03] rounded-2xl space-y-1">
-                    <strong className="text-white text-[11px] font-bold block">2. DB Read Replicas</strong>
-                    <p className="text-[10.5px] text-neutral-400 leading-normal">
+                  <div className="p-4 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-2xl space-y-1">
+                    <strong className="text-[var(--text)] text-[11px] font-bold block">2. DB Read Replicas</strong>
+                    <p className="text-[10.5px] text-[var(--text-muted)] leading-normal">
                       Isolate intensive analytical analytics search queries onto dedicated read replicas, keeping primary postgres reserved for write transactions.
                     </p>
                   </div>
-                  <div className="p-4 bg-var(--bg-elevated) border border-white/[0.03] rounded-2xl space-y-1">
-                    <strong className="text-white text-[11px] font-bold block">3. Cloud Run Scale thresholds</strong>
-                    <p className="text-[10.5px] text-neutral-400 leading-normal">
+                  <div className="p-4 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-2xl space-y-1">
+                    <strong className="text-[var(--text)] text-[11px] font-bold block">3. Cloud Run Scale thresholds</strong>
+                    <p className="text-[10.5px] text-[var(--text-muted)] leading-normal">
                       Deploy Docker nodes using auto-scaling triggers tuned to boot fresh containers. Spikes trigger scaling instantly as CPU core utilization passes 75%.
                     </p>
                   </div>
@@ -1739,7 +1739,7 @@ jobs:
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Sub Navigation Cards */}
           <div className="lg:col-span-3 space-y-2">
-            <span className="text-[10px] tracking-widest uppercase font-black text-neutral-500 block mb-3">
+            <span className="text-[10px] tracking-widest uppercase font-black text-[var(--text-subtle)] block mb-3">
               App Architecture Code
             </span>
             {[
@@ -1754,17 +1754,17 @@ jobs:
                 className={`w-full text-left p-3 rounded-xl border transition-all cursor-pointer block ${
                   activeArchSubtab === sub.id
                     ? "bg-white/[0.05] border-indigo-500/50"
-                    : "bg-black/[0.2] border-white/[0.02] hover:bg-white/[0.02]"
+                    : "bg-black/[0.2] border-[var(--border)] hover:bg-white/[0.02]"
                 }`}
               >
-                <div className="text-xs font-black text-white">{sub.label}</div>
-                <div className="text-[10px] text-neutral-400 mt-0.5">{sub.desc}</div>
+                <div className="text-xs font-black text-[var(--text)]">{sub.label}</div>
+                <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{sub.desc}</div>
               </button>
             ))}
 
-            <div className="mt-6 bg-[#0E0E11] border border-white/[0.04] p-4 rounded-xl space-y-2 text-xs text-left">
+            <div className="mt-6 bg-[#0E0E11] border border-[var(--border)] p-4 rounded-xl space-y-2 text-xs text-left">
               <span className="text-[10px] font-black text-[#A1A1AA] uppercase tracking-wider block"> Native Capabilities:</span>
-              <ul className="space-y-1.5 text-neutral-400">
+              <ul className="space-y-1.5 text-[var(--text-muted)]">
                 <li className="flex items-center gap-1.5 text-[11px]">
                   <CheckCircle2 className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
                   <span>Cross-platform iOS, Android, Tablet grid responsive presets.</span>
@@ -1782,19 +1782,19 @@ jobs:
           </div>
 
           {/* Main Code Workspace */}
-          <div className="lg:col-span-9 bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-6 space-y-4">
+          <div className="lg:col-span-9 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 space-y-4">
             {activeArchSubtab === "folder" && (
               <div className="space-y-4 text-left">
                 <div>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                  <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider">
                      Autofy Mobile: Project Tree & Scaffold Map
                   </h3>
-                  <p className="text-xs text-neutral-400 mt-1">
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
                     React Native production folder layout structured for clean scalability.
                   </p>
                 </div>
                 
-                <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-[#10B981] overflow-x-auto border border-white/[0.05] leading-relaxed">
+                <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-[#10B981] overflow-x-auto border border-[var(--border)] leading-relaxed">
 {`autofy-mobile/
 ├── package.json
 ├── App.tsx                     # Primary mounting index for React Native app
@@ -1838,15 +1838,15 @@ jobs:
             {activeArchSubtab === "navigation" && (
               <div className="space-y-4 text-left">
                 <div>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                  <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider">
                      React Navigation Setup
                   </h3>
-                  <p className="text-xs text-neutral-400 mt-1">
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
                     TypeScript navigation registry integrating deep nested layout paths.
                   </p>
                 </div>
 
-                <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-neutral-300 overflow-x-auto border border-white/[0.05] leading-relaxed">
+                <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-[var(--text)] overflow-x-auto border border-[var(--border)] leading-relaxed">
 {`import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
@@ -1927,15 +1927,15 @@ export default function RootNavigator() {
             {activeArchSubtab === "screens" && (
               <div className="space-y-4 text-left">
                 <div>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                  <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider">
                      Production Mobile Screen: Active Chat / Conversations Porting blueprint
                   </h3>
-                  <p className="text-xs text-neutral-400 mt-1">
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
                     An optimized viewport combining virtual lists, message filters, and responsive styles designed to operate correctly across multiple form factors.
                   </p>
                 </div>
 
-                <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-neutral-300 overflow-x-auto border border-white/[0.05] leading-relaxed">
+                <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-[var(--text)] overflow-x-auto border border-[var(--border)] leading-relaxed">
 {`import React, { useState, useEffect, useRef } from "react";
 import { 
   StyleSheet, View, Text, FlatList, TextInput, 
@@ -2028,15 +2028,15 @@ export default function ActiveChatScreen() {
             {activeArchSubtab === "api" && (
               <div className="space-y-4 text-left">
                 <div>
-                  <h3 className="text-sm font-black text-white uppercase tracking-wider">
+                  <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider">
                      Production API Interceptor Client & Query Hooks
                   </h3>
-                  <p className="text-xs text-neutral-400 mt-1">
+                  <p className="text-xs text-[var(--text-muted)] mt-1">
                     Robust token validation, timeouts, automatic token refresh, and secure storage abstraction in React Native.
                   </p>
                 </div>
 
-                <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-neutral-300 overflow-x-auto border border-white/[0.05] leading-relaxed">
+                <pre className="font-mono text-[11px] p-5 bg-black rounded-2xl text-[var(--text)] overflow-x-auto border border-[var(--border)] leading-relaxed">
 {`import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -2102,7 +2102,7 @@ const ShieldCheckIcon = ({ score }: { score: number }) => {
 
 const CircleDotIcon = () => (
   <svg
-    className="w-4 h-4 text-neutral-600 flex-shrink-0"
+    className="w-4 h-4 text-[var(--text-subtle)] flex-shrink-0"
     fill="none"
     viewBox="0 0 24 24"
     stroke="currentColor"

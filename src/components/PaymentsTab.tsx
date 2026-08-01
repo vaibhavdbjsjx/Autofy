@@ -273,20 +273,20 @@ export const PaymentsTab: React.FC<{
       {/* Metrics */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Total Revenue Generated", val: stats.totalRevenue, icon: DollarSign, color: "rgba(139,92,246,0.15)" },
-          { label: "Current Monthly Billing", val: stats.monthlyRevenue, icon: TrendingUp, color: "rgba(34,197,94,0.15)" },
-          { label: "Pending Escrow Invoices", val: stats.pendingPayments, icon: Clock, color: "rgba(245,158,11,0.15)" },
-          { label: "Pristine Successful Clears", val: stats.successfulPayments, icon: CheckCircle2, color: "rgba(139,92,246,0.15)" }
+          { label: "Total Revenue Generated", val: stats.totalRevenue, icon: DollarSign, color: "var(--brand-subtle)", iconColor: "text-pink-500" },
+          { label: "Current Monthly Billing", val: stats.monthlyRevenue, icon: TrendingUp, color: "rgba(34,197,94,0.12)", iconColor: "text-emerald-500" },
+          { label: "Pending Escrow Invoices", val: stats.pendingPayments, icon: Clock, color: "rgba(245,158,11,0.12)", iconColor: "text-amber-500" },
+          { label: "Pristine Successful Clears", val: stats.successfulPayments, icon: CheckCircle2, color: "rgba(59,130,246,0.12)", iconColor: "text-blue-500" }
         ].map((met, i) => {
           const Icon = met.icon;
           return (
-            <div key={i} className="p-5 bg-neutral-950/40 border border-var(--border) rounded-2xl flex items-center justify-between">
+            <div key={i} className="p-5 glass-card rounded-2xl flex items-center justify-between">
               <div>
-                <p className="text-[10px] uppercase font-bold tracking-wider" style={{ color: "var(--text-muted)" }}>{met.label}</p>
-                <h4 className="text-2xl font-extrabold mt-1.5" style={{ color: "var(--text)", fontFamily: "'Plus Jakarta Sans',sans-serif" }}>{met.val}</h4>
+                <p className="text-[10px] uppercase font-bold tracking-wider font-sans" style={{ color: "var(--text-subtle)" }}>{met.label}</p>
+                <h4 className="text-2xl font-black mt-1.5 font-display" style={{ color: "var(--text)" }}>{met.val}</h4>
               </div>
-              <div className="p-2.5 rounded-xl flex items-center justify-center" style={{ background: met.color }}>
-                <Icon className="w-5 h-5 text-white" />
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center border border-current/20 ${met.iconColor}`} style={{ background: met.color }}>
+                <Icon className="w-5 h-5" />
               </div>
             </div>
           );
@@ -297,7 +297,7 @@ export const PaymentsTab: React.FC<{
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* UPI QR Code card */}
-        <div className="p-6 bg-neutral-950/40 border border-var(--border) rounded-3xl space-y-4">
+        <div className="p-6 glass-card rounded-3xl space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
@@ -319,7 +319,7 @@ export const PaymentsTab: React.FC<{
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-5 items-center bg-var(--bg-elevated)/30 p-5 rounded-2xl border border-var(--border)">
+          <div className="flex flex-col md:flex-row gap-5 items-center bg-[var(--bg-elevated)]/30 p-5 rounded-2xl border border-[var(--border)]">
             {/* SVG Stylized QR code */}
             <div className="w-36 h-36 bg-white p-3 rounded-2xl flex items-center justify-center relative shrink-0 shadow-lg shadow-black/40">
               <svg width="100%" height="100%" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -368,9 +368,9 @@ export const PaymentsTab: React.FC<{
 
               <div className="space-y-1">
                 <p className="text-[9.5px] uppercase font-bold" style={{ color: "var(--text-muted)" }}>UPI Address (VPA)</p>
-                <div className="flex items-center gap-2 bg-var(--bg-elevated)/60 p-2 rounded-xl border border-neutral-800">
-                  <span className="font-mono text-xs text-white select-all">{upiId}</span>
-                  <button onClick={copyUpiId} className="p-1 hover:text-white transition cursor-pointer" style={{ color: "var(--text-muted)" }}>
+                <div className="flex items-center gap-2 bg-[var(--bg-elevated)]/60 p-2 rounded-xl border border-[var(--border)]">
+                  <span className="font-mono text-xs text-[var(--text)] select-all">{upiId}</span>
+                  <button onClick={copyUpiId} className="p-1 hover:text-[var(--text)] transition cursor-pointer" style={{ color: "var(--text-muted)" }}>
                     <Copy className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -379,7 +379,7 @@ export const PaymentsTab: React.FC<{
               <div className="flex gap-2">
                 <button onClick={() => {
                   triggerNotification(" Secure checkout payload generated & sent to WhatsApp sandbox!");
-                }} className="flex-1 py-2 rounded-xl text-[10.5px] font-bold text-center flex items-center justify-center gap-1 cursor-pointer transition text-white hover:opacity-90"
+                }} className="flex-1 py-2 rounded-xl text-[10.5px] font-bold text-center flex items-center justify-center gap-1 cursor-pointer transition text-[var(--text)] hover:opacity-90"
                   style={{ background: "var(--brand)" }}>
                   <ExternalLink className="w-3 h-3" />
                   Share Payment Link
@@ -388,7 +388,7 @@ export const PaymentsTab: React.FC<{
                   const nextStatus = upiStatus === "Pending" ? "Completed" : upiStatus === "Completed" ? "Failed" : "Pending";
                   setUpiStatus(nextStatus);
                   triggerNotification(`Status updated to: ${nextStatus}`);
-                }} className="py-2 px-3 bg-var(--bg-elevated) border border-neutral-800 hover:text-white rounded-xl text-[10px] font-bold uppercase transition cursor-pointer text-neutral-400">
+                }} className="py-2 px-3 bg-[var(--bg-elevated)] border border-[var(--border)] hover:text-[var(--text)] rounded-xl text-[10px] font-bold uppercase transition cursor-pointer text-[var(--text-muted)]">
                   Cycle Status
                 </button>
               </div>
@@ -397,7 +397,7 @@ export const PaymentsTab: React.FC<{
         </div>
 
         {/* Gateway setups with Razorpay configuration */}
-        <div className="p-6 bg-neutral-950/40 border border-var(--border) rounded-3xl space-y-4">
+        <div className="p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl space-y-4">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
@@ -419,15 +419,15 @@ export const PaymentsTab: React.FC<{
               Autofy supports third-party checkout flows natively. Easily connect your Razorpay merchant key to trigger instant invoice payments.
             </p>
 
-            <div className="p-4 bg-var(--bg-elevated)/30 rounded-2xl border border-var(--border) space-y-4">
+            <div className="p-4 bg-[var(--bg-elevated)]/30 rounded-2xl border border-[var(--border)] space-y-4">
               <div className="flex justify-between items-center">
                 <div>
-                  <h4 className="text-xs font-bold text-white">Razorpay Checkout Handshake</h4>
+                  <h4 className="text-xs font-bold text-[var(--text)]">Razorpay Checkout Handshake</h4>
                   <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>
                     {gatewayConfigs.Razorpay.status === "Connected" ? "Key ID: " + gatewayConfigs.Razorpay.apiKey.slice(0, 10) + "..." : "Not connected"}
                   </p>
                 </div>
-                <button onClick={() => setIsRazorpayModalOpen(true)} className="px-4 py-2 bg-[#8B5CF6] hover:bg-[#6B51EF] text-white text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5">
+                <button onClick={() => setIsRazorpayModalOpen(true)} className="px-4 py-2 bg-[#8B5CF6] hover:bg-[#6B51EF] text-[var(--text)] text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1.5">
                   <Sliders className="w-3.5 h-3.5" />
                   Connect Razorpay
                 </button>
@@ -439,7 +439,7 @@ export const PaymentsTab: React.FC<{
       </div>
 
       {/* Subscription plans table comparison */}
-      <div className="p-6 bg-neutral-950/40 border border-var(--border) rounded-3xl space-y-4">
+      <div className="p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl space-y-4">
         <div>
           <h3 className="text-xs font-black uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-4.5 h-4.5" style={{ color: "var(--brand)" }} />
@@ -448,7 +448,7 @@ export const PaymentsTab: React.FC<{
           <p className="text-[10px] mt-0.5" style={{ color: "var(--text-muted)" }}>Compare core operational tiers for your business</p>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-var(--border)">
+        <div className="overflow-x-auto rounded-2xl border border-[var(--border)]">
           <table className="w-full text-left text-xs">
             <thead>
               <tr style={{ background: "var(--input-bg)", borderBottom: "1px solid var(--border)" }}>
@@ -467,23 +467,23 @@ export const PaymentsTab: React.FC<{
                   borderBottom: idx < subscriptionPlans.length - 1 ? "1px solid var(--border)" : "none",
                   background: p.popular ? "rgba(139,92,246,0.03)" : "transparent",
                   borderLeft: p.popular ? "3px solid #8B5CF6" : "none"
-                }} className="hover:bg-var(--bg-elevated)/10 transition-colors">
-                  <td className="p-4 font-bold text-white flex items-center gap-2">
+                }} className="hover:bg-[var(--bg-elevated)]/10 transition-colors">
+                  <td className="p-4 font-bold text-[var(--text)] flex items-center gap-2">
                     {p.name}
                     {p.popular && (
-                      <span className="bg-[#8B5CF6] text-white text-[8px] font-black uppercase px-2 py-0.5 rounded-full">
+                      <span className="bg-[#8B5CF6] text-[var(--text)] text-[8px] font-black uppercase px-2 py-0.5 rounded-full">
                         Most Popular
                       </span>
                     )}
                   </td>
-                  <td className="p-4 font-mono font-bold text-white">{p.price}</td>
-                  <td className="p-4 text-neutral-300">{p.msgs}</td>
-                  <td className="p-4 text-neutral-300">{p.responses}</td>
-                  <td className="p-4 text-neutral-300">{p.members}</td>
-                  <td className="p-4 text-neutral-300">{p.support}</td>
+                  <td className="p-4 font-mono font-bold text-[var(--text)]">{p.price}</td>
+                  <td className="p-4 text-[var(--text)]">{p.msgs}</td>
+                  <td className="p-4 text-[var(--text)]">{p.responses}</td>
+                  <td className="p-4 text-[var(--text)]">{p.members}</td>
+                  <td className="p-4 text-[var(--text)]">{p.support}</td>
                   <td className="p-4 text-right">
                     <button onClick={() => handleChoosePlan(p)}
-                      className="px-3.5 py-1.5 text-[10px] font-bold rounded-lg cursor-pointer transition uppercase text-white"
+                      className="px-3.5 py-1.5 text-[10px] font-bold rounded-lg cursor-pointer transition uppercase text-[var(--text)]"
                       style={{
                         background: p.popular ? "#8B5CF6" : "var(--input-bg)",
                         border: p.popular ? "none" : "1px solid var(--border)",
@@ -499,7 +499,7 @@ export const PaymentsTab: React.FC<{
       </div>
 
       {/* Transaction payment history table */}
-      <div className="p-6 bg-neutral-950/40 border border-var(--border) rounded-3xl space-y-4">
+      <div className="p-6 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl space-y-4">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs leading-normal">
           <div>
             <h3 className="text-xs font-black uppercase tracking-wider">Payment history ledger</h3>
@@ -508,20 +508,20 @@ export const PaymentsTab: React.FC<{
 
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <div className="relative flex-1 sm:flex-none">
-              <Search className="w-3.5 h-3.5 text-neutral-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-[var(--text-subtle)] absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 placeholder="Search by customer..."
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full sm:w-40 bg-[#07070a] border border-var(--border) pl-8 pr-3 py-1.5 rounded-xl text-xs text-white focus:outline-none"
+                className="w-full sm:w-40 bg-[#07070a] border border-[var(--border)] pl-8 pr-3 py-1.5 rounded-xl text-xs text-[var(--text)] focus:outline-none"
               />
             </div>
 
             <select
               value={filterState}
               onChange={(e) => setFilterState(e.target.value as any)}
-              className="bg-[#07070a] border border-var(--border) px-2.5 py-1.5 rounded-xl text-xs text-neutral-400 focus:outline-none cursor-pointer"
+              className="bg-[#07070a] border border-[var(--border)] px-2.5 py-1.5 rounded-xl text-xs text-[var(--text-muted)] focus:outline-none cursor-pointer"
             >
               <option value="All">All Transactions</option>
               <option value="Paid">Paid</option>
@@ -532,10 +532,10 @@ export const PaymentsTab: React.FC<{
         </div>
 
         {/* Desktop Table View */}
-        <div className="hidden md:block overflow-x-auto rounded-xl border border-var(--border)">
+        <div className="hidden md:block overflow-x-auto rounded-xl border border-[var(--border)]">
           <table className="w-full text-left text-xs">
             <thead>
-              <tr style={{ background: "var(--input-bg)", borderBottom: "1px solid var(--border)" }} className="text-[9px] uppercase font-bold text-neutral-400 tracking-wider">
+              <tr style={{ background: "var(--input-bg)", borderBottom: "1px solid var(--border)" }} className="text-[9px] uppercase font-bold text-[var(--text-muted)] tracking-wider">
                 <th className="p-3">Date</th>
                 <th className="p-3">Customer</th>
                 <th className="p-3">Plan / Description</th>
@@ -551,11 +551,11 @@ export const PaymentsTab: React.FC<{
                   background: idx % 2 === 1 ? "rgba(255,255,255,0.015)" : "transparent",
                   borderBottom: "1px solid var(--border)"
                 }} className="hover:bg-[rgba(255,255,255,0.025)] transition-colors">
-                  <td className="p-3 text-neutral-400 font-semibold">{tx.date}</td>
-                  <td className="p-3 font-bold text-white">{tx.customerName}</td>
-                  <td className="p-3 text-neutral-300 font-semibold">{tx.planName}</td>
-                  <td className="p-3 font-mono text-neutral-300 font-bold">₹{tx.amount.toLocaleString()}</td>
-                  <td className="p-3 text-neutral-400 font-semibold">{tx.paymentMethod}</td>
+                  <td className="p-3 text-[var(--text-muted)] font-semibold">{tx.date}</td>
+                  <td className="p-3 font-bold text-[var(--text)]">{tx.customerName}</td>
+                  <td className="p-3 text-[var(--text)] font-semibold">{tx.planName}</td>
+                  <td className="p-3 font-mono text-[var(--text)] font-bold">₹{tx.amount.toLocaleString()}</td>
+                  <td className="p-3 text-[var(--text-muted)] font-semibold">{tx.paymentMethod}</td>
                   <td className="p-3">
                     <span className="px-3.5 py-1 rounded-full text-[11px] font-bold uppercase" style={{
                       background: tx.status === "Paid" ? "rgba(34,197,94,0.12)" : tx.status === "Pending" ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)",
@@ -568,7 +568,7 @@ export const PaymentsTab: React.FC<{
                         setInvoicePreview({ invoiceNo: `INV-${tx.id.split("-")[1]}`, customerName: tx.customerName, company: "Individual Client", items: tx.planName, amount: tx.amount, tax: 18, status: tx.status, date: tx.date });
                         triggerNotification(`Loaded checkout receipt metadata for receipt preview.`);
                       }}
-                      className="px-2 py-1 text-[10px] font-bold text-blue-500 hover:text-white hover:bg-blue-600 rounded-lg cursor-pointer border border-blue-500/20"
+                      className="px-2 py-1 text-[10px] font-bold text-blue-500 hover:text-[var(--text)] hover:bg-blue-600 rounded-lg cursor-pointer border border-blue-500/20"
                     >
                       Receipt details
                     </button>
@@ -582,29 +582,29 @@ export const PaymentsTab: React.FC<{
         {/* Mobile Cards View */}
         <div className="block md:hidden space-y-3">
           {filteredTransactions.map(tx => (
-            <div key={tx.id} className="p-4 bg-var(--bg-elevated)/40 border border-var(--border) rounded-2xl space-y-3">
+            <div key={tx.id} className="p-4 bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-2xl space-y-3">
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{tx.date}</p>
-                  <h4 className="text-xs font-bold text-white">{tx.customerName}</h4>
-                  <p className="text-[11px] text-neutral-300 mt-0.5">{tx.planName}</p>
+                  <h4 className="text-xs font-bold text-[var(--text)]">{tx.customerName}</h4>
+                  <p className="text-[11px] text-[var(--text)] mt-0.5">{tx.planName}</p>
                 </div>
                 <span className="px-3.5 py-1 rounded-full text-[11px] font-bold uppercase" style={{
                   background: tx.status === "Paid" ? "rgba(34,197,94,0.12)" : tx.status === "Pending" ? "rgba(245,158,11,0.12)" : "rgba(239,68,68,0.12)",
                   color: tx.status === "Paid" ? "var(--success)" : tx.status === "Pending" ? "var(--warning)" : "var(--danger)"
                 }}>{tx.status}</span>
               </div>
-              <div className="flex justify-between items-center pt-2.5 border-t border-var(--border)/60 text-xs">
+              <div className="flex justify-between items-center pt-2.5 border-t border-[var(--border)]/60 text-xs">
                 <div>
                   <span className="block text-[9.5px] uppercase font-bold" style={{ color: "var(--text-muted)" }}>Amount &amp; Method</span>
-                  <span className="font-mono font-bold text-white">₹{tx.amount.toLocaleString()}</span>
+                  <span className="font-mono font-bold text-[var(--text)]">₹{tx.amount.toLocaleString()}</span>
                   <span className="text-[10px] ml-1.5" style={{ color: "var(--text-muted)" }}>({tx.paymentMethod})</span>
                 </div>
                 <button
                   onClick={() => {
                     setInvoicePreview({ invoiceNo: `INV-${tx.id.split("-")[1]}`, customerName: tx.customerName, company: "Individual Client", items: tx.planName, amount: tx.amount, tax: 18, status: tx.status, date: tx.date });
                   }}
-                  className="px-3 py-1 bg-var(--bg-elevated) border border-neutral-800 text-blue-500 rounded-lg text-[10px] font-bold uppercase transition"
+                  className="px-3 py-1 bg-[var(--bg-elevated)] border border-[var(--border)] text-blue-500 rounded-lg text-[10px] font-bold uppercase transition"
                 >
                   Receipt
                 </button>
@@ -623,47 +623,47 @@ export const PaymentsTab: React.FC<{
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.94, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="w-full max-w-md bg-[#0a0a10] border border-var(--border) rounded-3xl p-8 relative"
+              className="w-full max-w-md bg-[#0a0a10] border border-[var(--border)] rounded-3xl p-8 relative"
             >
-              <button onClick={() => setIsRazorpayModalOpen(false)} className="absolute right-5 top-5 p-1 text-neutral-500 hover:text-white rounded-xl transition">
+              <button onClick={() => setIsRazorpayModalOpen(false)} className="absolute right-5 top-5 p-1 text-[var(--text-subtle)] hover:text-[var(--text)] rounded-xl transition">
                 <X className="w-5 h-5" />
               </button>
 
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <Shield className="w-5 h-5 text-blue-500" />
-                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-white">Connect Razorpay Gateway</h3>
+                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-[var(--text)]">Connect Razorpay Gateway</h3>
                 </div>
-                <p className="text-xs text-neutral-400">Configure public Key ID and secret hashes to accept instant orders.</p>
+                <p className="text-xs text-[var(--text-muted)]">Configure public Key ID and secret hashes to accept instant orders.</p>
 
                 <div className="space-y-3.5 pt-2">
                   <div className="space-y-1">
-                    <label className="text-[9.5px] uppercase font-bold text-neutral-500">Razorpay Key ID</label>
+                    <label className="text-[9.5px] uppercase font-bold text-[var(--text-subtle)]">Razorpay Key ID</label>
                     <input
                       type="text"
                       value={rzpKeyId}
                       onChange={e => setRzpKeyId(e.target.value)}
                       placeholder="rzp_live_xxxxxxxxxxxxxx"
-                      className="w-full bg-[#07070a] border border-neutral-800 p-2.5 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
+                      className="w-full bg-[#07070a] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[9.5px] uppercase font-bold text-neutral-500">Razorpay Key Secret</label>
+                    <label className="text-[9.5px] uppercase font-bold text-[var(--text-subtle)]">Razorpay Key Secret</label>
                     <input
                       type="password"
                       value={rzpKeySecret}
                       onChange={e => setRzpKeySecret(e.target.value)}
                       placeholder="Secret Key hash..."
-                      className="w-full bg-[#07070a] border border-neutral-800 p-2.5 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
+                      className="w-full bg-[#07070a] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-blue-500"
                     />
                   </div>
                 </div>
 
                 <div className="flex gap-3.5 pt-4">
-                  <button onClick={() => setIsRazorpayModalOpen(false)} className="flex-1 py-2.5 rounded-xl bg-var(--bg-elevated) border border-neutral-800 text-neutral-400 text-xs font-bold cursor-pointer">
+                  <button onClick={() => setIsRazorpayModalOpen(false)} className="flex-1 py-2.5 rounded-xl bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-muted)] text-xs font-bold cursor-pointer">
                     Cancel
                   </button>
-                  <button onClick={handleSaveRazorpay} className="flex-1 py-2.5 rounded-xl bg-[#8B5CF6] hover:bg-[#6B51EF] text-white text-xs font-bold cursor-pointer">
+                  <button onClick={handleSaveRazorpay} className="flex-1 py-2.5 rounded-xl bg-[#8B5CF6] hover:bg-[#6B51EF] text-[var(--text)] text-xs font-bold cursor-pointer">
                     Save settings
                   </button>
                 </div>
@@ -682,64 +682,64 @@ export const PaymentsTab: React.FC<{
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.94, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="w-full max-w-md bg-[#0a0a10] border border-var(--border) rounded-3xl p-8 relative font-sans text-xs"
+              className="w-full max-w-md bg-[#0a0a10] border border-[var(--border)] rounded-3xl p-8 relative font-sans text-xs"
             >
               <button
                 onClick={() => setInvoicePreview(null)}
-                className="absolute right-5 top-5 p-1 text-neutral-500 hover:text-white rounded-xl transition"
+                className="absolute right-5 top-5 p-1 text-[var(--text-subtle)] hover:text-[var(--text)] rounded-xl transition"
               >
                 <X className="w-5 h-5" />
               </button>
 
               <span className="text-[9px] uppercase font-black tracking-widest text-blue-400">Autofy commercial billings</span>
               
-              <div className="mt-4 p-4.5 p-4 bg-var(--bg-elevated)/40 border border-var(--border) rounded-2xl space-y-4 font-sans text-[11.5px]">
-                <div className="flex justify-between items-start pb-3.5 border-b border-var(--border)">
+              <div className="mt-4 p-4.5 p-4 bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-2xl space-y-4 font-sans text-[11.5px]">
+                <div className="flex justify-between items-start pb-3.5 border-b border-[var(--border)]">
                   <div>
-                    <h4 className="font-extrabold text-white text-[13px]">{invoicePreview.company}</h4>
-                    <p className="text-[10px] text-neutral-400">Tax Registration Ledger</p>
+                    <h4 className="font-extrabold text-[var(--text)] text-[13px]">{invoicePreview.company}</h4>
+                    <p className="text-[10px] text-[var(--text-muted)]">Tax Registration Ledger</p>
                   </div>
                   <div className="text-right font-mono">
-                    <p className="font-black text-white">{invoicePreview.invoiceNo}</p>
-                    <p className="text-[9.5px] text-neutral-500">{invoicePreview.date}</p>
+                    <p className="font-black text-[var(--text)]">{invoicePreview.invoiceNo}</p>
+                    <p className="text-[9.5px] text-[var(--text-subtle)]">{invoicePreview.date}</p>
                   </div>
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-neutral-500 font-bold text-[9.5px] uppercase">Bill To Recipient:</p>
-                  <p className="text-white font-extrabold text-[12px]">{invoicePreview.customerName}</p>
+                  <p className="text-[var(--text-subtle)] font-bold text-[9.5px] uppercase">Bill To Recipient:</p>
+                  <p className="text-[var(--text)] font-extrabold text-[12px]">{invoicePreview.customerName}</p>
                 </div>
 
-                <div className="py-2 border-b border-var(--border) space-y-1.5">
-                  <p className="text-neutral-500 font-bold text-[9.5px] uppercase">Service description:</p>
+                <div className="py-2 border-b border-[var(--border)] space-y-1.5">
+                  <p className="text-[var(--text-subtle)] font-bold text-[9.5px] uppercase">Service description:</p>
                   <div className="flex justify-between font-medium">
-                    <span className="text-neutral-300 font-semibold">{invoicePreview.items}</span>
-                    <span className="font-mono text-white">₹{invoicePreview.amount.toLocaleString()}</span>
+                    <span className="text-[var(--text)] font-semibold">{invoicePreview.items}</span>
+                    <span className="font-mono text-[var(--text)]">₹{invoicePreview.amount.toLocaleString()}</span>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <div className="flex justify-between font-medium text-neutral-400">
+                  <div className="flex justify-between font-medium text-[var(--text-muted)]">
                     <span>SGST + CGST rate ({invoicePreview.tax}%)</span>
                     <span className="font-mono">₹{(invoicePreview.amount * (invoicePreview.tax / 100)).toLocaleString()}</span>
                   </div>
-                  <div className="flex justify-between font-black text-white text-[13.5px] pt-1.5 border-t border-var(--border)/60">
+                  <div className="flex justify-between font-black text-[var(--text)] text-[13.5px] pt-1.5 border-t border-[var(--border)]/60">
                     <span>Grand Total (INR)</span>
                     <span className="font-mono text-blue-400">₹{(invoicePreview.amount * (1 + invoicePreview.tax / 100)).toLocaleString()}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-2.5 pt-4 border-t border-var(--border)/60 mt-4">
+              <div className="grid grid-cols-3 gap-2.5 pt-4 border-t border-[var(--border)]/60 mt-4">
                 <button
                   onClick={() => triggerNotification(`Receipt successfully sent to ${invoicePreview.customerName} via WhatsApp`)}
-                  className="py-2.5 bg-neutral-950 border border-var(--border) hover:bg-var(--bg-elevated) rounded-xl text-neutral-300 font-bold text-[10px] uppercase cursor-pointer"
+                  className="py-2.5 bg-[var(--bg-card)] border border-[var(--border)] hover:bg-[var(--bg-elevated)] rounded-xl text-[var(--text)] font-bold text-[10px] uppercase cursor-pointer"
                 >
                   Send WhatsApp
                 </button>
                 <button
                   onClick={() => triggerNotification(`Receipt successfully sent to ${invoicePreview.customerName} via Email`)}
-                  className="py-2.5 bg-neutral-950 border border-var(--border) hover:bg-var(--bg-elevated) rounded-xl text-neutral-300 font-bold text-[10px] uppercase cursor-pointer"
+                  className="py-2.5 bg-[var(--bg-card)] border border-[var(--border)] hover:bg-[var(--bg-elevated)] rounded-xl text-[var(--text)] font-bold text-[10px] uppercase cursor-pointer"
                 >
                   Send Email
                 </button>
@@ -748,7 +748,7 @@ export const PaymentsTab: React.FC<{
                     triggerNotification(" Simulated successful download of grand PDF invoice directly downstream.");
                     setInvoicePreview(null);
                   }}
-                  className="py-2.5 bg-[#8B5CF6] hover:bg-[#6B51EF] rounded-xl text-white font-extrabold text-[10px] uppercase cursor-pointer flex items-center justify-center gap-1"
+                  className="py-2.5 bg-[#8B5CF6] hover:bg-[#6B51EF] rounded-xl text-[var(--text)] font-extrabold text-[10px] uppercase cursor-pointer flex items-center justify-center gap-1"
                 >
                   <FileDown className="w-3.5 h-3.5" />
                   PDF Down

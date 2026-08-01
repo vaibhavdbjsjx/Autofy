@@ -29,7 +29,9 @@ import {
   GraduationCap,
   Store,
   Home,
-  HelpCircle
+  HelpCircle,
+  ImagePlus,
+  ExternalLink
 } from "lucide-react";
 import { OnboardingData } from "../types";
 
@@ -68,6 +70,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   const [stepError, setStepError] = useState("");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const qrCodeInputRef = useRef<HTMLInputElement>(null);
 
   const stepsList = [
     { num: 1, name: "Business Info" },
@@ -234,15 +237,25 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col lg:grid lg:grid-cols-[280px_1fr] relative transition-colors duration-300">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col lg:grid lg:grid-cols-[280px_1fr] relative transition-colors duration-300 overflow-hidden">
       
+      {/* Floating Aurora background blobs */}
+      <div className="aurora">
+        <i className="a1" />
+        <i className="a2" />
+        <i className="a3" />
+      </div>
+
+      {/* Tech grid pattern */}
+      <div className="hero-grid" />
+
       {/* Top thin progress bar */}
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "3px", background: "var(--border)", zIndex: 100 }}>
-        <div style={{ width: `${(currentStep / 5) * 100}%`, height: "100%", background: "var(--brand)", transition: "width 0.4s ease" }} />
+        <div style={{ width: `${(currentStep / 5) * 100}%`, height: "100%", background: "var(--brand-gradient)", transition: "width 0.4s ease" }} />
       </div>
 
       {/* LEFT PANEL: Fixed Step Sidebar */}
-      <aside className="hidden lg:flex flex-col bg-[var(--bg-2)] border-r border-[var(--border)] p-8 w-[280px] min-h-screen shrink-0 text-left select-none justify-between position-fixed">
+      <aside className="hidden lg:flex flex-col border-r border-[var(--border)] p-8 w-[280px] min-h-screen shrink-0 text-left select-none justify-between relative z-10" style={{ background: "var(--header-bg)", backdropFilter: "blur(20px)" }}>
         <div>
           {/* Logo */}
           <div className="flex items-center gap-2 mb-1.5">
@@ -278,7 +291,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                       color: isCompleted ? "#ffffff" : isActive ? "var(--brand)" : "var(--text-subtle)",
                     }}
                   >
-                    {isCompleted ? <Check className="w-4 h-4 stroke-[3] text-white" /> : step.num}
+                    {isCompleted ? <Check className="w-4 h-4 stroke-[3] text-[var(--text)]" /> : step.num}
                   </div>
  
                   {/* Step Label */}
@@ -336,7 +349,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
       </header>
  
       {/* RIGHT PANEL: Step Content Container */}
-      <main className="flex-grow flex flex-col justify-between relative overflow-y-auto min-h-[calc(100vh-68px)] lg:min-h-screen bg-[var(--bg)] text-[var(--text)]">
+      <main className="flex-grow flex flex-col justify-between relative z-10 overflow-y-auto min-h-[calc(100vh-68px)] lg:min-h-screen">
         
         {/* Top bar indicators inside panel */}
         <div className="w-full px-6 sm:px-10 lg:px-16 py-6 flex items-center justify-end h-14 shrink-0 select-none">
@@ -346,21 +359,22 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="text-[11px] text-[var(--text-muted)] font-semibold"
+                className="text-[11px] font-semibold flex items-center gap-1.5 px-3 py-1 rounded-full border border-[var(--border)]"
+                style={{ background: "var(--bg-card)", color: "var(--text-muted)" }}
               >
-                Saved
+                <Check className="w-3 h-3 text-[var(--success)]" /> Saved
               </motion.span>
             )}
           </AnimatePresence>
         </div>
- 
-        {/* Centered Step Form Container */}
-        <div className="flex-grow flex items-center justify-center px-6 sm:px-10 lg:px-16 py-8">
-          <div className="w-full max-w-[560px] text-left">
+
+        {/* Centered Step Form Container wrapped in glass card */}
+        <div className="flex-grow flex items-center justify-center px-4 sm:px-8 lg:px-12 py-6">
+          <div className="w-full max-w-[620px] text-left p-6 sm:p-10 rounded-3xl glass-strong border border-[var(--border-strong)] shadow-2xl relative">
             
             {/* Error notifications */}
             {stepError && (
-              <div className="mb-6 p-3.5 bg-[var(--accent-red)]/10 border border-[var(--accent-red)]/20 rounded-[14px] flex gap-2.5 items-start">
+              <div className="mb-6 p-4 bg-[var(--accent-red)]/10 border border-[var(--accent-red)]/20 rounded-2xl flex gap-3 items-start">
                 <AlertCircle className="w-4 h-4 text-[var(--accent-red)] shrink-0 mt-0.5" />
                 <span className="text-[13px] text-[var(--text)] font-sans leading-relaxed">{stepError}</span>
               </div>
@@ -391,17 +405,18 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                       
                       {/* Row 1: Business Name */}
                       <div style={{ gridColumn: "1 / -1" }}>
-                        <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
                           Business Name *
                         </label>
-                        <div className="flex items-center bg-var(--bg-2) border border-var(--border-strong) rounded-[12px] px-4 h-[48px] focus-within:border-var(--brand) focus-within:ring-2 focus-within:ring-var(--brand-glow) transition-all">
-                          <Building2 className="w-[16px] h-[16px] text-var(--text-subtle) mr-3 flex-shrink-0" />
+                        <div className="flex items-center rounded-2xl px-4 h-[50px] transition-all border" style={{ background: "var(--input-bg)", borderColor: "var(--border)" }}>
+                          <Building2 className="w-[18px] h-[18px] mr-3 flex-shrink-0" style={{ color: "var(--text-subtle)" }} />
                           <input
                             type="text"
                             value={data.businessName}
                             onChange={(e) => updateField("businessName", e.target.value)}
                             placeholder="e.g. Flex Gym, Dr. Mehta's Clinic"
-                            className="w-full bg-transparent text-[14px] text-var(--text) focus:outline-none placeholder-var(--text-subtle) font-sans"
+                            className="w-full bg-transparent text-[14px] focus:outline-none font-sans"
+                            style={{ color: "var(--text)" }}
                             required
                           />
                         </div>
@@ -409,28 +424,29 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
  
                       {/* Row 2: Industry Type Dropdown */}
                       <div style={{ gridColumn: "1 / -1", position: "relative" }}>
-                        <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
                           Industry Type *
                         </label>
                         <button
                           type="button"
                           onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
-                          className="w-full flex items-center justify-between text-left bg-var(--bg-2) border border-var(--border-strong) rounded-[12px] px-4 h-[48px] focus:outline-none focus:border-var(--brand) focus:ring-2 focus:ring-var(--brand-glow) transition-all cursor-pointer"
+                          className="w-full flex items-center justify-between text-left rounded-2xl px-4 h-[50px] transition-all cursor-pointer border"
+                          style={{ background: "var(--input-bg)", borderColor: "var(--border)" }}
                         >
-                          <span className={`text-[14px] font-sans flex items-center gap-2 ${data.industryType ? "text-var(--text)" : "text-var(--text-subtle)"}`}>
+                          <span className="text-[14px] font-sans flex items-center gap-2" style={{ color: data.industryType ? "var(--text)" : "var(--text-subtle)" }}>
                             {(() => {
                               const found = industryOptions.find(o => o.label === data.industryType);
                               return found ? (
                                 <>
                                   <span style={{ color: "var(--brand)" }}>{found.icon}</span>
-                                  <span className="font-semibold text-var(--text)">{found.label}</span>
+                                  <span className="font-semibold">{found.label}</span>
                                 </>
                               ) : (
                                 "Select industry..."
                               );
                             })()}
                           </span>
-                          <ChevronDown className="w-[18px] h-[18px] text-var(--text-subtle)" />
+                          <ChevronDown className="w-[18px] h-[18px]" style={{ color: "var(--text-subtle)" }} />
                         </button>
  
                         {showIndustryDropdown && (
@@ -438,11 +454,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                             display: "grid",
                             gridTemplateColumns: "repeat(2, 1fr)",
                             gap: "10px",
-                            padding: "12px",
-                            background: "var(--bg-card)",
+                            padding: "14px",
+                            background: "var(--modal-bg)",
                             border: "1px solid var(--border-strong)",
-                            borderRadius: "12px",
-                            boxShadow: "0 10px 30px var(--shadow)",
+                            borderRadius: "18px",
+                            boxShadow: "0 20px 40px var(--shadow)",
                             marginTop: "8px",
                             position: "absolute",
                             left: 0,
@@ -464,15 +480,14 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                                     alignItems: "center",
                                     gap: "10px",
                                     padding: "12px",
-                                    borderRadius: "8px",
+                                    borderRadius: "12px",
                                     border: isSelected ? "1px solid var(--brand)" : "1px solid var(--border)",
-                                    background: isSelected ? "var(--brand-subtle)" : "var(--bg-2)",
+                                    background: isSelected ? "var(--brand-subtle)" : "var(--bg-elevated)",
                                     color: isSelected ? "var(--brand)" : "var(--text)",
                                     cursor: "pointer",
                                     textAlign: "left",
                                     transition: "all 0.2s ease"
                                   }}
-                                  className="hover:border-var(--brand)"
                                 >
                                   <span style={{ color: isSelected ? "var(--brand)" : "var(--text-subtle)" }}>
                                     {opt.icon}
@@ -485,37 +500,39 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         )}
                       </div>
  
-                      {/* Row 3: Phone & Website (2 cols on desktop, 1 col on mobile via display flex/grid wrap) */}
+                      {/* Row 3: Phone & Website */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5" style={{ gridColumn: "1 / -1" }}>
                         <div>
-                          <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
+                          <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
                             Phone Number *
                           </label>
-                          <div className="flex items-center bg-var(--bg-2) border border-var(--border-strong) rounded-[12px] px-4 h-[48px] focus-within:border-var(--brand) focus-within:ring-2 focus-within:ring-var(--brand-glow) transition-all">
-                            <Phone className="w-[16px] h-[16px] text-var(--text-subtle) mr-3 flex-shrink-0" />
+                          <div className="flex items-center rounded-2xl px-4 h-[50px] transition-all border" style={{ background: "var(--input-bg)", borderColor: "var(--border)" }}>
+                            <Phone className="w-[18px] h-[18px] mr-3 flex-shrink-0" style={{ color: "var(--text-subtle)" }} />
                             <input
                               type="tel"
                               value={data.phoneNumber}
                               onChange={(e) => updateField("phoneNumber", e.target.value)}
                               placeholder="+91 98765 43210"
-                              className="w-full bg-transparent text-[14px] text-var(--text) focus:outline-none placeholder-var(--text-subtle) font-sans"
+                              className="w-full bg-transparent text-[14px] focus:outline-none font-sans"
+                              style={{ color: "var(--text)" }}
                               required
                             />
                           </div>
                         </div>
  
                         <div>
-                          <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
+                          <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
                             Website
                           </label>
-                          <div className="flex items-center bg-var(--bg-2) border border-var(--border-strong) rounded-[12px] px-4 h-[48px] focus-within:border-var(--brand) focus-within:ring-2 focus-within:ring-var(--brand-glow) transition-all">
-                            <Globe className="w-[16px] h-[16px] text-var(--text-subtle) mr-3 flex-shrink-0" />
+                          <div className="flex items-center rounded-2xl px-4 h-[50px] transition-all border" style={{ background: "var(--input-bg)", borderColor: "var(--border)" }}>
+                            <Globe className="w-[18px] h-[18px] mr-3 flex-shrink-0" style={{ color: "var(--text-subtle)" }} />
                             <input
                               type="url"
                               value={data.website}
                               onChange={(e) => updateField("website", e.target.value)}
                               placeholder="www.yourbusiness.com"
-                              className="w-full bg-transparent text-[14px] text-var(--text) focus:outline-none placeholder-var(--text-subtle) font-sans"
+                              className="w-full bg-transparent text-[14px] focus:outline-none font-sans"
+                              style={{ color: "var(--text)" }}
                             />
                           </div>
                         </div>
@@ -523,17 +540,18 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
  
                       {/* Row 4: Address */}
                       <div style={{ gridColumn: "1 / -1" }}>
-                        <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
+                        <label style={{ fontSize: 12, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", display: "block", marginBottom: 8 }}>
                           Address
                         </label>
-                        <div className="flex items-center bg-var(--bg-2) border border-var(--border-strong) rounded-[12px] px-4 h-[48px] focus-within:border-var(--brand) focus-within:ring-2 focus-within:ring-var(--brand-glow) transition-all">
-                          <MapPin className="w-[16px] h-[16px] text-var(--text-subtle) mr-3 flex-shrink-0" />
+                        <div className="flex items-center rounded-2xl px-4 h-[50px] transition-all border" style={{ background: "var(--input-bg)", borderColor: "var(--border)" }}>
+                          <MapPin className="w-[18px] h-[18px] mr-3 flex-shrink-0" style={{ color: "var(--text-subtle)" }} />
                           <input
                             type="text"
                             value={data.address}
                             onChange={(e) => updateField("address", e.target.value)}
                             placeholder="City, State"
-                            className="w-full bg-transparent text-[14px] text-var(--text) focus:outline-none placeholder-var(--text-subtle) font-sans"
+                            className="w-full bg-transparent text-[14px] focus:outline-none font-sans"
+                            style={{ color: "var(--text)" }}
                           />
                         </div>
                       </div>
@@ -550,10 +568,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         <span className="dot" />
                         <span>Step 2 of 5</span>
                       </div>
-                      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display leading-tight">
+                      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text)] font-display leading-tight">
                         Teach Autofy about your business
                       </h2>
-                      <p className="text-xs sm:text-sm text-white/40 mt-1 font-sans">
+                      <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1 font-sans">
                         The more you share, the smarter your AI becomes. You can always add more later.
                       </p>
                     </div>
@@ -561,7 +579,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                     <div className="space-y-5 pt-2 max-h-[420px] overflow-y-auto pr-2">
                       {/* Services */}
                       <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-white/40 mb-2 font-sans">
+                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2 font-sans">
                           What do you offer? Include prices.
                         </label>
                         <textarea
@@ -569,13 +587,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                           onChange={(e) => updateKnowledgeField("services", e.target.value)}
                           placeholder="e.g.&#10;Personal Training — ₹2,500/month&#10;3-Month Gym Membership — ₹4,500&#10;Zumba Classes — ₹1,200/month"
                           rows={4}
-                          className="w-full bg-white/[0.03] border border-white/[0.07] rounded-[14px] px-4 py-3 text-[14px] text-white focus:outline-none focus:border-white/[0.2] placeholder-white/20 font-sans resize-none"
+                          className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-[14px] px-4 py-3 text-[14px] text-[var(--text)] focus:outline-none focus:border-[var(--border-strong)] placeholder-[var(--text-subtle)] font-sans resize-none"
                         />
                       </div>
 
                       {/* Memberships */}
                       <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-white/40 mb-2 font-sans">
+                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2 font-sans">
                           Any subscription or membership plans?
                         </label>
                         <textarea
@@ -583,13 +601,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                           onChange={(e) => updateKnowledgeField("memberships", e.target.value)}
                           placeholder="e.g.&#10;1 Month AC — ₹2,000&#10;3 Month AC — ₹5,000&#10;Yearly Non-AC — ₹10,000"
                           rows={3}
-                          className="w-full bg-white/[0.03] border border-white/[0.07] rounded-[14px] px-4 py-3 text-[14px] text-white focus:outline-none focus:border-white/[0.2] placeholder-white/20 font-sans resize-none"
+                          className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-[14px] px-4 py-3 text-[14px] text-[var(--text)] focus:outline-none focus:border-[var(--border-strong)] placeholder-[var(--text-subtle)] font-sans resize-none"
                         />
                       </div>
 
                       {/* FAQs */}
                       <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-white/40 mb-2 font-sans">
+                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2 font-sans">
                           Common questions customers ask you
                         </label>
                         <textarea
@@ -597,13 +615,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                           onChange={(e) => updateKnowledgeField("faqs", e.target.value)}
                           placeholder="e.g.&#10;Q: Do you have a trial class?&#10;A: Yes, first class is free.&#10;Q: What are your timings?&#10;A: 5 AM – 10 PM, all days."
                           rows={4}
-                          className="w-full bg-white/[0.03] border border-white/[0.07] rounded-[14px] px-4 py-3 text-[14px] text-white focus:outline-none focus:border-white/[0.2] placeholder-white/20 font-sans resize-none"
+                          className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-[14px] px-4 py-3 text-[14px] text-[var(--text)] focus:outline-none focus:border-[var(--border-strong)] placeholder-[var(--text-subtle)] font-sans resize-none"
                         />
                       </div>
 
                       {/* Policies */}
                       <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-white/40 mb-2 font-sans">
+                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2 font-sans">
                           Refund, cancellation, or other policies
                         </label>
                         <textarea
@@ -611,20 +629,20 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                           onChange={(e) => updateKnowledgeField("policies", e.target.value)}
                           placeholder="e.g. No refunds after 7 days of membership start."
                           rows={2}
-                          className="w-full bg-white/[0.03] border border-white/[0.07] rounded-[14px] px-4 py-3 text-[14px] text-white focus:outline-none focus:border-white/[0.2] placeholder-white/20 font-sans resize-none"
+                          className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-[14px] px-4 py-3 text-[14px] text-[var(--text)] focus:outline-none focus:border-[var(--border-strong)] placeholder-[var(--text-subtle)] font-sans resize-none"
                         />
                       </div>
 
                       {/* File Zone */}
                       <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-white/40 mb-2 font-sans">
+                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2 font-sans">
                           Upload Documents (Menu, Price list, Brochure)
                         </label>
                         <div
                           onDragOver={handleDragOver}
                           onDrop={handleDrop}
                           onClick={() => fileInputRef.current?.click()}
-                          className="border-2 border-dashed border-white/[0.08] hover:border-white/20 rounded-[18px] p-6 text-center cursor-pointer bg-white/[0.01] hover:bg-white/[0.03] transition-all flex flex-col items-center justify-center gap-2 group relative"
+                          className="border-2 border-dashed border-[var(--border)] hover:border-[var(--border)] rounded-[18px] p-6 text-center cursor-pointer bg-[var(--input-bg)] hover:bg-[var(--input-bg)] transition-all flex flex-col items-center justify-center gap-2 group relative"
                         >
                           <input
                             type="file"
@@ -633,16 +651,16 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                             accept=".pdf,.docx,.doc"
                             className="hidden"
                           />
-                          <Upload className="w-7 h-7 text-white/20 group-hover:text-white/60 transition-colors" />
-                          <p className="text-xs text-white/60 font-sans">
-                            <span className="font-bold text-white">Click to upload</span> or drag files here
+                          <Upload className="w-7 h-7 text-[var(--text-subtle)] group-hover:text-[var(--text-muted)] transition-colors" />
+                          <p className="text-xs text-[var(--text-muted)] font-sans">
+                            <span className="font-bold text-[var(--text)]">Click to upload</span> or drag files here
                           </p>
-                          <p className="text-[10px] text-white/30">Supports PDF, DOCX, Excel — up to 10MB</p>
+                          <p className="text-[10px] text-[var(--text-subtle)]">Supports PDF, DOCX, Excel — up to 10MB</p>
 
                           {isUploading && (
                             <div className="absolute inset-0 bg-black/80 rounded-[18px] flex items-center justify-center gap-3">
-                              <span className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                              <span className="text-xs text-white/60 font-medium">Processing file…</span>
+                              <span className="w-5 h-5 border-2 border-[var(--border)] border-t-white rounded-full animate-spin" />
+                              <span className="text-xs text-[var(--text-muted)] font-medium">Processing file…</span>
                             </div>
                           )}
                         </div>
@@ -653,12 +671,12 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                             {data.uploadedFiles.map((file, i) => (
                               <div
                                 key={i}
-                                className="bg-white/[0.03] border border-white/[0.05] rounded-[12px] p-3 flex items-center justify-between select-none"
+                                className="bg-[var(--input-bg)] border border-[var(--border)] rounded-[12px] p-3 flex items-center justify-between select-none"
                               >
                                 <div className="flex items-center gap-2">
-                                  <FileText className="w-4 h-4 text-white/40" />
-                                  <span className="text-xs text-white font-semibold truncate max-w-[200px] sm:max-w-xs">{file.name}</span>
-                                  <span className="text-[10px] text-white/25">({file.size})</span>
+                                  <FileText className="w-4 h-4 text-[var(--text-muted)]" />
+                                  <span className="text-xs text-[var(--text)] font-semibold truncate max-w-[200px] sm:max-w-xs">{file.name}</span>
+                                  <span className="text-[10px] text-[var(--text-subtle)]">({file.size})</span>
                                 </div>
                                 <button
                                   type="button"
@@ -666,7 +684,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                                     e.stopPropagation();
                                     removeFile(i);
                                   }}
-                                  className="p-1 rounded hover:bg-white/5 text-white/30 hover:text-white transition-colors cursor-pointer"
+                                  className="p-1 rounded hover:bg-[var(--input-bg)] text-[var(--text-subtle)] hover:text-[var(--text)] transition-colors cursor-pointer"
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </button>
@@ -687,38 +705,38 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         <span className="dot" />
                         <span>Step 3 of 5</span>
                       </div>
-                      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display leading-tight">
+                      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text)] font-display leading-tight">
                         Connect your WhatsApp
                       </h2>
-                      <p className="text-xs sm:text-sm text-white/40 mt-1 font-sans">
+                      <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1 font-sans">
                         Autofy will reply to your customers from this number.
                       </p>
                     </div>
 
                     <div className="space-y-5 pt-2">
-                      <div className="bg-white/[0.03] border border-white/[0.06] rounded-[18px] p-5 flex gap-4 text-left">
-                        <Smartphone className="w-6 h-6 text-white/40 shrink-0 mt-0.5" />
+                      <div className="bg-[var(--input-bg)] border border-[var(--border)] rounded-[18px] p-5 flex gap-4 text-left">
+                        <Smartphone className="w-6 h-6 text-[var(--text-muted)] shrink-0 mt-0.5" />
                         <div>
-                          <h4 className="text-[13px] font-bold text-white uppercase tracking-wider font-display">You need a WhatsApp Business number</h4>
-                          <p className="text-xs text-white/45 mt-1.5 leading-relaxed font-sans">
+                          <h4 className="text-[13px] font-bold text-[var(--text)] uppercase tracking-wider font-display">You need a WhatsApp Business number</h4>
+                          <p className="text-xs text-[var(--text-muted)] mt-1.5 leading-relaxed font-sans">
                             This is the number your customers already message you on. Make sure WhatsApp Business is installed on it.
                           </p>
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-[11px] font-bold uppercase tracking-widest text-white/40 mb-2 font-sans">
+                        <label className="block text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2 font-sans">
                           WhatsApp Business Number
                         </label>
-                        <div className="relative flex items-center bg-white/[0.03] border border-white/[0.07] rounded-[14px] px-4 py-3.5 focus-within:border-white/[0.2] transition-all">
-                          <Phone className="w-[18px] h-[18px] text-white/30 mr-3 flex-shrink-0" />
+                        <div className="relative flex items-center bg-[var(--input-bg)] border border-[var(--border)] rounded-[14px] px-4 py-3.5 focus-within:border-[var(--border-strong)] transition-all">
+                          <Phone className="w-[18px] h-[18px] text-[var(--text-subtle)] mr-3 flex-shrink-0" />
                           <input
                             type="tel"
                             disabled={data.whatsappConnected === "connected"}
                             value={data.whatsappNumber}
                             onChange={(e) => updateField("whatsappNumber", e.target.value)}
                             placeholder="+91 98765 43210"
-                            className="w-full bg-transparent text-[14px] text-white focus:outline-none placeholder-white/20 font-sans disabled:opacity-50"
+                            className="w-full bg-transparent text-[14px] text-[var(--text)] focus:outline-none placeholder-[var(--text-subtle)] font-sans disabled:opacity-50"
                           />
                         </div>
                       </div>
@@ -736,13 +754,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                             disabled={isConnectingWhatsapp}
                             className={`w-full py-3.5 rounded-xl font-bold text-xs tracking-wider uppercase transition-all duration-200 active:scale-[0.98] cursor-pointer ${
                               isConnectingWhatsapp
-                                ? "bg-white/5 border border-white/10 text-white/40 cursor-not-allowed"
-                                : "bg-white text-black hover:bg-neutral-100"
+                                ? "bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text-muted)] cursor-not-allowed"
+                                : "btn-primary"
                             }`}
                           >
                             {isConnectingWhatsapp ? (
                               <span className="flex items-center justify-center gap-2">
-                                <span className="w-3.5 h-3.5 border-2 border-white/10 border-t-white rounded-full animate-spin" />
+                                <span className="w-3.5 h-3.5 border-2 border-[var(--border)] border-t-white rounded-full animate-spin" />
                                 Connecting…
                               </span>
                             ) : (
@@ -763,10 +781,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         <span className="dot" />
                         <span>Step 4 of 5</span>
                       </div>
-                      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display leading-tight">
+                      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text)] font-display leading-tight">
                         Set up payments
                       </h2>
-                      <p className="text-xs sm:text-sm text-white/40 mt-1 font-sans">
+                      <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1 font-sans">
                         Autofy can send payment links and verify payments automatically.
                       </p>
                     </div>
@@ -777,34 +795,80 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         onClick={() => updateField("paymentMethod", "upi")}
                         className={`p-5 rounded-[18px] border cursor-pointer text-left transition-all ${
                           data.paymentMethod === "upi"
-                            ? "bg-white/[0.04] border-white/30"
-                            : "border-white/[0.07] hover:border-white/[0.15]"
+                            ? "bg-[var(--input-bg)] border-[var(--border-strong)]"
+                            : "border-[var(--border)] hover:border-[var(--border-strong)]"
                         }`}
                       >
                         <div className="flex items-start gap-4">
-                          <QrCode className="w-5 h-5 text-white/50 shrink-0 mt-0.5" />
+                          <QrCode className="w-5 h-5 text-[var(--text-muted)] shrink-0 mt-0.5" />
                           <div>
-                            <h4 className="text-sm font-bold text-white font-display">UPI / QR Code</h4>
-                            <p className="text-xs text-white/40 mt-1 font-sans">Google Pay, PhonePe, Paytm — simplest setup</p>
+                            <h4 className="text-sm font-bold text-[var(--text)] font-display">UPI / QR Code</h4>
+                            <p className="text-xs text-[var(--text-muted)] mt-1 font-sans">Google Pay, PhonePe, Paytm — simplest setup</p>
                           </div>
                         </div>
                         {data.paymentMethod === "upi" && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
-                            className="mt-4 border-t border-white/[0.06] pt-3 text-left"
+                            className="mt-4 border-t border-[var(--border)] pt-3 text-left space-y-4"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1.5 font-sans">
-                              Your UPI ID
-                            </label>
-                            <input
-                              type="text"
-                              value={data.upiId || ""}
-                              onChange={(e) => updateField("upiId", e.target.value)}
-                              placeholder="yourbusiness@okicici"
-                              className="w-full bg-[#101012] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-white/30 placeholder-white/20 font-sans"
-                            />
+                            <div>
+                              <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5 font-sans">
+                                Your UPI ID
+                              </label>
+                              <input
+                                type="text"
+                                value={data.upiId || ""}
+                                onChange={(e) => updateField("upiId", e.target.value)}
+                                placeholder="yourbusiness@okicici"
+                                className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--text)] focus:outline-none focus:border-[var(--border-strong)] placeholder-[var(--text-subtle)] font-sans"
+                              />
+                            </div>
+
+                            {/* QR Code Image Upload */}
+                            <div>
+                              <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5 font-sans">
+                                Upload QR Code Image (Optional)
+                              </label>
+                              <input
+                                ref={qrCodeInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    const file = e.target.files[0];
+                                    updateField("qrCodeImage", file.name);
+                                  }
+                                }}
+                              />
+                              {data.qrCodeImage ? (
+                                <div className="flex items-center gap-3 bg-[var(--input-bg)] border border-[var(--border)] rounded-xl px-4 py-3">
+                                  <QrCode className="w-5 h-5 text-[var(--brand)] shrink-0" />
+                                  <span className="text-xs font-semibold text-[var(--text)] truncate flex-1 font-sans">{data.qrCodeImage}</span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      updateField("qrCodeImage", undefined);
+                                      if (qrCodeInputRef.current) qrCodeInputRef.current.value = "";
+                                    }}
+                                    className="text-[var(--accent-red)] hover:text-red-400 transition-colors cursor-pointer"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => qrCodeInputRef.current?.click()}
+                                  className="w-full flex items-center justify-center gap-2.5 bg-[var(--input-bg)] border-2 border-dashed border-[var(--border-strong)] rounded-xl px-4 py-4 text-xs font-semibold text-[var(--text-muted)] hover:text-[var(--text)] hover:border-[var(--brand)] transition-all cursor-pointer font-sans"
+                                >
+                                  <ImagePlus className="w-4 h-4" />
+                                  <span>Upload your payment QR code from gallery</span>
+                                </button>
+                              )}
+                            </div>
                           </motion.div>
                         )}
                       </div>
@@ -814,34 +878,34 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         onClick={() => updateField("paymentMethod", "razorpay")}
                         className={`p-5 rounded-[18px] border cursor-pointer text-left transition-all ${
                           data.paymentMethod === "razorpay"
-                            ? "bg-white/[0.04] border-white/30"
-                            : "border-white/[0.07] hover:border-white/[0.15]"
+                            ? "bg-[var(--input-bg)] border-[var(--border-strong)]"
+                            : "border-[var(--border)] hover:border-[var(--border-strong)]"
                         }`}
                       >
                         <div className="flex items-start gap-4">
-                          <CreditCard className="w-5 h-5 text-white/50 shrink-0 mt-0.5" />
+                          <CreditCard className="w-5 h-5 text-[var(--text-muted)] shrink-0 mt-0.5" />
                           <div>
-                            <h4 className="text-sm font-bold text-white font-display">Razorpay</h4>
-                            <p className="text-xs text-white/40 mt-1 font-sans">Accept cards, UPI, netbanking, and wallets</p>
+                            <h4 className="text-sm font-bold text-[var(--text)] font-display">Razorpay</h4>
+                            <p className="text-xs text-[var(--text-muted)] mt-1 font-sans">Accept cards, UPI, netbanking, and wallets</p>
                           </div>
                         </div>
                         {data.paymentMethod === "razorpay" && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
-                            className="mt-4 border-t border-white/[0.06] pt-3 text-left"
+                            className="mt-4 border-t border-[var(--border)] pt-3 text-left"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1.5 font-sans flex items-center justify-between">
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5 font-sans flex items-center justify-between">
                               <span>Razorpay API Key</span>
-                              <Lock className="w-3.5 h-3.5 text-white/30" />
+                              <Lock className="w-3.5 h-3.5 text-[var(--text-subtle)]" />
                             </label>
                             <input
                               type="password"
                               value={data.razorpayKey || ""}
                               onChange={(e) => updateField("razorpayKey", e.target.value)}
                               placeholder="rzp_live_xxxxxxxxxxxx"
-                              className="w-full bg-[#101012] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-white/30 placeholder-white/20 font-sans"
+                              className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--text)] focus:outline-none focus:border-[var(--border-strong)] placeholder-[var(--text-subtle)] font-sans"
                             />
                           </motion.div>
                         )}
@@ -852,25 +916,25 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         onClick={() => updateField("paymentMethod", "phonepe")}
                         className={`p-5 rounded-[18px] border cursor-pointer text-left transition-all ${
                           data.paymentMethod === "phonepe"
-                            ? "bg-white/[0.04] border-white/30"
-                            : "border-white/[0.07] hover:border-white/[0.15]"
+                            ? "bg-[var(--input-bg)] border-[var(--border-strong)]"
+                            : "border-[var(--border)] hover:border-[var(--border-strong)]"
                         }`}
                       >
                         <div className="flex items-start gap-4">
-                          <Smartphone className="w-5 h-5 text-white/50 shrink-0 mt-0.5" />
+                          <Smartphone className="w-5 h-5 text-[var(--text-muted)] shrink-0 mt-0.5" />
                           <div>
-                            <h4 className="text-sm font-bold text-white font-display">PhonePe Business</h4>
-                            <p className="text-xs text-white/40 mt-1 font-sans">For businesses already using PhonePe merchant</p>
+                            <h4 className="text-sm font-bold text-[var(--text)] font-display">PhonePe Business</h4>
+                            <p className="text-xs text-[var(--text-muted)] mt-1 font-sans">For businesses already using PhonePe merchant</p>
                           </div>
                         </div>
                         {data.paymentMethod === "phonepe" && (
                           <motion.div
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
-                            className="mt-4 border-t border-white/[0.06] pt-3 text-left"
+                            className="mt-4 border-t border-[var(--border)] pt-3 text-left"
                             onClick={(e) => e.stopPropagation()}
                           >
-                            <label className="block text-[10px] font-bold uppercase tracking-wider text-white/40 mb-1.5 font-sans">
+                            <label className="block text-[10px] font-bold uppercase tracking-wider text-[var(--text-muted)] mb-1.5 font-sans">
                               PhonePe Merchant ID
                             </label>
                             <input
@@ -878,7 +942,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                               value={data.phonepeMerchantId || ""}
                               onChange={(e) => updateField("phonepeMerchantId", e.target.value)}
                               placeholder="MERCHANTID_XXXX"
-                              className="w-full bg-[#101012] border border-white/[0.08] rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-white/30 placeholder-white/20 font-sans"
+                              className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-lg px-3 py-2 text-xs text-[var(--text)] focus:outline-none focus:border-[var(--border-strong)] placeholder-[var(--text-subtle)] font-sans"
                             />
                           </motion.div>
                         )}
@@ -892,7 +956,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                             setStepError("");
                             setCurrentStep(5);
                           }}
-                          className="text-[12px] text-white/25 hover:text-white/50 transition-colors font-semibold cursor-pointer py-1.5"
+                          className="text-[12px] text-[var(--text-subtle)] hover:text-[var(--text-muted)] transition-colors font-semibold cursor-pointer py-1.5"
                         >
                           Skip for now — set up later in dashboard
                         </button>
@@ -909,40 +973,40 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         <span className="dot" />
                         <span>Step 5 of 5</span>
                       </div>
-                      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-display leading-tight">
+                      <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text)] font-display leading-tight">
                         Your AI is ready.
                       </h2>
-                      <p className="text-xs sm:text-sm text-white/40 mt-1 font-sans">
+                      <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1 font-sans">
                         Autofy has learned about your business. Here's a summary of what's been set up.
                       </p>
                     </div>
 
                     <div className="space-y-5 pt-2">
-                      <div className="bg-white/[0.03] border border-white/[0.06] rounded-[22px] p-6 space-y-4 text-left">
+                      <div className="bg-[var(--input-bg)] border border-[var(--border)] rounded-[22px] p-6 space-y-4 text-left">
                         {/* Row 1 */}
                         <div className="flex items-start gap-3 text-sm">
-                          <Building2 className="w-4 h-4 text-white/30 mt-0.5 shrink-0" />
+                          <Building2 className="w-4 h-4 text-[var(--text-subtle)] mt-0.5 shrink-0" />
                           <div>
-                            <p className="text-[12px] text-white/40 leading-none mb-1 font-sans">Business</p>
-                            <p className="text-[14px] text-white font-semibold">{data.businessName || "—"}</p>
+                            <p className="text-[12px] text-[var(--text-muted)] leading-none mb-1 font-sans">Business</p>
+                            <p className="text-[14px] text-[var(--text)] font-semibold">{data.businessName || "—"}</p>
                           </div>
                         </div>
 
                         {/* Row 2 */}
                         <div className="flex items-start gap-3 text-sm">
-                          <MessageSquare className="w-4 h-4 text-white/30 mt-0.5 shrink-0" />
+                          <MessageSquare className="w-4 h-4 text-[var(--text-subtle)] mt-0.5 shrink-0" />
                           <div>
-                            <p className="text-[12px] text-white/40 leading-none mb-1 font-sans">WhatsApp</p>
-                            <p className="text-[14px] text-white font-semibold">{data.whatsappNumber || "Not connected"}</p>
+                            <p className="text-[12px] text-[var(--text-muted)] leading-none mb-1 font-sans">WhatsApp</p>
+                            <p className="text-[14px] text-[var(--text)] font-semibold">{data.whatsappNumber || "Not connected"}</p>
                           </div>
                         </div>
 
                         {/* Row 3 */}
                         <div className="flex items-start gap-3 text-sm">
-                          <DollarSign className="w-4 h-4 text-white/30 mt-0.5 shrink-0" />
+                          <DollarSign className="w-4 h-4 text-[var(--text-subtle)] mt-0.5 shrink-0" />
                           <div>
-                            <p className="text-[12px] text-white/40 leading-none mb-1 font-sans">Payments</p>
-                            <p className="text-[14px] text-white font-semibold">
+                            <p className="text-[12px] text-[var(--text-muted)] leading-none mb-1 font-sans">Payments</p>
+                            <p className="text-[14px] text-[var(--text)] font-semibold">
                               {data.paymentMethod ? paymentLabels[data.paymentMethod] : "Not set up"}
                             </p>
                           </div>
@@ -950,18 +1014,18 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
 
                         {/* Row 4 */}
                         <div className="flex items-start gap-3 text-sm">
-                          <FileText className="w-4 h-4 text-white/30 mt-0.5 shrink-0" />
+                          <FileText className="w-4 h-4 text-[var(--text-subtle)] mt-0.5 shrink-0" />
                           <div>
-                            <p className="text-[12px] text-white/40 leading-none mb-1 font-sans">Knowledge</p>
-                            <p className="text-[14px] text-white font-semibold">
+                            <p className="text-[12px] text-[var(--text-muted)] leading-none mb-1 font-sans">Knowledge</p>
+                            <p className="text-[14px] text-[var(--text)] font-semibold">
                               {data.uploadedFiles.length} files + manual entries
                             </p>
                           </div>
                         </div>
 
-                        <div className="border-t border-white/[0.05] pt-4 flex items-center gap-2.5 select-none">
+                        <div className="border-t border-[var(--border)] pt-4 flex items-center gap-2.5 select-none">
                           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-[12px] text-white/60 font-semibold font-sans">AI is ready to respond to customers</span>
+                          <span className="text-[12px] text-[var(--text-muted)] font-semibold font-sans">AI is ready to respond to customers</span>
                         </div>
                       </div>
 
@@ -969,16 +1033,24 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                       <div className="flex flex-col gap-3 pt-2">
                         <button
                           onClick={() => onOpenDashboard(data)}
-                          className="btn-primary w-full justify-center h-48 rounded-[14px] text-[13px] font-bold cursor-pointer"
+                          className="btn-primary w-full justify-center h-12 rounded-[14px] text-[13px] font-bold cursor-pointer"
                         >
                           Open my dashboard <ArrowRight size={14} className="inline" />
                         </button>
                         <button
-                          onClick={() => onTestAssistant(data)}
-                          className="btn-ghost w-full justify-center h-48 rounded-[14px] text-[13px] font-bold cursor-pointer"
+                          onClick={() => {
+                            const num = data.whatsappNumber.replace(/[^\d]/g, "");
+                            if (num) {
+                              window.open(`https://wa.me/${num}?text=Hi`, "_blank");
+                            } else {
+                              onTestAssistant(data);
+                            }
+                          }}
+                          className="btn-ghost w-full justify-center h-12 rounded-[14px] text-[13px] font-bold cursor-pointer"
                         >
                           <Sparkles className="w-4 h-4 text-[#7C3AED]" />
                           <span>Test AI on WhatsApp first</span>
+                          <ExternalLink className="w-3.5 h-3.5 text-[var(--text-subtle)]" />
                         </button>
                       </div>
                     </div>
@@ -990,13 +1062,13 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
         </div>
 
         {/* Sticky bottom bar (Desktop & Mobile back/next helper) */}
-        <div className="bg-[#060608] border-t border-white/[0.05] px-6 sm:px-10 lg:px-16 py-5 flex items-center justify-between shrink-0 select-none">
+        <div className="bg-[var(--bg-elevated)] border-t border-[var(--border)] px-6 sm:px-10 lg:px-16 py-5 flex items-center justify-between shrink-0 select-none">
           {/* Back btn */}
           <div>
             <button
               type="button"
               onClick={handleBack}
-              className="btn-ghost flex items-center gap-1.5 text-white/50 hover:text-white cursor-pointer py-2 px-3 text-[13px]"
+              className="btn-ghost flex items-center gap-1.5 text-[var(--text-muted)] hover:text-[var(--text)] cursor-pointer py-2 px-3 text-[13px]"
             >
               <ChevronLeft className="w-4 h-4" />
               <span>Back</span>
@@ -1004,7 +1076,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
           </div>
 
           {/* Center Indicator (Mobile Only) */}
-          <div className="lg:hidden text-[12px] text-white/25 font-bold font-sans">
+          <div className="lg:hidden text-[12px] text-[var(--text-subtle)] font-bold font-sans">
             {currentStep} / 5
           </div>
 

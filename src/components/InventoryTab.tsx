@@ -522,29 +522,29 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
         {/* KPI: Total Unique Products */}
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-5 rounded-2xl flex items-center justify-between">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-5 rounded-2xl flex items-center justify-between">
           <div>
-            <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-extrabold font-sans">
+            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-extrabold font-sans">
               Unique Products
             </span>
-            <p className="text-2xl font-black text-white mt-1.5">{products.length}</p>
+            <p className="text-2xl font-black text-[var(--text)] mt-1.5">{products.length}</p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-neutral-300 shadow">
+          <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-[var(--border)] flex items-center justify-center text-[var(--text)] shadow">
             <Package className="w-5 h-5 stroke-[1.8]" />
           </div>
         </div>
 
         {/* KPI: Total Cash valuation */}
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-5 rounded-2xl flex items-center justify-between">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-5 rounded-2xl flex items-center justify-between">
           <div>
-            <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-extrabold font-sans">
+            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-extrabold font-sans">
               Inventory Value
             </span>
-            <p className="text-2xl font-black text-white mt-1.5">
+            <p className="text-2xl font-black text-[var(--text)] mt-1.5">
               ₹{activeStockValue.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
             </p>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-neutral-300 shadow">
+          <div className="w-10 h-10 rounded-xl bg-white/[0.04] border border-[var(--border)] flex items-center justify-center text-[var(--text)] shadow">
             <TrendingUp className="w-5 h-5 stroke-[1.8]" />
           </div>
         </div>
@@ -553,10 +553,10 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
         <div className={`p-5 rounded-2xl border transition-colors flex items-center justify-between ${
           lowStockCount > 0 
             ? "bg-amber-950/20 border-amber-500/20 text-amber-300" 
-            : "bg-[#0e0e11] border-white/[0.06] text-white"
+            : "bg-[var(--bg-card)] border-[var(--border)] text-[var(--text)]"
         }`}>
           <div>
-            <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-extrabold font-sans">
+            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-extrabold font-sans">
               Low Stock Items
             </span>
             <p className="text-2xl font-black mt-1.5">{lowStockCount}</p>
@@ -564,7 +564,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow ${
             lowStockCount > 0 
               ? "bg-amber-500/10 border border-amber-500/25 text-amber-400" 
-              : "bg-white/[0.04] border border-white/[0.08]"
+              : "bg-white/[0.04] border border-[var(--border)]"
           }`}>
             <AlertTriangle className="w-5 h-5 stroke-[1.8]" />
           </div>
@@ -574,10 +574,10 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
         <div className={`p-5 rounded-2xl border transition-colors flex items-center justify-between ${
           outOfStockCount > 0 
             ? "bg-red-950/20 border-red-500/20 text-red-300" 
-            : "bg-[#0e0e11] border-white/[0.06] text-white"
+            : "bg-[var(--bg-card)] border-[var(--border)] text-[var(--text)]"
         }`}>
           <div>
-            <span className="text-[10px] uppercase tracking-widest text-neutral-400 font-extrabold font-sans">
+            <span className="text-[10px] uppercase tracking-widest text-[var(--text-muted)] font-extrabold font-sans">
               Out of Stock
             </span>
             <p className="text-2xl font-black mt-1.5">{outOfStockCount}</p>
@@ -585,7 +585,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
           <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow ${
             outOfStockCount > 0 
               ? "bg-red-500/10 border border-red-500/25 text-red-400" 
-              : "bg-white/[0.04] border border-white/[0.08]"
+              : "bg-white/[0.04] border border-[var(--border)]"
           }`}>
             <X className="w-5 h-5 stroke-[1.8]" />
           </div>
@@ -594,41 +594,41 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
       </div>
 
       {/* 2. LIVE SANDBOX SIMULATOR WORKBENCH (CRITICAL CUSTOMER FLOW DEMO) */}
-      <div className="bg-[#0b0b0d] border border-white/[0.08] rounded-3xl overflow-hidden shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-0">
+      <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl overflow-hidden shadow-xl grid grid-cols-1 lg:grid-cols-12 gap-0">
         
         {/* Left panel: Trigger Console */}
-        <div className="lg:col-span-5 p-6 border-b lg:border-b-0 lg:border-r border-white/[0.08] flex flex-col justify-between gap-6 bg-[#0E0E10]/50">
+        <div className="lg:col-span-5 p-6 border-b lg:border-b-0 lg:border-r border-[var(--border)] flex flex-col justify-between gap-6 bg-[#0E0E10]/50">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/[0.04] border border-white/[0.08] text-white font-black text-[10px] uppercase tracking-widest rounded-full font-mono">
-              <Sparkles className="w-3.5 h-3.5 text-neutral-300" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/[0.04] border border-[var(--border)] text-[var(--text)] font-black text-[10px] uppercase tracking-widest rounded-full font-mono">
+              <Sparkles className="w-3.5 h-3.5 text-[var(--text)]" />
               Autofy AI Engine Simulator
             </div>
-            <h3 className="text-lg font-black text-white font-sans tracking-tight">
+            <h3 className="text-lg font-black text-[var(--text)] font-sans tracking-tight">
               Instant AI WhatsApp Responses
             </h3>
-            <p className="text-xs text-neutral-400 leading-relaxed font-sans">
+            <p className="text-xs text-[var(--text-muted)] leading-relaxed font-sans">
               Test how the AI evaluates real stock data, presents photos, checks low stock alerts, recommends alternative exhausts, and automatically reduces inventory.
             </p>
 
             <div className="h-[1.5px] bg-white/[0.05] my-2" />
 
             <div className="space-y-2.5">
-              <span className="text-[11px] font-extrabold tracking-wider text-neutral-400 uppercase block">Click to trigger customer scenario:</span>
+              <span className="text-[11px] font-extrabold tracking-wider text-[var(--text-muted)] uppercase block">Click to trigger customer scenario:</span>
               
               {/* Option A: Available */}
               <button 
                 onClick={() => startScenarioSimulation("available")}
                 disabled={simulationStep === "checking"}
                 className={`w-full p-3.5 bg-white/[0.02] hover:bg-white/[0.05] border rounded-2xl flex items-center gap-3 transition-all text-left group ${
-                  activeSimulationScenario === "available" ? "border-white/[0.2] bg-white/[0.04]" : "border-white/[0.06]"
+                  activeSimulationScenario === "available" ? "border-[var(--border)] bg-white/[0.04]" : "border-[var(--border)]"
                 }`}
               >
                 <div className="w-7 h-7 rounded-lg bg-green-500/10 text-green-400 border border-green-500/20 flex items-center justify-center text-xs font-mono font-black group-hover:scale-105 transition-transform">
                   A
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-white truncate">Query Available product (In Stock)</p>
-                  <p className="text-[10.5px] text-neutral-400 truncate">Classic 350 AEW Exhaust query (presents specs & reduction option)</p>
+                  <p className="text-xs font-bold text-[var(--text)] truncate">Query Available product (In Stock)</p>
+                  <p className="text-[10.5px] text-[var(--text-muted)] truncate">Classic 350 AEW Exhaust query (presents specs & reduction option)</p>
                 </div>
               </button>
 
@@ -637,15 +637,15 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                 onClick={() => startScenarioSimulation("out_of_stock")}
                 disabled={simulationStep === "checking"}
                 className={`w-full p-3.5 bg-white/[0.02] hover:bg-white/[0.05] border rounded-2xl flex items-center gap-3 transition-all text-left group ${
-                  activeSimulationScenario === "out_of_stock" ? "border-white/[0.2] bg-white/[0.04]" : "border-white/[0.06]"
+                  activeSimulationScenario === "out_of_stock" ? "border-[var(--border)] bg-white/[0.04]" : "border-[var(--border)]"
                 }`}
               >
                 <div className="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center text-xs font-mono font-black group-hover:scale-105 transition-transform">
                   B
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-white truncate">Query Out of Stock (Alternatives)</p>
-                  <p className="text-[10.5px] text-neutral-400 truncate">Gursewak exhaust query (automatically offers available alternatives)</p>
+                  <p className="text-xs font-bold text-[var(--text)] truncate">Query Out of Stock (Alternatives)</p>
+                  <p className="text-[10.5px] text-[var(--text-muted)] truncate">Gursewak exhaust query (automatically offers available alternatives)</p>
                 </div>
               </button>
 
@@ -654,30 +654,30 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                 onClick={() => startScenarioSimulation("unrelated")}
                 disabled={simulationStep === "checking"}
                 className={`w-full p-3.5 bg-white/[0.02] hover:bg-white/[0.05] border rounded-2xl flex items-center gap-3 transition-all text-left group ${
-                  activeSimulationScenario === "unrelated" ? "border-white/[0.2] bg-white/[0.04]" : "border-white/[0.06]"
+                  activeSimulationScenario === "unrelated" ? "border-[var(--border)] bg-white/[0.04]" : "border-[var(--border)]"
                 }`}
               >
                 <div className="w-7 h-7 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center text-xs font-mono font-black group-hover:scale-105 transition-transform">
                   C
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-bold text-white truncate">Query Rare Item (Low Stock alert)</p>
-                  <p className="text-[10.5px] text-neutral-400 truncate">Carbon Gloves query (triggers low stock urgency indicators)</p>
+                  <p className="text-xs font-bold text-[var(--text)] truncate">Query Rare Item (Low Stock alert)</p>
+                  <p className="text-[10.5px] text-[var(--text-muted)] truncate">Carbon Gloves query (triggers low stock urgency indicators)</p>
                 </div>
               </button>
             </div>
           </div>
 
           {/* Trace Database Logging Feed */}
-          <div className="bg-[#070709] border border-white/[0.06] rounded-2xl p-4 space-y-2 mt-4">
-            <div className="flex items-center justify-between text-[10px] tracking-wide text-neutral-400 font-bold uppercase font-mono">
+          <div className="bg-[#070709] border border-[var(--border)] rounded-2xl p-4 space-y-2 mt-4">
+            <div className="flex items-center justify-between text-[10px] tracking-wide text-[var(--text-muted)] font-bold uppercase font-mono">
               <span>FastAPI Database Console Logs</span>
-              <RefreshCw className={`w-3 h-3 ${simulationStep === "checking" ? "animate-spin text-white" : ""}`} />
+              <RefreshCw className={`w-3 h-3 ${simulationStep === "checking" ? "animate-spin text-[var(--text)]" : ""}`} />
             </div>
             
-            <div className="h-28 overflow-y-auto space-y-1.5 font-mono text-[10px] text-left leading-normal text-neutral-400">
+            <div className="h-28 overflow-y-auto space-y-1.5 font-mono text-[10px] text-left leading-normal text-[var(--text-muted)]">
               {simLog.length === 0 ? (
-                <div className="text-neutral-600 italic mt-6 text-center">Idle state. Select a scenario from above to watch real SQLite/FastAPI processing.</div>
+                <div className="text-[var(--text-subtle)] italic mt-6 text-center">Idle state. Select a scenario from above to watch real SQLite/FastAPI processing.</div>
               ) : (
                 simLog.map((log, index) => (
                   <div key={index} className="border-l border-white/10 pl-2">
@@ -686,7 +686,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                 ))
               )}
               {simulationStep === "checking" && (
-                <div className="text-zinc-500 flex items-center gap-1.5">
+                <div className="text-[var(--text-subtle)] flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-white animate-ping" />
                   <span>Processing logic engine...</span>
                 </div>
@@ -696,24 +696,24 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
         </div>
 
         {/* Right panel: WhatsApp interface view */}
-        <div className="lg:col-span-7 bg-[#0b0c10]/95 min-h-[460px] flex flex-col justify-between relative">
+        <div className="lg:col-span-7 bg-[var(--bg-card)]/95 min-h-[460px] flex flex-col justify-between relative">
           
           {/* Mockup Header */}
-          <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between bg-zinc-950/20 backdrop-blur-md">
+          <div className="px-5 py-4 border-b border-[var(--border)] flex items-center justify-between bg-zinc-950/20 backdrop-blur-md">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-white/[0.04] border border-white/[0.08] flex items-center justify-center">
-                <MessageSquare className="w-4 h-4 text-[#D1D5DB]" />
+              <div className="w-8 h-8 rounded-full bg-white/[0.04] border border-[var(--border)] flex items-center justify-center">
+                <MessageSquare className="w-4 h-4 text-[var(--text-muted)]" />
               </div>
               <div>
-                <p className="text-xs font-black text-white font-sans">Autofy WA Business Link</p>
+                <p className="text-xs font-black text-[var(--text)] font-sans">Autofy WA Business Link</p>
                 <div className="flex items-center gap-1">
                   <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                  <span className="text-[9.5px] font-extrabold text-[#9CA3AF] uppercase tracking-wider font-sans">Automated AI Online</span>
+                  <span className="text-[9.5px] font-extrabold text-[var(--text-muted)] uppercase tracking-wider font-sans">Automated AI Online</span>
                 </div>
               </div>
             </div>
             
-            <div className="flex items-center gap-1.5 px-2 py-1 bg-white/[0.04] border border-[#1C1C1E] text-neutral-400 font-mono text-[9px] font-bold rounded-lg uppercase">
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-white/[0.04] border border-[#1C1C1E] text-[var(--text-muted)] font-mono text-[9px] font-bold rounded-lg uppercase">
               Sandbox Live
             </div>
           </div>
@@ -721,12 +721,12 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
           {/* Sandbox conversation stream viewport */}
           <div className="flex-1 p-5 overflow-y-auto space-y-4 max-h-[360px] text-left">
             {simMessages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center space-y-3.5 my-14 text-[#9CA3AF]">
-                <div className="w-11 h-11 rounded-2xl bg-white/[0.02] border border-white/[0.08] flex items-center justify-center">
-                  <MessageSquare className="w-[22px] h-[22px] text-neutral-400" />
+              <div className="h-full flex flex-col items-center justify-center text-center space-y-3.5 my-14 text-[var(--text-muted)]">
+                <div className="w-11 h-11 rounded-2xl bg-white/[0.02] border border-[var(--border)] flex items-center justify-center">
+                  <MessageSquare className="w-[22px] h-[22px] text-[var(--text-muted)]" />
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xs font-bold text-white">Interactive WhatsApp Thread</p>
+                  <p className="text-xs font-bold text-[var(--text)]">Interactive WhatsApp Thread</p>
                   <p className="text-[10.5px] max-w-[280px]">Select any customer question scenario on the left panel to trigger the AI agent check.</p>
                 </div>
               </div>
@@ -737,24 +737,24 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                   {/* Message Bubble container */}
                   <div className={`max-w-[85%] rounded-2xl p-4.5 text-xs text-left ${
                     msg.sender === "user"
-                      ? "bg-white/[0.06] border border-white/[0.1] text-white"
-                      : "bg-[#0E0E10] border border-white/[0.08] text-[#e5e5e5]"
+                      ? "bg-white/[0.06] border border-[var(--border)] text-[var(--text)]"
+                      : "bg-[#0E0E10] border border-[var(--border)] text-[#e5e5e5]"
                   }`}>
                     {/* Render standard text with whitespace preservation */}
                     <p className="whitespace-pre-wrap leading-relaxed select-text">{msg.text}</p>
 
                     {/* Scenario A media block overlay: available product image card */}
                     {msg.mediaUrl && (
-                      <div className="mt-4 border border-white/[0.06] bg-neutral-950/60 rounded-xl overflow-hidden shadow-lg">
+                      <div className="mt-4 border border-[var(--border)] bg-[var(--bg-card)] rounded-xl overflow-hidden shadow-lg">
                         <img 
                           src={msg.mediaUrl} 
                           alt="Matching Exhaust" 
-                          className="w-full h-34 object-cover border-b border-white/[0.04]"
+                          className="w-full h-34 object-cover border-b border-[var(--border)]"
                           referrerPolicy="no-referrer"
                         />
                         <div className="p-3.5 space-y-3">
                           <div className="flex justify-between items-center">
-                            <span className="text-[10px] font-bold tracking-widest text-[#9CA3AF] uppercase font-mono">Real-time Stock Monitor</span>
+                            <span className="text-[10px] font-bold tracking-widest text-[var(--text-muted)] uppercase font-mono">Real-time Stock Monitor</span>
                             <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
                               msg.mediaStock && msg.mediaStock > 0 
                                 ? msg.mediaStock <= 5 
@@ -774,8 +774,8 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                             disabled={!msg.mediaStock || msg.mediaStock <= 0}
                             className={`w-full py-2.5 rounded-xl font-bold font-sans text-[10.5px] transition-all flex items-center justify-center gap-2 ${
                               msg.mediaStock && msg.mediaStock > 0
-                                ? "bg-white hover:bg-neutral-200 text-black active:scale-97 cursor-pointer"
-                                : "bg-var(--bg-elevated) text-neutral-500 border border-var(--border)"
+                                ? "bg-white hover:bg-[var(--text)] text-black active:scale-97 cursor-pointer"
+                                : "bg-[var(--bg-elevated)] text-[var(--text-subtle)] border border-[var(--border)]"
                             }`}
                           >
                             <ShoppingCart className="w-3.5 h-3.5" />
@@ -788,11 +788,11 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                     {/* Scenario B media block overlay: list recommendations */}
                     {msg.alternatives && msg.alternatives.length > 0 && (
                       <div className="mt-4 space-y-3">
-                        <p className="text-[10.5px] uppercase tracking-widest text-[#9CA3AF] font-bold font-mono">Suggested Exhaust Alternatives:</p>
+                        <p className="text-[10.5px] uppercase tracking-widest text-[var(--text-muted)] font-bold font-mono">Suggested Exhaust Alternatives:</p>
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-left">
                           {msg.alternatives.map((alt) => (
-                            <div key={alt.id} className="bg-neutral-950/60 border border-white/[0.06] rounded-xl overflow-hidden p-2 flex flex-col justify-between gap-3">
+                            <div key={alt.id} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl overflow-hidden p-2 flex flex-col justify-between gap-3">
                               <img 
                                 src={alt.image_url} 
                                 alt={alt.name} 
@@ -800,17 +800,17 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                                 referrerPolicy="no-referrer"
                               />
                               <div className="space-y-1">
-                                <h4 className="text-[11px] font-bold text-white truncate">{alt.name}</h4>
+                                <h4 className="text-[11px] font-bold text-[var(--text)] truncate">{alt.name}</h4>
                                 <div className="flex items-center gap-1.5 text-[10.5px] font-mono">
                                   <span className="text-green-400 font-extrabold">₹{alt.discount_price}</span>
                                   <span className="text-zinc-600 line-through text-[9.5px]">₹{alt.price}</span>
                                 </div>
-                                <p className="text-[9.5px] text-neutral-500 font-medium">In Stock: {alt.stock} units</p>
+                                <p className="text-[9.5px] text-[var(--text-subtle)] font-medium">In Stock: {alt.stock} units</p>
                               </div>
                               <button
                                 onClick={() => handleSimulatePurchase(alt.id)}
                                 disabled={alt.stock <= 0}
-                                className="w-full py-1.5 rounded-lg bg-white hover:bg-neutral-200 text-black font-extrabold text-[9px] tracking-wide transition-all uppercase flex items-center justify-center gap-1.5 active:scale-97 cursor-pointer"
+                                className="w-full py-1.5 rounded-lg bg-white hover:bg-[var(--text)] text-black font-extrabold text-[9px] tracking-wide transition-all uppercase flex items-center justify-center gap-1.5 active:scale-97 cursor-pointer"
                               >
                                 <ShoppingCart className="w-3 h-3" />
                                 <span>Order Alt</span>
@@ -823,7 +823,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
 
                   </div>
 
-                  <span className="text-[9px] text-[#9CA3AF] uppercase font-bold tracking-wider mt-1 font-mono pr-2">
+                  <span className="text-[9px] text-[var(--text-muted)] uppercase font-bold tracking-wider mt-1 font-mono pr-2">
                     {msg.sender === "user" ? "Simulated Customer" : "Autofy Bot Engine (24/7)"}
                   </span>
                 </div>
@@ -832,8 +832,8 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
           </div>
 
           {/* Action trigger label helper */}
-          <div className="px-5 py-3 border-t border-[#121214] flex items-center gap-2 justify-center text-[10px] text-neutral-500 font-sans">
-            <Info className="w-3.5 h-3.5 text-white/40 flex-shrink-0" />
+          <div className="px-5 py-3 border-t border-[#121214] flex items-center gap-2 justify-center text-[10px] text-[var(--text-subtle)] font-sans">
+            <Info className="w-3.5 h-3.5 text-[var(--text)]/40 flex-shrink-0" />
             <span>Click scenarios on the left. The chat above will show customized mock layouts with direct purchase buttons.</span>
           </div>
 
@@ -845,26 +845,26 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
       <div className="space-y-4">
         
         {/* Toolbelt row */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-950/20 border border-white/[0.04] p-4.5 rounded-2xl backdrop-blur-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-zinc-950/20 border border-[var(--border)] p-4.5 rounded-2xl backdrop-blur-sm">
           
           {/* Searching and Sub Filtering checkboxes */}
           <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
             
             {/* Search Input widget */}
             <div className="relative w-full sm:w-64">
-              <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search inventory, categories, variants..."
-                className="w-full bg-[#111113] border border-white/[0.08] focus:border-white/[0.18] rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder-neutral-500 focus:outline-none transition-colors"
+                className="w-full bg-[var(--bg-card)] border border-[var(--border)] focus:border-[var(--border)] rounded-xl py-2 pl-9 pr-4 text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none transition-colors"
               />
             </div>
 
             {/* Category selection selector */}
             <div className="flex items-center gap-1">
-              <span className="text-[10.5px] uppercase tracking-wider text-neutral-400 font-extrabold font-mono mr-1">Category:</span>
+              <span className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted)] font-extrabold font-mono mr-1">Category:</span>
               <div className="flex flex-wrap gap-1">
                 {categories.map((cat) => (
                   <button
@@ -873,7 +873,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                     className={`px-3 py-1.5 rounded-lg text-[10.5px] font-bold font-sans transition-colors cursor-pointer ${
                       selectedCategory === cat
                         ? "bg-white text-black"
-                        : "bg-white/[0.03] hover:bg-white/[0.06] text-neutral-400 hover:text-white"
+                        : "bg-white/[0.03] hover:bg-white/[0.06] text-[var(--text-muted)] hover:text-[var(--text)]"
                     }`}
                   >
                     {cat}
@@ -885,7 +885,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
           </div>
 
           {/* Quick Filter toggle checkboxes */}
-          <div className="flex flex-wrap items-center gap-4 text-xs text-neutral-400">
+          <div className="flex flex-wrap items-center gap-4 text-xs text-[var(--text-muted)]">
             <label className="flex items-center gap-2 cursor-pointer group">
               <input 
                 type="checkbox"
@@ -893,7 +893,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                 onChange={() => setFilterLowStockOnly(!filterLowStockOnly)}
                 className="rounded border-zinc-700 bg-zinc-900 checked:bg-white checked:border-white checked:text-black w-[18px] h-[18px] cursor-pointer accent-white"
               />
-              <span className="group-hover:text-white transition-colors text-[11px] font-bold"> Low Stock Alerts Only</span>
+              <span className="group-hover:text-[var(--text)] transition-colors text-[11px] font-bold"> Low Stock Alerts Only</span>
             </label>
 
             <label className="flex items-center gap-2 cursor-pointer group">
@@ -903,14 +903,14 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                 onChange={() => setFilterUnavailableOnly(!filterUnavailableOnly)}
                 className="rounded border-zinc-700 bg-zinc-900 checked:bg-white checked:border-white checked:text-black w-[18px] h-[18px] cursor-pointer accent-white"
               />
-              <span className="group-hover:text-white transition-colors text-[11px] font-bold"> Offline Listings Only</span>
+              <span className="group-hover:text-[var(--text)] transition-colors text-[11px] font-bold"> Offline Listings Only</span>
             </label>
 
             <div className="h-4 w-[1px] bg-white/[0.08] hidden sm:block" />
 
             <button
               onClick={handleOpenCreateModal}
-              className="px-4 py-2 bg-white hover:bg-neutral-200 active:scale-95 text-black font-extrabold text-[12px] rounded-xl transition-all flex items-center gap-2 shadow cursor-pointer ml-auto md:ml-0"
+              className="px-4 py-2 bg-white hover:bg-[var(--text)] active:scale-95 text-black font-extrabold text-[12px] rounded-xl transition-all flex items-center gap-2 shadow cursor-pointer ml-auto md:ml-0"
             >
               <Plus className="w-4 h-4 stroke-[2.5]" />
               <span>Add New Product</span>
@@ -921,13 +921,13 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
 
         {/* 4. MAIN INVENTORY PRODUCTS GRID */}
         {filteredProducts.length === 0 ? (
-          <div className="border border-white/[0.06] rounded-3xl p-14 text-center bg-[#070709] max-w-lg mx-auto space-y-4">
-            <div className="w-12 h-12 rounded-full bg-white/[0.02] border border-white/[0.06] flex items-center justify-center mx-auto text-neutral-400">
+          <div className="border border-[var(--border)] rounded-3xl p-14 text-center bg-[#070709] max-w-lg mx-auto space-y-4">
+            <div className="w-12 h-12 rounded-full bg-white/[0.02] border border-[var(--border)] flex items-center justify-center mx-auto text-[var(--text-muted)]">
               <Package className="w-6 h-6" />
             </div>
             <div className="space-y-1">
-              <p className="text-white text-xs font-bold">No Products Match Filters</p>
-              <p className="text-[11px] text-neutral-400 leading-normal">
+              <p className="text-[var(--text)] text-xs font-bold">No Products Match Filters</p>
+              <p className="text-[11px] text-[var(--text-muted)] leading-normal">
                 Currently, your catalog query returned 0 rows matching search parameters. Try resetting your search metrics or adjusting categories filters.
               </p>
             </div>
@@ -938,7 +938,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                 setFilterLowStockOnly(false);
                 setFilterUnavailableOnly(false);
               }}
-              className="px-4 py-2 text-[10.5px] font-extrabold uppercase tracking-wide text-neutral-300 bg-white/[0.04] border border-white/[0.08] hover:bg-white/[0.08] rounded-xl transition-colors cursor-pointer"
+              className="px-4 py-2 text-[10.5px] font-extrabold uppercase tracking-wide text-[var(--text)] bg-white/[0.04] border border-[var(--border)] hover:bg-white/[0.08] rounded-xl transition-colors cursor-pointer"
             >
               Reset Filters
             </button>
@@ -951,12 +951,12 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
               return (
                 <div 
                   key={p.id}
-                  className={`bg-[#0C0C0E] border rounded-3xl overflow-hidden backdrop-blur-md transition-all duration-300 relative flex flex-col justify-between gap-4.5 ${
+                  className={`bg-[var(--bg-card)] border rounded-3xl overflow-hidden backdrop-blur-md transition-all duration-300 relative flex flex-col justify-between gap-4.5 ${
                     isLowStock 
                       ? "border-amber-500/25 shadow-[0_0_30px_rgba(245,158,11,0.02)]" 
                       : p.is_available 
-                        ? "border-white/[0.06]" 
-                        : "border-white/[0.03] opacity-65"
+                        ? "border-[var(--border)]" 
+                        : "border-[var(--border)] opacity-65"
                   }`}
                 >
                   
@@ -974,7 +974,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
 
                     {/* Stock, warning and category pills inside card header */}
                     <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-                      <span className="px-2.5 py-1 bg-black/85 border border-white/10 rounded-full text-[9px] font-black uppercase text-neutral-300 font-sans tracking-wide">
+                      <span className="px-2.5 py-1 bg-black/85 border border-white/10 rounded-full text-[9px] font-black uppercase text-[var(--text)] font-sans tracking-wide">
                         {p.category}
                       </span>
 
@@ -987,7 +987,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
 
                       {/* Offline/Discontinued Listing Label */}
                       {!p.is_available && (
-                        <span className="px-2.5 py-1 bg-red-600 text-white rounded-full text-[9.5px] font-black uppercase font-mono tracking-widest flex items-center gap-1">
+                        <span className="px-2.5 py-1 bg-red-600 text-[var(--text)] rounded-full text-[9.5px] font-black uppercase font-mono tracking-widest flex items-center gap-1">
                           Offline
                         </span>
                       )}
@@ -998,20 +998,20 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                   <div className="px-5 pb-5 space-y-4 flex-1 flex flex-col justify-between">
                     <div className="space-y-2">
                       <div className="flex justify-between items-start">
-                        <h4 className="text-xs font-black text-white leading-snug">{p.name}</h4>
+                        <h4 className="text-xs font-black text-[var(--text)] leading-snug">{p.name}</h4>
                         
                         {/* Edit delete fast toolkit icons */}
                         <div className="flex items-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity">
                           <button 
                             onClick={() => handleOpenEditModal(p)}
-                            className="p-1.5 bg-var(--bg-elevated) border border-var(--border) hover:bg-neutral-800 rounded-lg text-neutral-300 transition-colors pointer-events-auto"
+                            className="p-1.5 bg-[var(--bg-elevated)] border border-[var(--border)] hover:bg-[var(--bg-elevated)] rounded-lg text-[var(--text)] transition-colors pointer-events-auto"
                             title="Edit Product"
                           >
                             <Edit2 className="w-3 h-3" />
                           </button>
                           <button 
                             onClick={() => handleDeleteProduct(p.id, p.name)}
-                            className="p-1.5 bg-var(--bg-elevated) border border-var(--border) hover:bg-red-500/10 hover:text-red-400 rounded-lg text-neutral-400 transition-colors pointer-events-auto"
+                            className="p-1.5 bg-[var(--bg-elevated)] border border-[var(--border)] hover:bg-red-500/10 hover:text-red-400 rounded-lg text-[var(--text-muted)] transition-colors pointer-events-auto"
                             title="Delete Product"
                           >
                             <Trash2 className="w-3 h-3" />
@@ -1019,7 +1019,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                         </div>
                       </div>
 
-                      <p className="text-[10.5px] text-neutral-400 leading-relaxed max-w-[280px]">
+                      <p className="text-[10.5px] text-[var(--text-muted)] leading-relaxed max-w-[280px]">
                         {p.description || "No specific details reported."}
                       </p>
 
@@ -1027,7 +1027,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                       {p.variants && (
                         <div className="flex flex-wrap gap-1 pt-1.5">
                           {p.variants.split(";").map((variantBlock, blockIdx) => (
-                            <span key={blockIdx} className="px-2 py-0.5 bg-white/[0.04] border border-white/[0.06] rounded text-[9.5px] font-medium text-neutral-300 font-mono">
+                            <span key={blockIdx} className="px-2 py-0.5 bg-white/[0.04] border border-[var(--border)] rounded text-[9.5px] font-medium text-[var(--text)] font-mono">
                               {variantBlock.trim()}
                             </span>
                           ))}
@@ -1035,16 +1035,16 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                       )}
                     </div>
 
-                    <div className="space-y-4 pt-1.5 border-t border-white/[0.04]">
+                    <div className="space-y-4 pt-1.5 border-t border-[var(--border)]">
                       {/* Pricing row with instant discount percent flag */}
                       <div className="flex justify-between items-end">
                         <div>
-                          <p className="text-[9px] uppercase tracking-wider text-neutral-500 font-bold">Standard Pricing</p>
+                          <p className="text-[9px] uppercase tracking-wider text-[var(--text-subtle)] font-bold">Standard Pricing</p>
                           <div className="flex items-baseline gap-2 mt-1">
-                            <span className="text-xs font-black text-white">₹{p.discount_price.toLocaleString("en-IN")}</span>
+                            <span className="text-xs font-black text-[var(--text)]">₹{p.discount_price.toLocaleString("en-IN")}</span>
                             {p.discount_percent > 0 && (
                               <>
-                                <span className="text-[10.5px] line-through text-neutral-500">₹{p.price.toLocaleString("en-IN")}</span>
+                                <span className="text-[10.5px] line-through text-[var(--text-subtle)]">₹{p.price.toLocaleString("en-IN")}</span>
                                 <span className="text-[9.5px] font-black text-green-400">-{p.discount_percent}%</span>
                               </>
                             )}
@@ -1053,13 +1053,13 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
 
                         {/* Availability toggle online/offline switch */}
                         <div className="text-right">
-                          <span className="text-[9px] uppercase tracking-wider text-neutral-500 font-bold block mb-1">Availability</span>
+                          <span className="text-[9px] uppercase tracking-wider text-[var(--text-subtle)] font-bold block mb-1">Availability</span>
                           <button
                             onClick={() => handleToggleAvailability(p.id)}
                             className={`p-1.5 rounded-lg border transition-all text-[10px] font-bold font-sans flex items-center gap-1 cursor-pointer ${
                               p.is_available 
-                                ? "bg-white/[0.03] hover:bg-white/[0.06] border-white/[0.08] text-neutral-300" 
-                                : "bg-red-500/10 border-red-500/15 text-red-400 hover:bg-var(--bg-elevated)"
+                                ? "bg-white/[0.03] hover:bg-white/[0.06] border-[var(--border)] text-[var(--text)]" 
+                                : "bg-red-500/10 border-red-500/15 text-red-400 hover:bg-[var(--bg-elevated)]"
                             }`}
                           >
                             {p.is_available ? (
@@ -1076,10 +1076,10 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                       </div>
 
                       {/* Stock units and immediate decrement scale */}
-                      <div className="p-3 bg-neutral-950/40 border border-white/[0.04] rounded-2xl flex items-center justify-between">
+                      <div className="p-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl flex items-center justify-between">
                         <div>
-                          <span className="text-[9px] uppercase tracking-wider text-neutral-500 font-bold font-sans block">Stock Quantity</span>
-                          <span className={`text-[12px] font-black ${p.stock <= p.low_stock_threshold ? "text-amber-400" : "text-white"}`}>
+                          <span className="text-[9px] uppercase tracking-wider text-[var(--text-subtle)] font-bold font-sans block">Stock Quantity</span>
+                          <span className={`text-[12px] font-black ${p.stock <= p.low_stock_threshold ? "text-amber-400" : "text-[var(--text)]"}`}>
                             {p.stock} Unit(s)
                           </span>
                         </div>
@@ -1088,13 +1088,13 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                           <button
                             onClick={() => handleQuickAdjustStock(p.id, -1)}
                             disabled={p.stock <= 0}
-                            className="w-7 h-7 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) text-neutral-300 border border-white/[0.04] rounded flex items-center justify-center text-xs font-bold transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
+                            className="w-7 h-7 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] text-[var(--text)] border border-[var(--border)] rounded flex items-center justify-center text-xs font-bold transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
                           >
                             -
                           </button>
                           <button
                             onClick={() => handleQuickAdjustStock(p.id, 1)}
-                            className="w-7 h-7 bg-white text-black hover:bg-neutral-200 rounded flex items-center justify-center text-xs font-black transition-all cursor-pointer"
+                            className="w-7 h-7 bg-white text-black hover:bg-[var(--text)] rounded flex items-center justify-center text-xs font-black transition-all cursor-pointer"
                           >
                             +
                           </button>
@@ -1126,21 +1126,21 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
               initial={{ scale: 0.95, y: 15 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 15 }}
-              className="bg-[#0b0c0f] border border-white/[0.12] rounded-3xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto"
+              className="bg-[#0b0c0f] border border-[var(--border)] rounded-3xl w-full max-w-lg p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto"
             >
               
               <button 
                 onClick={() => setManagementModalOpen(false)}
-                className="absolute top-4 right-4 p-1.5 bg-var(--bg-elevated) hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-lg transition-colors border border-white/[0.04] cursor-pointer"
+                className="absolute top-4 right-4 p-1.5 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text)] rounded-lg transition-colors border border-[var(--border)] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
 
               <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.08] flex items-center justify-center text-neutral-300 shadow">
+                <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-[var(--border)] flex items-center justify-center text-[var(--text)] shadow">
                   <Package className="w-4 h-4" />
                 </div>
-                <h3 className="text-base font-black text-white font-sans tracking-tight">
+                <h3 className="text-base font-black text-[var(--text)] font-sans tracking-tight">
                   {editingProduct ? "Modify Active Product" : "Launch New Inventory Product"}
                 </h3>
               </div>
@@ -1149,25 +1149,25 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                 
                 {/* Field: Name */}
                 <div className="space-y-1.5">
-                  <label className="text-[10.5px] uppercase tracking-wider text-neutral-400 font-extrabold block">Product Title <span className="text-red-500">*</span></label>
+                  <label className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted)] font-extrabold block">Product Title <span className="text-red-500">*</span></label>
                   <input
                     type="text"
                     required
                     value={formName}
                     onChange={(e) => setFormName(e.target.value)}
                     placeholder="e.g. AEW Exhaust for Interceptor 650"
-                    className="w-full bg-neutral-950 border border-white/[0.08] focus:border-white/[0.18] text-xs text-white p-3 rounded-xl focus:outline-none transition-colors"
+                    className="w-full bg-[var(--bg-card)] border border-[var(--border)] focus:border-[var(--border)] text-xs text-[var(--text)] p-3 rounded-xl focus:outline-none transition-colors"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   {/* Field: Category */}
                   <div className="space-y-1.5">
-                    <label className="text-[10.5px] uppercase tracking-wider text-neutral-400 font-extrabold block">Category</label>
+                    <label className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted)] font-extrabold block">Category</label>
                     <select
                       value={formCategory}
                       onChange={(e) => setFormCategory(e.target.value)}
-                      className="w-full bg-neutral-950 border border-white/[0.08] focus:border-white/[0.18] text-xs text-white p-3 rounded-xl focus:outline-none transition-colors appearance-none"
+                      className="w-full bg-[var(--bg-card)] border border-[var(--border)] focus:border-[var(--border)] text-xs text-[var(--text)] p-3 rounded-xl focus:outline-none transition-colors appearance-none"
                     >
                       <option value="Exhausts">Exhausts</option>
                       <option value="Accessories">Accessories</option>
@@ -1178,7 +1178,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
 
                   {/* Field: Price */}
                   <div className="space-y-1.5">
-                    <label className="text-[10.5px] uppercase tracking-wider text-neutral-400 font-extrabold block">Original Price (₹) <span className="text-red-500">*</span></label>
+                    <label className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted)] font-extrabold block">Original Price (₹) <span className="text-red-500">*</span></label>
                     <input
                       type="number"
                       required
@@ -1187,7 +1187,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                       value={formPrice}
                       onChange={(e) => setFormPrice(e.target.value)}
                       placeholder="6500"
-                      className="w-full bg-neutral-950 border border-white/[0.08] focus:border-white/[0.18] text-xs text-white p-3 rounded-xl focus:outline-none transition-colors"
+                      className="w-full bg-[var(--bg-card)] border border-[var(--border)] focus:border-[var(--border)] text-xs text-[var(--text)] p-3 rounded-xl focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -1195,7 +1195,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                 <div className="grid grid-cols-3 gap-3">
                   {/* Field: Discount Percent */}
                   <div className="space-y-1.5">
-                    <label className="text-[10.5px] uppercase tracking-wider text-neutral-400 font-extrabold block">Discount %</label>
+                    <label className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted)] font-extrabold block">Discount %</label>
                     <input
                       type="number"
                       min="0"
@@ -1203,13 +1203,13 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                       value={formDiscountPercent}
                       onChange={(e) => setFormDiscountPercent(e.target.value || "0")}
                       placeholder="10"
-                      className="w-full bg-neutral-950 border border-white/[0.08] focus:border-white/[0.18] text-xs text-white p-3 rounded-xl focus:outline-none transition-colors"
+                      className="w-full bg-[var(--bg-card)] border border-[var(--border)] focus:border-[var(--border)] text-xs text-[var(--text)] p-3 rounded-xl focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Field: Stock */}
                   <div className="space-y-1.5">
-                    <label className="text-[10.5px] uppercase tracking-wider text-neutral-400 font-extrabold block">In Stock <span className="text-red-500">*</span></label>
+                    <label className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted)] font-extrabold block">In Stock <span className="text-red-500">*</span></label>
                     <input
                       type="number"
                       required
@@ -1217,76 +1217,76 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                       value={formStock}
                       onChange={(e) => setFormStock(e.target.value)}
                       placeholder="12"
-                      className="w-full bg-neutral-950 border border-white/[0.08] focus:border-white/[0.18] text-xs text-white p-3 rounded-xl focus:outline-none transition-colors"
+                      className="w-full bg-[var(--bg-card)] border border-[var(--border)] focus:border-[var(--border)] text-xs text-[var(--text)] p-3 rounded-xl focus:outline-none transition-colors"
                     />
                   </div>
 
                   {/* Field: Low Stock Threshold */}
                   <div className="space-y-1.5">
-                    <label className="text-[10.5px] uppercase tracking-wider text-neutral-400 font-extrabold block">Alert Threshold</label>
+                    <label className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted)] font-extrabold block">Alert Threshold</label>
                     <input
                       type="number"
                       min="0"
                       value={formLowStockThreshold}
                       onChange={(e) => setFormLowStockThreshold(e.target.value)}
                       placeholder="3"
-                      className="w-full bg-neutral-950 border border-white/[0.08] focus:border-white/[0.18] text-xs text-white p-3 rounded-xl focus:outline-none transition-colors"
+                      className="w-full bg-[var(--bg-card)] border border-[var(--border)] focus:border-[var(--border)] text-xs text-[var(--text)] p-3 rounded-xl focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
 
                 {/* Field: Image URL */}
                 <div className="space-y-1.5">
-                  <label className="text-[10.5px] uppercase tracking-wider text-neutral-400 font-extrabold block">Primary Photo URL</label>
+                  <label className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted)] font-extrabold block">Primary Photo URL</label>
                   <input
                     type="url"
                     value={formImageUrl}
                     onChange={(e) => setFormImageUrl(e.target.value)}
                     placeholder="https://images.unsplash.com/photo-..."
-                    className="w-full bg-neutral-950 border border-white/[0.08] focus:border-white/[0.18] text-xs text-white p-3 rounded-xl focus:outline-none transition-colors"
+                    className="w-full bg-[var(--bg-card)] border border-[var(--border)] focus:border-[var(--border)] text-xs text-[var(--text)] p-3 rounded-xl focus:outline-none transition-colors"
                   />
                 </div>
 
                 {/* Field: Product Variants attributes */}
                 <div className="space-y-1.5">
-                  <label className="text-[10.5px] uppercase tracking-wider text-neutral-400 font-extrabold block">Attributes & Variants</label>
+                  <label className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted)] font-extrabold block">Attributes & Variants</label>
                   <input
                     type="text"
                     value={formVariants}
                     onChange={(e) => setFormVariants(e.target.value)}
                     placeholder="e.g. Color: Polished Chrome, Matte Black; Fits: Classic 350"
-                    className="w-full bg-neutral-950 border border-white/[0.08] focus:border-white/[0.18] text-xs text-white p-3 rounded-xl focus:outline-none transition-colors"
+                    className="w-full bg-[var(--bg-card)] border border-[var(--border)] focus:border-[var(--border)] text-xs text-[var(--text)] p-3 rounded-xl focus:outline-none transition-colors"
                   />
-                  <span className="text-[9px] text-[#9CA3AF] leading-none block font-mono">Use key-value layouts separated by semicolons.</span>
+                  <span className="text-[9px] text-[var(--text-muted)] leading-none block font-mono">Use key-value layouts separated by semicolons.</span>
                 </div>
 
                 {/* Field: Description */}
                 <div className="space-y-1.5">
-                  <label className="text-[10.5px] uppercase tracking-wider text-neutral-400 font-extrabold block">Usage Description</label>
+                  <label className="text-[10.5px] uppercase tracking-wider text-[var(--text-muted)] font-extrabold block">Usage Description</label>
                   <textarea
                     rows={3}
                     value={formDescription}
                     onChange={(e) => setFormDescription(e.target.value)}
                     placeholder="Genuine polished steel rumble silencer pack..."
-                    className="w-full bg-neutral-950 border border-white/[0.08] focus:border-white/[0.18] text-xs text-white p-3 rounded-xl focus:outline-none transition-colors resize-none"
+                    className="w-full bg-[var(--bg-card)] border border-[var(--border)] focus:border-[var(--border)] text-xs text-[var(--text)] p-3 rounded-xl focus:outline-none transition-colors resize-none"
                   />
                 </div>
 
                 {/* Field: Availability */}
-                <div className="flex items-center justify-between p-3.5 bg-neutral-950/40 border border-white/[0.06] rounded-2xl">
+                <div className="flex items-center justify-between p-3.5 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl">
                   <div>
-                    <label className="text-[11px] font-bold text-white block">Publish Instant to WhatsApp Bot</label>
-                    <span className="text-[9.5px] text-neutral-500">Allow customers to query and purchase this item in chat live.</span>
+                    <label className="text-[11px] font-bold text-[var(--text)] block">Publish Instant to WhatsApp Bot</label>
+                    <span className="text-[9.5px] text-[var(--text-subtle)]">Allow customers to query and purchase this item in chat live.</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => setFormIsAvailable(!formIsAvailable)}
                     className={`w-10 h-6.5 rounded-full p-1 transition-all outline-none flex items-center justify-start ${
-                      formIsAvailable ? "bg-[#ffffff]" : "bg-[#1f1f23]"
+                      formIsAvailable ? "bg-[#ffffff]" : "bg-[var(--bg-elevated)]"
                     }`}
                   >
                     <div className={`w-[18px] h-[18px] rounded-full shadow transition-all ${
-                      formIsAvailable ? "translate-x-3.5 bg-black" : "translate-x-0 bg-neutral-400"
+                      formIsAvailable ? "translate-x-3.5 bg-black" : "translate-x-0 bg-[var(--text-muted)]"
                     }`} />
                   </button>
                 </div>
@@ -1296,13 +1296,13 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                   <button
                     type="button"
                     onClick={() => setManagementModalOpen(false)}
-                    className="flex-1 py-3 border border-white/[0.08] hover:bg-white/[0.03] text-white font-extrabold text-xs rounded-xl transition-colors cursor-pointer text-center"
+                    className="flex-1 py-3 border border-[var(--border)] hover:bg-white/[0.03] text-[var(--text)] font-extrabold text-xs rounded-xl transition-colors cursor-pointer text-center"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 bg-white hover:bg-neutral-200 active:scale-97 text-black font-black text-xs rounded-xl transition-colors cursor-pointer text-center"
+                    className="flex-1 py-3 bg-white hover:bg-[var(--text)] active:scale-97 text-black font-black text-xs rounded-xl transition-colors cursor-pointer text-center"
                   >
                     {editingProduct ? "Save Changes" : "Confirm Addition"}
                   </button>

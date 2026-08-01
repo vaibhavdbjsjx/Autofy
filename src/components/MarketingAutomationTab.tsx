@@ -241,18 +241,18 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
       {/* HEADER ROW */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-black font-display tracking-tight flex items-center gap-2" style={{ color: "var(--text)" }}>
             <Megaphone className="w-6 h-6 text-indigo-400 stroke-[1.8]" />
             Marketing Automation Center
           </h2>
-          <p className="text-xs text-neutral-400 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             Build broadcasts, design WhatsApp discount templates, target custom user cohorts, and track conversion conversions.
           </p>
         </div>
 
         <button
           onClick={() => setIsCreatingCampaign(true)}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl shadow transition-all cursor-pointer flex items-center gap-1"
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--text)] font-extrabold text-xs rounded-xl shadow transition-all cursor-pointer flex items-center gap-1"
         >
           <Plus className="w-4 h-4 stroke-[2.3]" /> Create Campaign
         </button>
@@ -261,8 +261,8 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
       {/* SEGMENT ROI METRIC CARD GRID */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-4 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">
             Revenue Generated
           </span>
           <p className="text-xl font-black text-emerald-400 mt-1">
@@ -271,28 +271,28 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
           <span className="text-[9px] text-[#A1A1AA]">Direct marketing attribution</span>
         </div>
 
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-4 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">
             WhatsApp Open Rate
           </span>
-          <p className="text-xl font-black text-white mt-1">
+          <p className="text-xl font-black text-[var(--text)] mt-1">
             {Math.round(analytics.overallOpenRate * 100)}%
           </p>
           <span className="text-[9px] text-green-400">Industry leading benchmark</span>
         </div>
 
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-4 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">
             Avg Click Through
           </span>
-          <p className="text-xl font-black text-white mt-1">
+          <p className="text-xl font-black text-[var(--text)] mt-1">
             {Math.round(analytics.overallClickRate * 100)}%
           </p>
-          <span className="text-[9px] text-neutral-400">Call-to-Action button clickers</span>
+          <span className="text-[9px] text-[var(--text-muted)]">Call-to-Action button clickers</span>
         </div>
 
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-4 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">
             Conversion Ratio
           </span>
           <p className="text-xl font-black text-indigo-400 mt-1">
@@ -301,14 +301,14 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
           <span className="text-[9px] text-green-400 mt-0.5">Checked out orders</span>
         </div>
 
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-4 rounded-2xl col-span-2 lg:col-span-1">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl col-span-2 lg:col-span-1">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">
             Total Campaigns
           </span>
-          <p className="text-xl font-black text-white mt-1">
+          <p className="text-xl font-black text-[var(--text)] mt-1">
             {campaigns.length} Active
           </p>
-          <span className="text-[9px] text-neutral-400">Executed & Scheduled</span>
+          <span className="text-[9px] text-[var(--text-muted)]">Executed & Scheduled</span>
         </div>
 
       </div>
@@ -317,8 +317,8 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* DIRECTORY LISTING LEFT */}
-        <div className="lg:col-span-5 bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-4">
-          <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider block border-b border-white/[0.08] pb-2">
+        <div className="lg:col-span-5 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-4">
+          <span className="text-[10px] uppercase font-black text-[var(--text-muted)] tracking-wider block border-b border-[var(--border)] pb-2">
             Promotion Campaigns
           </span>
 
@@ -335,41 +335,41 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
                   className={`p-4 rounded-2xl border text-left cursor-pointer transition-all space-y-3 ${
                     isSelected 
                       ? "bg-white/[0.05] border-indigo-500" 
-                      : "bg-black/[0.1] border-white/[0.04] hover:bg-white/[0.01]"
+                      : "bg-black/[0.1] border-[var(--border)] hover:bg-white/[0.01]"
                   }`}
                 >
                   <div className="flex justify-between items-start gap-2">
                     <div>
-                      <h4 className="text-xs font-black text-white leading-tight">{c.name}</h4>
-                      <p className="text-[10.5px] text-neutral-400 mt-1">Cohort: {c.target_segment}</p>
+                      <h4 className="text-xs font-black text-[var(--text)] leading-tight">{c.name}</h4>
+                      <p className="text-[10.5px] text-[var(--text-muted)] mt-1">Cohort: {c.target_segment}</p>
                     </div>
 
                     <span className={`px-2 py-0.5 text-[8.5px] font-black uppercase text-center tracking-wider rounded ${
                       isComp ? "bg-green-500/10 text-green-400" :
                       isSched ? "bg-blue-500/10 text-blue-400" :
-                      "bg-neutral-500/10 text-neutral-400"
+                      "bg-[var(--text-subtle)]/10 text-[var(--text-muted)]"
                     }`}>
                       {c.status}
                     </span>
                   </div>
 
                   {isComp ? (
-                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/[0.04] text-center text-xs">
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[var(--border)] text-center text-xs">
                       <div>
-                        <span className="text-[10px] text-neutral-500 block">Sent</span>
-                        <strong className="text-white font-mono">{c.sent_count}</strong>
+                        <span className="text-[10px] text-[var(--text-subtle)] block">Sent</span>
+                        <strong className="text-[var(--text)] font-mono">{c.sent_count}</strong>
                       </div>
                       <div>
-                        <span className="text-[10px] text-neutral-500 block">Open%</span>
+                        <span className="text-[10px] text-[var(--text-subtle)] block">Open%</span>
                         <strong className="text-indigo-400 font-mono">{Math.round(c.open_rate * 100)}%</strong>
                       </div>
                       <div>
-                        <span className="text-[10px] text-neutral-500 block">Revenue</span>
+                        <span className="text-[10px] text-[var(--text-subtle)] block">Revenue</span>
                         <strong className="text-emerald-400 font-mono">₹{c.revenue_generated.toLocaleString()}</strong>
                       </div>
                     </div>
                   ) : (
-                    <div className="pt-2 text-[10px] text-indigo-400 font-bold flex items-center gap-1 border-t border-white/[0.04]">
+                    <div className="pt-2 text-[10px] text-indigo-400 font-bold flex items-center gap-1 border-t border-[var(--border)]">
                       <Clock className="w-3.5 h-3.5" />
                       <span>{c.scheduled_at ? `Scheduled for ${c.scheduled_at}` : "Draft Campaign"}</span>
                     </div>
@@ -382,20 +382,20 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
         </div>
 
         {/* CAMPAIGN METRICS DETAILS RIGHT */}
-        <div className="lg:col-span-7 bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-6 space-y-6">
+        <div className="lg:col-span-7 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 space-y-6">
           {activeCamp ? (
             <div className="space-y-6 text-left">
               
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/[0.08] pb-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--border)] pb-5">
                 <div className="space-y-1">
-                  <span className="text-[9.5px] uppercase font-black tracking-widest text-[#9CA3AF]">Selected Campaign details</span>
-                  <h3 className="text-base font-black text-white">{activeCamp.name}</h3>
+                  <span className="text-[9.5px] uppercase font-black tracking-widest text-[var(--text-muted)]">Selected Campaign details</span>
+                  <h3 className="text-base font-black text-[var(--text)]">{activeCamp.name}</h3>
                 </div>
 
                 {activeCamp.status !== "Completed" && (
                   <button
                     onClick={() => handleInstantDispatchCampaign(activeCamp.id)}
-                    className="px-4 py-1.5 bg-white hover:bg-neutral-200 text-black font-extrabold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow active:scale-97"
+                    className="px-4 py-1.5 bg-white hover:bg-[var(--text)] text-black font-extrabold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer shadow active:scale-97"
                   >
                     <Send className="w-3.5 h-3.5" /> Send Instantly Now
                   </button>
@@ -403,15 +403,15 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
               </div>
 
               {/* Message content display bubble */}
-              <div className="space-y-2 bg-[#09090b] border border-white/[0.04] p-5 rounded-2xl relative overflow-hidden">
+              <div className="space-y-2 bg-[var(--bg)] border border-[var(--border)] p-5 rounded-2xl relative overflow-hidden">
                 <span className="text-[9.5px] uppercase font-black text-indigo-400 tracking-wider flex items-center gap-1.5">
                   <Sparkles className="w-3.5 h-3.5" /> WhatsApp Message Copy Template
                 </span>
-                <p className="text-xs text-neutral-200 leading-relaxed font-sans max-w-xl">
+                <p className="text-xs text-[var(--text)] leading-relaxed font-sans max-w-xl">
                   {activeCamp.content}
                 </p>
-                <div className="text-[10px] text-[#A1A1AA] pt-2 border-t border-white/[0.04]">
-                  Target Audience Segment: <strong className="text-white uppercase">{activeCamp.target_segment}</strong> Recipients list.
+                <div className="text-[10px] text-[#A1A1AA] pt-2 border-t border-[var(--border)]">
+                  Target Audience Segment: <strong className="text-[var(--text)] uppercase">{activeCamp.target_segment}</strong> Recipients list.
                 </div>
               </div>
 
@@ -420,13 +420,13 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
                   
                   {/* Performance charts representation */}
                   <div className="space-y-3">
-                    <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider">Campaign Conversion rates</span>
+                    <span className="text-[10px] uppercase font-black text-[var(--text-muted)] tracking-wider">Campaign Conversion rates</span>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       
                       {/* Open Rate Meter */}
-                      <div className="p-4 bg-black border border-white/[0.04] rounded-2xl flex flex-col justify-between h-24">
-                        <span className="text-[10px] text-neutral-400">Open Rate</span>
+                      <div className="p-4 bg-black border border-[var(--border)] rounded-2xl flex flex-col justify-between h-24">
+                        <span className="text-[10px] text-[var(--text-muted)]">Open Rate</span>
                         <div className="flex justify-between items-end mt-1">
                           <p className="text-2xl font-black text-indigo-400">{Math.round(activeCamp.open_rate * 100)}%</p>
                           <span className="text-[10px] text-indigo-400/80 font-mono">Industry benchmarks: 86%</span>
@@ -434,8 +434,8 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
                       </div>
 
                       {/* Click rate */}
-                      <div className="p-4 bg-black border border-white/[0.04] rounded-2xl flex flex-col justify-between h-24">
-                        <span className="text-[10px] text-neutral-400">Call-To-Action Click Rate</span>
+                      <div className="p-4 bg-black border border-[var(--border)] rounded-2xl flex flex-col justify-between h-24">
+                        <span className="text-[10px] text-[var(--text-muted)]">Call-To-Action Click Rate</span>
                         <div className="flex justify-between items-end mt-1">
                           <p className="text-2xl font-black text-indigo-400">{Math.round(activeCamp.click_rate * 100)}%</p>
                           <span className="text-[10px] text-[#A1A1AA] font-mono">Total CTAs clicked</span>
@@ -443,8 +443,8 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
                       </div>
 
                       {/* Conversion rate */}
-                      <div className="p-4 bg-black border border-white/[0.04] rounded-2xl flex flex-col justify-between h-24">
-                        <span className="text-[10px] text-neutral-400">Checkout Conversion Rate</span>
+                      <div className="p-4 bg-black border border-[var(--border)] rounded-2xl flex flex-col justify-between h-24">
+                        <span className="text-[10px] text-[var(--text-muted)]">Checkout Conversion Rate</span>
                         <div className="flex justify-between items-end mt-1">
                           <p className="text-2xl font-black text-emerald-400">{Math.round(activeCamp.conversion_rate * 100)}%</p>
                           <span className="text-[10px] text-emerald-400/70 font-mono">Revenue generated</span>
@@ -456,13 +456,13 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
 
                   {/* BROADCAST LOGS DIALOG LIST */}
                   <div className="space-y-3">
-                    <span className="text-[10px] uppercase font-black text-neutral-400 tracking-wider block">
+                    <span className="text-[10px] uppercase font-black text-[var(--text-muted)] tracking-wider block">
                       Broadcast Dispatch Status logs
                     </span>
 
-                    <div className="border border-white/[0.05] rounded-2xl bg-black/[0.2] overflow-hidden">
-                      <table className="w-full text-xs text-left text-neutral-200">
-                        <thead className="bg-[#111113] text-[10px] font-black uppercase text-neutral-400 border-b border-white/[0.04]">
+                    <div className="border border-[var(--border)] rounded-2xl bg-black/[0.2] overflow-hidden">
+                      <table className="w-full text-xs text-left text-[var(--text)]">
+                        <thead className="bg-[var(--bg-card)] text-[10px] font-black uppercase text-[var(--text-muted)] border-b border-[var(--border)]">
                           <tr>
                             <th className="px-4 py-3">Recipient Name</th>
                             <th className="px-4 py-3">Phone</th>
@@ -473,8 +473,8 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
                         <tbody className="divide-y divide-white/[0.03]">
                           {broadcasts.map((b, idx) => (
                             <tr key={idx} className="hover:bg-white/[0.01]">
-                              <td className="px-4 py-3 font-bold text-white">{b.recipient_name || "New Lead"}</td>
-                              <td className="px-4 py-3 font-mono text-neutral-400">{b.recipient_phone}</td>
+                              <td className="px-4 py-3 font-bold text-[var(--text)]">{b.recipient_name || "New Lead"}</td>
+                              <td className="px-4 py-3 font-mono text-[var(--text-muted)]">{b.recipient_phone}</td>
                               <td className="px-4 py-3">
                                 <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-wider rounded ${
                                   b.status === "Converted" ? "bg-green-500/10 text-green-400" :
@@ -484,7 +484,7 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
                                   {b.status}
                                 </span>
                               </td>
-                              <td className="px-4 py-3 font-mono text-neutral-500">{b.sent_at}</td>
+                              <td className="px-4 py-3 font-mono text-[var(--text-subtle)]">{b.sent_at}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -494,11 +494,11 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
 
                 </div>
               ) : (
-                <div className="p-10 border border-white/[0.05] rounded-2xl bg-[#09090b] text-center space-y-2">
-                  <p className="text-xs text-[#9CA3AF]">
+                <div className="p-10 border border-[var(--border)] rounded-2xl bg-[var(--bg)] text-center space-y-2">
+                  <p className="text-xs text-[var(--text-muted)]">
                     This campaign is scheduled for broadcast and is waiting to trigger automatically.
                   </p>
-                  <p className="text-[10.5px] text-neutral-500">
+                  <p className="text-[10.5px] text-[var(--text-subtle)]">
                     You can broadcast this promotion list immediately to customer segments by clicking "Send Instantly Now".
                   </p>
                 </div>
@@ -507,7 +507,7 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
             </div>
           ) : (
             <div className="text-center py-20">
-              <p className="text-xs text-[#9CA3AF]">No campaign found.</p>
+              <p className="text-xs text-[var(--text-muted)]">No campaign found.</p>
             </div>
           )}
         </div>
@@ -517,35 +517,35 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
       {/* CREATE NEW PROMO CAMPAIGN MODAL OVERLAY */}
       {isCreatingCampaign && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <form onSubmit={handleCreateCampaignSubmit} className="bg-[#0C0C0E] border border-neutral-800 rounded-3xl p-6 max-w-lg w-full space-y-4 text-left shadow-2xl">
+          <form onSubmit={handleCreateCampaignSubmit} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 max-w-lg w-full space-y-4 text-left shadow-2xl">
             <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider font-sans">
+              <h4 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider font-sans">
                 Create WhatsApp Broadcast Promotion
               </h4>
-              <p className="text-xs text-neutral-400 mt-1">Design message drafts to send directly to your filtered customer cohorts.</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Design message drafts to send directly to your filtered customer cohorts.</p>
             </div>
 
-            <div className="space-y-3.5 text-xs text-neutral-300">
+            <div className="space-y-3.5 text-xs text-[var(--text)]">
               
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-neutral-300">Campaign Title:</label>
+                <label className="text-xs font-bold text-[var(--text)]">Campaign Title:</label>
                 <input
                   type="text"
                   placeholder="e.g. Festival Biker Jacket Launch Promo"
                   value={newCampName}
                   onChange={(e) => setNewCampName(e.target.value)}
-                  className="w-full bg-black border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2 px-3 text-xs text-white"
+                  className="w-full bg-black border border-[var(--border)] focus:border-[var(--brand)] rounded-xl py-2 px-3 text-xs text-[var(--text)]"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#D1D5DB]">Target Customer Cohort:</label>
+                  <label className="text-xs font-bold text-[var(--text-muted)]">Target Customer Cohort:</label>
                   <select
                     value={newCampSegment}
                     onChange={(e) => setNewCampSegment(e.target.value)}
-                    className="w-full bg-black border border-white/[0.08] text-white focus:border-indigo-500/50 rounded-xl py-2.5 px-3 focus:outline-none text-xs"
+                    className="w-full bg-black border border-[var(--border)] text-[var(--text)] focus:border-[var(--brand)] rounded-xl py-2.5 px-3 focus:outline-none text-xs"
                   >
                     <option value="All">All Registered Contacts</option>
                     <option value="VIP">VIP Tier Customers</option>
@@ -555,24 +555,24 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#D1D5DB]">Delayed dispatch (optional):</label>
+                  <label className="text-xs font-bold text-[var(--text-muted)]">Delayed dispatch (optional):</label>
                   <input
                     type="datetime-local"
                     value={newCampSchedule}
                     onChange={(e) => setNewCampSchedule(e.target.value)}
-                    className="w-full bg-black border border-white/[0.08] rounded-xl py-1.5 px-3 text-xs text-white"
+                    className="w-full bg-black border border-[var(--border)] rounded-xl py-1.5 px-3 text-xs text-[var(--text)]"
                   />
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-neutral-300">WhatsApp Template Message Body:</label>
+                <label className="text-xs font-bold text-[var(--text)]">WhatsApp Template Message Body:</label>
                 <textarea
                   rows={4}
                   placeholder="Type promotion copy here. You can include links or checkout URLs."
                   value={newCampContent}
                   onChange={(e) => setNewCampContent(e.target.value)}
-                  className="w-full bg-black border border-white/[0.08] rounded-xl py-2 px-3 text-xs text-white leading-relaxed"
+                  className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)] leading-relaxed"
                   required
                 />
               </div>
@@ -583,13 +583,13 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
               <button
                 type="button"
                 onClick={() => setIsCreatingCampaign(false)}
-                className="px-4 py-2 text-xs bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.08] text-neutral-300 font-extrabold rounded-xl cursor-pointer"
+                className="px-4 py-2 text-xs bg-white/[0.02] hover:bg-white/[0.06] border border-[var(--border)] text-[var(--text)] font-extrabold rounded-xl cursor-pointer"
               >
                 Cancel Draft
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl cursor-pointer"
+                className="px-5 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-[var(--text)] font-extrabold rounded-xl cursor-pointer"
               >
                 Save Draft
               </button>

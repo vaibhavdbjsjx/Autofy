@@ -330,18 +330,18 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
       {/* HEADER SECTION ROW */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-xl font-black text-[var(--text)] tracking-tight flex items-center gap-2">
             <LifeBuoy className="w-6 h-6 text-indigo-400 stroke-[1.8]" />
             Customer Support Tickets
           </h2>
-          <p className="text-xs text-neutral-400 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             Resolve metallic rattle noises, product size swaps, and freight complaints. Tracks SLA compliance windows.
           </p>
         </div>
 
         <button
           onClick={() => setIsCreatingTicket(true)}
-          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl shadow cursor-pointer flex items-center gap-1 active:scale-97"
+          className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-[var(--text)] font-extrabold text-xs rounded-xl shadow cursor-pointer flex items-center gap-1 active:scale-97"
         >
           <Plus className="w-4 h-4 stroke-[2.3]" /> Log Support Ticket
         </button>
@@ -350,27 +350,27 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
       {/* KPI METRIC BAR GRID */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-4 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-neutral-400">Total Registered</span>
-          <p className="text-2xl font-black text-white mt-1">{analytics.totalTickets} Tickets</p>
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">Total Registered</span>
+          <p className="text-2xl font-black text-[var(--text)] mt-1">{analytics.totalTickets} Tickets</p>
           <span className="text-[10px] text-indigo-400 mt-1 flex items-center gap-1">
             All customer inquiries
           </span>
         </div>
 
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-4 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-neutral-400">Open & Active</span>
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">Open & Active</span>
           <p className="text-2xl font-black text-amber-400 mt-1">{analytics.openTickets + analytics.pendingTickets} Tickets</p>
           <span className="text-[10px] text-[#A1A1AA] mt-1 block">Awaiting immediate response</span>
         </div>
 
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-4 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">Resolved Today</span>
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">Resolved Today</span>
           <p className="text-2xl font-black text-green-400 mt-1">{analytics.resolvedTickets + analytics.closedTickets} Tickets</p>
           <span className="text-[10px] text-green-400 font-bold mt-1 block">SLA guidelines met</span>
         </div>
 
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-4 rounded-2xl animate-pulse">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4 rounded-2xl animate-pulse">
           <span className="text-[10px] uppercase font-black tracking-widest text-red-400">SLA Breach Warnings</span>
           <p className="text-2xl font-black text-red-400 mt-1">{analytics.slaBreachedCount} Active</p>
           <span className="text-[10px] text-red-400/[0.8] mt-1 font-bold">Requires urgent assistance</span>
@@ -382,23 +382,23 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search tickets by title, customer..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-[#111113] border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:outline-none transition-colors"
+            className="w-full bg-[var(--bg-card)] border border-[var(--border)] focus:border-[var(--brand)] rounded-xl py-2 pl-9 pr-4 text-xs text-[var(--text)] focus:outline-none transition-colors"
           />
         </div>
 
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-neutral-400">Status:</span>
+            <span className="text-xs font-bold text-[var(--text-muted)]">Status:</span>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="bg-[#111113] border border-white/[0.08] rounded-xl py-1.5 px-3 text-xs text-white"
+              className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl py-1.5 px-3 text-xs text-[var(--text)]"
             >
               <option value="All">All Statuses</option>
               <option value="Open">Open</option>
@@ -409,11 +409,11 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-neutral-400">Priority:</span>
+            <span className="text-xs font-bold text-[var(--text-muted)]">Priority:</span>
             <select
               value={filterPriority}
               onChange={(e) => setFilterPriority(e.target.value)}
-              className="bg-[#111113] border border-white/[0.08] rounded-xl py-1.5 px-3 text-xs text-white"
+              className="bg-[var(--bg-card)] border border-[var(--border)] rounded-xl py-1.5 px-3 text-xs text-[var(--text)]"
             >
               <option value="All">All Priorities</option>
               <option value="Low">Low</option>
@@ -430,9 +430,9 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         
         {/* TICKETS DIRECTORY LEFT */}
-        <div className="lg:col-span-4 bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-5 space-y-4 text-left">
-          <div className="flex justify-between items-center border-b border-white/[0.08] pb-3">
-            <span className="text-xs uppercase font-extrabold text-neutral-400">Active Queue</span>
+        <div className="lg:col-span-4 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 space-y-4 text-left">
+          <div className="flex justify-between items-center border-b border-[var(--border)] pb-3">
+            <span className="text-xs uppercase font-extrabold text-[var(--text-muted)]">Active Queue</span>
             <span className="text-xs font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-sm">{filteredTickets.length} Found</span>
           </div>
 
@@ -448,13 +448,13 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
                   className={`p-3.5 rounded-2xl border text-left cursor-pointer transition-all space-y-3 ${
                     isSelected 
                       ? "bg-white/[0.05] border-indigo-500" 
-                      : "bg-black/[0.1] border-white/[0.03] hover:bg-white/[0.01]"
+                      : "bg-black/[0.1] border-[var(--border)] hover:bg-white/[0.01]"
                   }`}
                 >
                   <div className="flex justify-between items-start gap-2">
                     <div>
-                      <h4 className="text-xs font-black text-white leading-tight">{t.customer_name}</h4>
-                      <p className="text-[10px] text-neutral-400 mt-1 uppercase font-semibold">{t.id}</p>
+                      <h4 className="text-xs font-black text-[var(--text)] leading-tight">{t.customer_name}</h4>
+                      <p className="text-[10px] text-[var(--text-muted)] mt-1 uppercase font-semibold">{t.id}</p>
                     </div>
 
                     <span className={`px-2 py-0.5 text-[8.5px] font-black uppercase tracking-wider rounded ${
@@ -466,17 +466,17 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
                     </span>
                   </div>
 
-                  <p className="text-xs text-neutral-300 font-bold leading-normal line-clamp-1">
+                  <p className="text-xs text-[var(--text)] font-bold leading-normal line-clamp-1">
                     {t.title}
                   </p>
 
-                  <div className="flex justify-between items-center pt-2.5 border-t border-white/[0.04] text-[10px]">
+                  <div className="flex justify-between items-center pt-2.5 border-t border-[var(--border)] text-[10px]">
                     <span className={`font-extrabold uppercase tracking-wide px-1.5 py-0.5 rounded ${
-                      isHigh ? "bg-red-500/15 text-red-400" : "bg-neutral-800 text-[#D1D5DB]"
+                      isHigh ? "bg-red-500/15 text-red-400" : "bg-[var(--bg-elevated)] text-[var(--text-muted)]"
                     }`}>
                       {t.priority} priority
                     </span>
-                    <span className="text-neutral-500">Rep: {t.assigned_agent_name}</span>
+                    <span className="text-[var(--text-subtle)]">Rep: {t.assigned_agent_name}</span>
                   </div>
                 </div>
               );
@@ -485,18 +485,18 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
         </div>
 
         {/* TICKET DETAILS RIGHT PANEL */}
-        <div className="lg:col-span-8 bg-[#0C0C0E] border border-white/[0.08] rounded-3xl p-6 space-y-6">
+        <div className="lg:col-span-8 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 space-y-6">
           {activeTicket ? (
             <div className="space-y-6 text-left">
               
               {/* Top Details Header Row */}
-              <div className="border-b border-white/[0.08] pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="border-b border-[var(--border)] pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="space-y-1.5">
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-mono font-black text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md">{activeTicket.id}</span>
-                    <span className="text-xs uppercase font-extrabold text-neutral-400">• logged by {activeTicket.customer_name}</span>
+                    <span className="text-xs uppercase font-extrabold text-[var(--text-muted)]">• logged by {activeTicket.customer_name}</span>
                   </div>
-                  <h3 className="text-base font-black text-white">{activeTicket.title}</h3>
+                  <h3 className="text-base font-black text-[var(--text)]">{activeTicket.title}</h3>
                 </div>
 
                 {/* Status selector triggers */}
@@ -508,7 +508,7 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
                       className={`px-3 py-1.5 text-[10px] font-black uppercase rounded-lg transition-all cursor-pointer ${
                         activeTicket.status === stat
                           ? "bg-white text-black font-extrabold"
-                          : "bg-var(--bg-elevated) border border-white/[0.04] text-neutral-300 hover:bg-neutral-800"
+                          : "bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text)] hover:bg-[var(--bg-elevated)]"
                       }`}
                     >
                       {stat}
@@ -518,16 +518,16 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
               </div>
 
               {/* Description Body Card */}
-              <div className="bg-black/40 border border-white/[0.03] p-5 rounded-2xl space-y-3">
-                <span className="text-[10px] font-black uppercase text-neutral-400 tracking-wider block">Customer issue desc:</span>
-                <p className="text-xs text-[#D1D5DB] leading-relaxed font-sans font-medium whitespace-pre-line">
+              <div className="bg-black/40 border border-[var(--border)] p-5 rounded-2xl space-y-3">
+                <span className="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-wider block">Customer issue desc:</span>
+                <p className="text-xs text-[var(--text-muted)] leading-relaxed font-sans font-medium whitespace-pre-line">
                   {activeTicket.description}
                 </p>
 
                 {activeTicket.customer_phone || activeTicket.customer_email ? (
-                  <div className="pt-3.5 border-t border-white/[0.04] text-[10.5px] text-neutral-400 font-mono gap-3.5 flex flex-wrap">
-                    {activeTicket.customer_email && <span>Email: <strong className="text-white">{activeTicket.customer_email}</strong></span>}
-                    {activeTicket.customer_phone && <span>Phone: <strong className="text-white">{activeTicket.customer_phone}</strong></span>}
+                  <div className="pt-3.5 border-t border-[var(--border)] text-[10.5px] text-[var(--text-muted)] font-mono gap-3.5 flex flex-wrap">
+                    {activeTicket.customer_email && <span>Email: <strong className="text-[var(--text)]">{activeTicket.customer_email}</strong></span>}
+                    {activeTicket.customer_phone && <span>Phone: <strong className="text-[var(--text)]">{activeTicket.customer_phone}</strong></span>}
                   </div>
                 ) : null}
               </div>
@@ -537,11 +537,11 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
                 
                 {/* Agent Select Picker */}
                 <div className="space-y-2.5">
-                  <span className="text-[10px] uppercase font-black text-[#9CA3AF] tracking-wider block">Assign Service Representative:</span>
+                  <span className="text-[10px] uppercase font-black text-[var(--text-muted)] tracking-wider block">Assign Service Representative:</span>
                   <select
                     value={activeTicket.assigned_agent_id || ""}
                     onChange={(e) => handleReassignAgent(e.target.value)}
-                    className="w-full bg-var(--bg-elevated) border border-white/[0.08] text-white focus:border-indigo-500/50 rounded-xl py-2.5 px-3.5 text-xs focus:outline-none"
+                    className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text)] focus:border-[var(--brand)] rounded-xl py-2.5 px-3.5 text-xs focus:outline-none"
                   >
                     <option value="">-- Unassigned --</option>
                     {agents.map((ag) => (
@@ -553,10 +553,10 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
                 </div>
 
                 {/* SLA deadline display */}
-                <div className="bg-[#0e0e11] border border-white/[0.06] p-4.5 rounded-2xl flex flex-col justify-between h-20 text-left">
-                  <span className="text-[10px] text-neutral-400">SLA Response Window Status</span>
+                <div className="bg-[var(--bg-card)] border border-[var(--border)] p-4.5 rounded-2xl flex flex-col justify-between h-20 text-left">
+                  <span className="text-[10px] text-[var(--text-muted)]">SLA Response Window Status</span>
                   <div className="flex justify-between items-baseline mt-1">
-                    <p className="text-sm font-semibold text-white">Within 48 hours deadline</p>
+                    <p className="text-sm font-semibold text-[var(--text)]">Within 48 hours deadline</p>
                     <span className="text-xs text-green-400 font-black uppercase tracking-wider">{activeTicket.sla_status}</span>
                   </div>
                 </div>
@@ -565,25 +565,25 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
 
               {/* AUDIT WORKSPACE TICKET HISTORY */}
               <div className="space-y-3 text-left">
-                <span className="text-[10.5px] uppercase font-black text-neutral-400 tracking-wider flex items-center gap-1.5 border-b border-white/[0.05] pb-2">
+                <span className="text-[10.5px] uppercase font-black text-[var(--text-muted)] tracking-wider flex items-center gap-1.5 border-b border-[var(--border)] pb-2">
                   <History className="w-3.5 h-3.5 text-indigo-400" />
                   Ticket Audit Trail Logs
                 </span>
 
                 <div className="space-y-2.5">
                   {history.map((h, idx) => (
-                    <div key={idx} className="p-3 bg-[#08080a] border border-white/[0.03] rounded-xl flex justify-between items-start gap-4">
+                    <div key={idx} className="p-3 bg-[#08080a] border border-[var(--border)] rounded-xl flex justify-between items-start gap-4">
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-black text-white">{h.changed_by}</span>
-                          <span className="text-[9.5px] uppercase font-extrabold bg-[#1A1A1E] px-1.5 py-0.5 rounded text-[#D1D5DB]">
+                          <span className="text-xs font-black text-[var(--text)]">{h.changed_by}</span>
+                          <span className="text-[9.5px] uppercase font-extrabold bg-[var(--bg-elevated)] px-1.5 py-0.5 rounded text-[var(--text-muted)]">
                             {h.action}
                           </span>
                         </div>
-                        <p className="text-xs text-neutral-400 font-sans leading-normal">{h.notes}</p>
+                        <p className="text-xs text-[var(--text-muted)] font-sans leading-normal">{h.notes}</p>
                       </div>
 
-                      <span className="text-[10px] text-neutral-500 font-mono mt-0.5">{h.created_at}</span>
+                      <span className="text-[10px] text-[var(--text-subtle)] font-mono mt-0.5">{h.created_at}</span>
                     </div>
                   ))}
                 </div>
@@ -592,7 +592,7 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
             </div>
           ) : (
             <div className="text-center py-20">
-              <p className="text-xs text-neutral-500">No support ticket fits current filters.</p>
+              <p className="text-xs text-[var(--text-subtle)]">No support ticket fits current filters.</p>
             </div>
           )}
         </div>
@@ -602,69 +602,69 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
       {/* CREATE NEW SUPPORT TICKET MODAL OVERLAY */}
       {isCreatingTicket && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <form onSubmit={handleCreateTicketSubmit} className="bg-[#0C0C0E] border border-neutral-800 rounded-3xl p-6 max-w-lg w-full space-y-4 text-left shadow-2xl">
+          <form onSubmit={handleCreateTicketSubmit} className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 max-w-lg w-full space-y-4 text-left shadow-2xl">
             <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider font-sans">
+              <h4 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider font-sans">
                 Log Customer Support Ticket
               </h4>
-              <p className="text-xs text-neutral-400 mt-1">Submit technical fitting rattles or delivery exchange requests manually.</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Submit technical fitting rattles or delivery exchange requests manually.</p>
             </div>
 
-            <div className="space-y-3.5 text-xs text-neutral-300">
+            <div className="space-y-3.5 text-xs text-[var(--text)]">
               
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-neutral-300">Customer Full Name:</label>
+                <label className="text-xs font-bold text-[var(--text)]">Customer Full Name:</label>
                 <input
                   type="text"
                   placeholder="e.g. Rahul Sharma"
                   value={newCustName}
                   onChange={(e) => setNewCustName(e.target.value)}
-                  className="w-full bg-black border border-white/[0.08] rounded-xl py-2 px-3 text-xs text-white"
+                  className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)]"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300">Customer Email:</label>
+                  <label className="text-xs font-bold text-[var(--text)]">Customer Email:</label>
                   <input
                     type="email"
                     placeholder="name@gmail.com"
                     value={newCustEmail}
                     onChange={(e) => setNewCustEmail(e.target.value)}
-                    className="w-full bg-black border border-white/[0.08] rounded-xl py-2 px-3 text-xs text-white"
+                    className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)]"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300">Customer Phone:</label>
+                  <label className="text-xs font-bold text-[var(--text)]">Customer Phone:</label>
                   <input
                     type="text"
                     placeholder="+91 90000 00000"
                     value={newCustPhone}
                     onChange={(e) => setNewCustPhone(e.target.value)}
-                    className="w-full bg-black border border-white/[0.08] rounded-xl py-2 px-3 text-xs text-white"
+                    className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-neutral-300 font-sans">Ticket Subject:</label>
+                  <label className="text-xs font-bold text-[var(--text)] font-sans">Ticket Subject:</label>
                   <input
                     type="text"
                     placeholder="e.g. AEW silencer clearance fit rattling noise"
                     value={newTicketTitle}
                     onChange={(e) => setNewTicketTitle(e.target.value)}
-                    className="w-full bg-black border border-white/[0.08] rounded-xl py-2.5 px-3 text-xs text-white"
+                    className="w-full bg-black border border-[var(--border)] rounded-xl py-2.5 px-3 text-xs text-[var(--text)]"
                     required
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-[#D1D5DB]">Priority Level:</label>
+                  <label className="text-xs font-bold text-[var(--text-muted)]">Priority Level:</label>
                   <select
                     value={newTicketPriority}
                     onChange={(e) => setNewTicketPriority(e.target.value as any)}
-                    className="w-full bg-black border border-white/[0.08] text-white focus:border-indigo-500/50 rounded-xl py-2.5 px-3 text-xs text-[#9CA3AF]"
+                    className="w-full bg-black border border-[var(--border)] text-[var(--text)] focus:border-[var(--brand)] rounded-xl py-2.5 px-3 text-xs text-[var(--text-muted)]"
                   >
                     <option value="Low">Low Priority</option>
                     <option value="Medium">Medium Priority</option>
@@ -675,13 +675,13 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-bold text-neutral-300">Describe Issue / Request details:</label>
+                <label className="text-xs font-bold text-[var(--text)]">Describe Issue / Request details:</label>
                 <textarea
                   rows={4}
                   placeholder="What is the detailed grievance or request history?"
                   value={newTicketDesc}
                   onChange={(e) => setNewTicketDesc(e.target.value)}
-                  className="w-full bg-black border border-white/[0.08] rounded-xl py-2 px-3 text-xs text-white leading-relaxed"
+                  className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)] leading-relaxed"
                   required
                 />
               </div>
@@ -692,13 +692,13 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
               <button
                 type="button"
                 onClick={() => setIsCreatingTicket(false)}
-                className="px-4 py-2 text-xs bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.08] text-neutral-300 font-extrabold rounded-xl cursor-pointer"
+                className="px-4 py-2 text-xs bg-white/[0.02] hover:bg-white/[0.06] border border-[var(--border)] text-[var(--text)] font-extrabold rounded-xl cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl cursor-pointer shadow"
+                className="px-5 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-[var(--text)] font-extrabold rounded-xl cursor-pointer shadow"
               >
                 Log Ticket Entry
               </button>

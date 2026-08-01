@@ -572,14 +572,14 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
     return (
       <div className="space-y-6">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-            Leads Management <span className="text-xs bg-blue-500/10 text-blue-400 font-normal px-2.5 py-0.5 rounded-full border border-blue-500/20 font-mono">HubSpot Mode</span>
+          <h2 className="text-xl sm:text-2xl font-black font-display tracking-tight flex items-center gap-2" style={{ color: "var(--text)" }}>
+            Leads Management <span className="badge-glow text-[10px] px-2.5 py-0.5 font-bold font-sans">HubSpot Mode</span>
           </h2>
-          <p className="text-xs text-neutral-400 font-medium">Track, manage, and convert every customer inquiry seamlessly inside your funnel.</p>
+          <p className="text-xs text-[var(--text-muted)] font-medium">Track, manage, and convert every customer inquiry seamlessly inside your funnel.</p>
         </div>
-        <div className="bg-[#050508]/30 border border-var(--border) rounded-3xl p-6 space-y-4">
+        <div className="bg-[var(--bg)]/30 border border-[var(--border)] rounded-3xl p-6 space-y-4">
           {[1, 2, 3, 4, 5, 6].map(i => (
-            <div key={i} className="h-14 w-full rounded-2xl shimmer bg-var(--bg-elevated)/50" />
+            <div key={i} className="h-14 w-full rounded-2xl shimmer bg-[var(--bg-elevated)]/50" />
           ))}
         </div>
       </div>
@@ -592,21 +592,21 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
       {/* HEADER BAR DETAILS */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
-            Leads Management <span className="text-xs bg-blue-500/10 text-blue-400 font-normal px-2.5 py-0.5 rounded-full border border-blue-500/20 font-mono">HubSpot Mode</span>
+          <h2 className="text-xl sm:text-2xl font-black font-display tracking-tight flex items-center gap-2" style={{ color: "var(--text)" }}>
+            Leads Management <span className="badge-glow text-[10px] px-2.5 py-0.5 font-bold font-sans">HubSpot Mode</span>
           </h2>
-          <p className="text-xs text-neutral-400 text-neutral-400 font-medium">Track, manage, and convert every customer inquiry seamlessly inside your funnel.</p>
+          <p className="text-xs text-[var(--text-muted)] text-[var(--text-muted)] font-medium">Track, manage, and convert every customer inquiry seamlessly inside your funnel.</p>
         </div>
 
         {/* View Switches & Manual Insertion */}
         <div className="flex items-center gap-2.5">
-          <div className="bg-var(--bg-elevated) border border-var(--border) p-1 rounded-xl flex items-center">
+          <div className="bg-[var(--bg-elevated)] border border-[var(--border)] p-1 rounded-xl flex items-center">
             <button
               onClick={() => setViewMode("kanban")}
               className={`p-2 rounded-lg transition-all cursor-pointer ${
                 viewMode === "kanban" 
-                  ? "bg-blue-600 text-white shadow-sm" 
-                  : "text-neutral-400 hover:text-white"
+                  ? "bg-blue-600 text-[var(--text)] shadow-sm" 
+                  : "text-[var(--text-muted)] hover:text-[var(--text)]"
               }`}
               title="Pipeline View (Columns)"
             >
@@ -616,8 +616,8 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
               onClick={() => setViewMode("table")}
               className={`p-2 rounded-lg transition-all cursor-pointer ${
                 viewMode === "table" 
-                  ? "bg-blue-600 text-white shadow-sm" 
-                  : "text-neutral-400 hover:text-white"
+                  ? "bg-blue-600 text-[var(--text)] shadow-sm" 
+                  : "text-[var(--text-muted)] hover:text-[var(--text)]"
               }`}
               title="Table Grid View"
             >
@@ -627,7 +627,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
 
           <button
             onClick={() => setIsAddingLead(true)}
-            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold text-[11px] rounded-xl hover:from-blue-500 hover:to-indigo-500 transition shadow shadow-blue-500/20 cursor-pointer uppercase tracking-wider flex items-center gap-1.5"
+            className="px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-[var(--text)] font-extrabold text-[11px] rounded-xl hover:from-blue-500 hover:to-indigo-500 transition shadow shadow-blue-500/20 cursor-pointer uppercase tracking-wider flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" /> Create Lead
           </button>
@@ -638,51 +638,51 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         
         {/* Metric 1: Total Leads */}
-        <div className="bg-neutral-950/40 border border-var(--border) rounded-2xl p-4.5 p-4 backdrop-blur-md flex flex-col justify-between">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4.5 p-4 backdrop-blur-md flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">Total Leads</span>
+            <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">Total Leads</span>
             <Users className="w-4 h-4 text-blue-400" />
           </div>
           <div className="mt-3.5">
-            <h4 className="text-2xl font-black text-white font-sans">{stats.total}</h4>
-            <p className="text-[9.5px] text-neutral-500 mt-1 leading-none">Registered database</p>
+            <h4 className="text-2xl font-black text-[var(--text)] font-sans">{stats.total}</h4>
+            <p className="text-[9.5px] text-[var(--text-subtle)] mt-1 leading-none">Registered database</p>
           </div>
         </div>
 
         {/* Metric 2: New Leads Today */}
-        <div className="bg-neutral-950/40 border border-var(--border) rounded-2xl p-4.5 p-4 backdrop-blur-md flex flex-col justify-between">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4.5 p-4 backdrop-blur-md flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">New Leads Today</span>
+            <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">New Leads Today</span>
             <Sparkles className="w-4 h-4 text-emerald-450 text-emerald-400" />
           </div>
           <div className="mt-3.5">
             <h4 className="text-2xl font-black text-emerald-400 font-sans">+{stats.newToday}</h4>
-            <p className="text-[9.5px] text-neutral-500 mt-1 leading-none">Fresh traffic inbound</p>
+            <p className="text-[9.5px] text-[var(--text-subtle)] mt-1 leading-none">Fresh traffic inbound</p>
           </div>
         </div>
 
         {/* Metric 3: Converted Leads */}
-        <div className="bg-neutral-950/40 border border-var(--border) rounded-2xl p-4.5 p-4 backdrop-blur-md flex flex-col justify-between">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4.5 p-4 backdrop-blur-md flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider">Converted Leads</span>
+            <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider">Converted Leads</span>
             <CheckCircle className="w-4 h-4 text-indigo-400" />
           </div>
           <div className="mt-3.5">
-            <h4 className="text-2xl font-black text-white font-sans">{stats.convertedCount}</h4>
-            <p className="text-[9.5px] text-neutral-500 mt-1 leading-none">Closed deals successfully</p>
+            <h4 className="text-2xl font-black text-[var(--text)] font-sans">{stats.convertedCount}</h4>
+            <p className="text-[9.5px] text-[var(--text-subtle)] mt-1 leading-none">Closed deals successfully</p>
           </div>
         </div>
 
         {/* Metric 4: Conversion Rate */}
-        <div className="bg-neutral-950/40 border border-var(--border) rounded-2xl p-4.5 p-4 backdrop-blur-md flex flex-col justify-between">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4.5 p-4 backdrop-blur-md flex flex-col justify-between">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] uppercase font-bold text-neutral-400 tracking-wider font-sans">Conversion rate</span>
+            <span className="text-[10px] uppercase font-bold text-[var(--text-muted)] tracking-wider font-sans">Conversion rate</span>
             <TrendingUp className="w-4 h-4 text-purple-400" />
           </div>
           <div className="mt-3.5">
             <h4 className="text-2xl font-black text-purple-400 font-sans">{stats.rate}%</h4>
             {/* Dynamic gauge indicator */}
-            <div className="w-full bg-var(--bg-elevated) h-1 rounded-full mt-2.5 overflow-hidden">
+            <div className="w-full bg-[var(--bg-elevated)] h-1 rounded-full mt-2.5 overflow-hidden">
               <div className="bg-purple-500 h-full rounded-full" style={{ width: `${stats.rate}%` }} />
             </div>
           </div>
@@ -695,7 +695,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
             <CreditCard className="w-4 h-4 text-blue-400 animate-pulse" />
           </div>
           <div className="mt-3.5">
-            <h4 className="text-xl sm:text-2xl font-black text-white font-mono">₹{stats.potentialRevenue.toLocaleString()}</h4>
+            <h4 className="text-xl sm:text-2xl font-black text-[var(--text)] font-mono">₹{stats.potentialRevenue.toLocaleString()}</h4>
             <p className="text-[9px] text-blue-450 text-blue-400 mt-1 leading-none">In funnel value estimate</p>
           </div>
         </div>
@@ -703,18 +703,18 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
       </div>
 
       {/* SEARCH AND FILTERS TOOLBAR */}
-      <div className="bg-neutral-950/50 border border-var(--border) rounded-2xl p-4 backdrop-blur-md space-y-3.5 font-sans">
+      <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl p-4 backdrop-blur-md space-y-3.5 font-sans">
         <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3">
           
           {/* Search bar inputs */}
           <div className="flex-1 relative">
-            <Search className="w-4 h-4 text-neutral-500 absolute left-3.5 top-3.5" />
+            <Search className="w-4 h-4 text-[var(--text-subtle)] absolute left-3.5 top-3.5" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search leads by name, phone line, email, lead ID..."
-              className="w-full bg-var(--bg-elevated) border border-var(--border) rounded-xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500/40 font-semibold"
+              className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl pl-10 pr-4 py-2.5 text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-blue-500/40 font-semibold"
             />
           </div>
 
@@ -725,7 +725,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="bg-var(--bg-elevated) border border-var(--border) px-3 py-2 rounded-xl text-neutral-300 text-xs focus:outline-none cursor-pointer font-bold"
+              className="bg-[var(--bg-elevated)] border border-[var(--border)] px-3 py-2 rounded-xl text-[var(--text)] text-xs focus:outline-none cursor-pointer font-bold"
             >
               <option value="all"> All Funnel Stages</option>
               <option value="New Lead">New Lead</option>
@@ -739,7 +739,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
             <select
               value={sourceFilter}
               onChange={(e) => setSourceFilter(e.target.value)}
-              className="bg-var(--bg-elevated) border border-var(--border) px-3 py-2 rounded-xl text-neutral-300 text-xs focus:outline-none cursor-pointer font-bold"
+              className="bg-[var(--bg-elevated)] border border-[var(--border)] px-3 py-2 rounded-xl text-[var(--text)] text-xs focus:outline-none cursor-pointer font-bold"
             >
               <option value="all"> All Sources</option>
               {sourcesList.map(src => (
@@ -751,7 +751,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
             <select
               value={scoreFilter}
               onChange={(e) => setScoreFilter(e.target.value)}
-              className="bg-var(--bg-elevated) border border-var(--border) px-3 py-2 rounded-xl text-neutral-300 text-xs focus:outline-none cursor-pointer font-bold"
+              className="bg-[var(--bg-elevated)] border border-[var(--border)] px-3 py-2 rounded-xl text-[var(--text)] text-xs focus:outline-none cursor-pointer font-bold"
             >
               <option value="all"> All Temperature Scores</option>
               <option value="hot">Hot Lead (&gt;80 score) </option>
@@ -763,7 +763,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
             <select
               value={assignedFilter}
               onChange={(e) => setAssignedFilter(e.target.value)}
-              className="bg-var(--bg-elevated) border border-var(--border) px-3 py-2 rounded-xl text-neutral-300 text-xs focus:outline-none cursor-pointer font-bold"
+              className="bg-[var(--bg-elevated)] border border-[var(--border)] px-3 py-2 rounded-xl text-[var(--text)] text-xs focus:outline-none cursor-pointer font-bold"
             >
               <option value="all"> All Owners</option>
               {assignedUsersList.map(usr => (
@@ -782,7 +782,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                   setAssignedFilter("all");
                   triggerNotification(" Cleared CRM search filters");
                 }}
-                className="px-3.5 py-2 bg-var(--bg-elevated) hover:bg-neutral-800 text-white rounded-xl text-xs font-black cursor-pointer transition-colors"
+                className="px-3.5 py-2 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] text-[var(--text)] rounded-xl text-xs font-black cursor-pointer transition-colors"
               >
                 Clear
               </button>
@@ -791,24 +791,24 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
           </div>
 
           {/* Export data triggers */}
-          <div className="flex items-center gap-1.5 border-t lg:border-t-0 border-var(--border) pt-2 lg:pt-0">
+          <div className="flex items-center gap-1.5 border-t lg:border-t-0 border-[var(--border)] pt-2 lg:pt-0">
             <button
               onClick={() => handleExport("csv")}
-              className="px-3 py-2 bg-var(--bg-elevated)/60 border border-var(--border) text-neutral-400 text-xs font-bold rounded-xl hover:text-white cursor-pointer flex items-center justify-center gap-1.5 flex-1 lg:flex-none"
+              className="px-3 py-2 bg-[var(--bg-elevated)]/60 border border-[var(--border)] text-[var(--text-muted)] text-xs font-bold rounded-xl hover:text-[var(--text)] cursor-pointer flex items-center justify-center gap-1.5 flex-1 lg:flex-none"
               title="Export filtered leads as CSV"
             >
               <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-450" /> CSV
             </button>
             <button
               onClick={() => handleExport("excel")}
-              className="px-3 py-2 bg-var(--bg-elevated)/60 border border-var(--border) text-neutral-400 text-xs font-bold rounded-xl hover:text-white cursor-pointer flex items-center justify-center gap-1.5 flex-1 lg:flex-none"
+              className="px-3 py-2 bg-[var(--bg-elevated)]/60 border border-[var(--border)] text-[var(--text-muted)] text-xs font-bold rounded-xl hover:text-[var(--text)] cursor-pointer flex items-center justify-center gap-1.5 flex-1 lg:flex-none"
               title="Export filtered leads as XLSX"
             >
               <FileText className="w-3.5 h-3.5 text-emerald-450" /> Excel
             </button>
             <button
               onClick={() => handleExport("pdf")}
-              className="px-3 py-2 bg-var(--bg-elevated)/60 border border-var(--border) text-neutral-400 text-xs font-bold rounded-xl hover:text-white cursor-pointer flex items-center justify-center gap-1.5 flex-1 lg:flex-none"
+              className="px-3 py-2 bg-[var(--bg-elevated)]/60 border border-[var(--border)] text-[var(--text-muted)] text-xs font-bold rounded-xl hover:text-[var(--text)] cursor-pointer flex items-center justify-center gap-1.5 flex-1 lg:flex-none"
               title="Export filtered leads as PDF report"
             >
               <FileText className="w-3.5 h-3.5 text-red-400" /> PDF
@@ -839,20 +839,20 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                   key={stage.id}
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, stage.id)}
-                  className={`bg-neutral-950/40 border border-var(--border) rounded-2.5xl rounded-2xl p-3.5 min-h-[500px] flex flex-col transition-all duration-200 border-dashed ${
+                  className={`bg-[var(--bg-card)] border border-[var(--border)] rounded-2.5xl rounded-2xl p-3.5 min-h-[500px] flex flex-col transition-all duration-200 border-dashed ${
                     draggedLeadId ? "border-blue-500/20 bg-blue-500/[0.01]" : ""
                   }`}
                 >
                   
                   {/* Column Header */}
-                  <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-var(--border)">
+                  <div className="flex items-center justify-between pb-3.5 mb-3.5 border-b border-[var(--border)]">
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs">{stage.icon}</span>
-                      <h3 className="text-[11.5px] font-black text-white font-sans uppercase tracking-tight truncate max-w-[130px]">
+                      <h3 className="text-[11.5px] font-black text-[var(--text)] font-sans uppercase tracking-tight truncate max-w-[130px]">
                         {stage.label}
                       </h3>
                     </div>
-                    <span className="bg-var(--bg-elevated)/80 border border-var(--border)/60 text-neutral-300 font-mono text-[9px] px-2 py-0.5 rounded-full font-black">
+                    <span className="bg-[var(--bg-elevated)]/80 border border-[var(--border)]/60 text-[var(--text)] font-mono text-[9px] px-2 py-0.5 rounded-full font-black">
                       {stageLeads.length}
                     </span>
                   </div>
@@ -867,12 +867,12 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                           draggable
                           onDragStart={(e) => handleDragStart(e, item.id)}
                           onClick={() => setSelectedLeadId(item.id)}
-                          className="bg-[#0b0b0d]/90 border border-var(--border) hover:border-var(--border) rounded-2xl p-4.5 p-4 space-y-3.5 cursor-grab active:cursor-grabbing hover:bg-var(--bg-elevated)/20 active:scale-[0.98] transition-all relative overflow-hidden group shadow-md"
+                          className="bg-[var(--bg-card)]/90 border border-[var(--border)] hover:border-[var(--border)] rounded-2xl p-4.5 p-4 space-y-3.5 cursor-grab active:cursor-grabbing hover:bg-[var(--bg-elevated)]/20 active:scale-[0.98] transition-all relative overflow-hidden group shadow-md"
                         >
                           {/* Top row: Name & Score classification tag */}
                           <div className="space-y-1">
                             <div className="flex items-start justify-between gap-2">
-                              <h4 className="text-xs sm:text-[13px] font-black text-white font-sans group-hover:text-blue-400 transition-colors truncate">
+                              <h4 className="text-xs sm:text-[13px] font-black text-[var(--text)] font-sans group-hover:text-blue-400 transition-colors truncate">
                                 {item.name}
                               </h4>
                               <span className={`text-[8.5px] font-extrabold uppercase px-1.5 py-0.5 rounded border flex items-center gap-1 shrink-0 ${scoreClass.style}`}>
@@ -880,28 +880,28 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                                 {item.leadScore}%
                               </span>
                             </div>
-                            <span className="text-[10px] text-neutral-500 font-mono font-medium block">ID: {item.id}</span>
+                            <span className="text-[10px] text-[var(--text-subtle)] font-mono font-medium block">ID: {item.id}</span>
                           </div>
 
                           {/* Contact Info lines */}
-                          <div className="space-y-1 text-[11px] text-neutral-400 font-sans">
+                          <div className="space-y-1 text-[11px] text-[var(--text-muted)] font-sans">
                             <p className="flex items-center gap-1.5 truncate">
-                              <Phone className="w-3 h-3 text-neutral-500 shrink-0" />
+                              <Phone className="w-3 h-3 text-[var(--text-subtle)] shrink-0" />
                               <span>{item.phone}</span>
                             </p>
-                            <p className="flex items-center gap-1.5 truncate text-neutral-500">
-                              <User className="w-3 h-3 text-neutral-500 shrink-0" />
+                            <p className="flex items-center gap-1.5 truncate text-[var(--text-subtle)]">
+                              <User className="w-3 h-3 text-[var(--text-subtle)] shrink-0" />
                               <span>Assigned: {item.assignedTo}</span>
                             </p>
                           </div>
 
                           {/* Source & Last active timing row */}
-                          <div className="flex items-center justify-between pt-3 border-t border-var(--border)/60 text-[10px]">
+                          <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]/60 text-[10px]">
                             <span className="text-blue-400 bg-blue-500/5 border border-blue-500/10 rounded px-1.5 py-0.5 font-bold scale-95 origin-left truncate max-w-[100px]">
                               {item.source}
                             </span>
-                            <span className="text-neutral-500 flex items-center gap-1 text-[9.5px] font-medium font-sans">
-                              <Clock className="w-3 h-3 text-neutral-600" />
+                            <span className="text-[var(--text-subtle)] flex items-center gap-1 text-[9.5px] font-medium font-sans">
+                              <Clock className="w-3 h-3 text-[var(--text-subtle)]" />
                               {item.lastActive}
                             </span>
                           </div>
@@ -913,9 +913,9 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                     })}
 
                     {stageLeads.length === 0 && (
-                      <div className="text-center py-12 border border-dashed border-var(--border) rounded-2xl bg-neutral-950/10">
-                        <Users className="w-6 h-6 text-neutral-700 mx-auto mb-2" />
-                        <p className="text-[10px] text-neutral-500 font-sans font-medium px-2">No prospects in this stage</p>
+                      <div className="text-center py-12 border border-dashed border-[var(--border)] rounded-2xl bg-[var(--bg-card)]">
+                        <Users className="w-6 h-6 text-[var(--text-subtle)] mx-auto mb-2" />
+                        <p className="text-[10px] text-[var(--text-subtle)] font-sans font-medium px-2">No prospects in this stage</p>
                       </div>
                     )}
                   </div>
@@ -933,46 +933,46 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-5 backdrop-blur-md overflow-x-auto"
+            className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md overflow-x-auto"
           >
             <table className="w-full text-left border-collapse min-w-[900px] font-sans">
               <thead>
-                <tr className="border-b border-var(--border) text-neutral-500 text-[10px] uppercase font-black tracking-widest">
-                  <th className="pb-3 text-xs font-bold text-neutral-410 pl-2">Lead / ID</th>
-                  <th className="pb-3 text-xs font-bold text-neutral-410">Contact details</th>
-                  <th className="pb-3 text-xs font-bold text-neutral-410 font-bold text-center">Score rating</th>
-                  <th className="pb-3 text-xs font-bold text-neutral-410">Funnel Status</th>
-                  <th className="pb-3 text-xs font-bold text-neutral-410">Lead Source</th>
-                  <th className="pb-3 text-xs font-bold text-neutral-410">Owner</th>
-                  <th className="pb-3 text-xs font-bold text-neutral-410">Created Date</th>
-                  <th className="pb-3 text-xs font-bold text-neutral-410 text-right pr-2">Actions</th>
+                <tr className="border-b border-[var(--border)] text-[var(--text-subtle)] text-[10px] uppercase font-black tracking-widest">
+                  <th className="pb-3 text-xs font-bold text-[var(--text-muted)] pl-2">Lead / ID</th>
+                  <th className="pb-3 text-xs font-bold text-[var(--text-muted)]">Contact details</th>
+                  <th className="pb-3 text-xs font-bold text-[var(--text-muted)] font-bold text-center">Score rating</th>
+                  <th className="pb-3 text-xs font-bold text-[var(--text-muted)]">Funnel Status</th>
+                  <th className="pb-3 text-xs font-bold text-[var(--text-muted)]">Lead Source</th>
+                  <th className="pb-3 text-xs font-bold text-[var(--text-muted)]">Owner</th>
+                  <th className="pb-3 text-xs font-bold text-[var(--text-muted)]">Created Date</th>
+                  <th className="pb-3 text-xs font-bold text-[var(--text-muted)] text-right pr-2">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-neutral-900/30 text-xs font-sans text-neutral-300 font-medium select-text">
+              <tbody className="divide-y divide-neutral-900/30 text-xs font-sans text-[var(--text)] font-medium select-text">
                 {filteredLeads.map((item) => {
                   const scoreClass = getScoreClassification(item.leadScore);
                   return (
                     <tr 
                       key={item.id} 
-                      className="hover:bg-var(--bg-elevated)/20 group transition duration-150 cursor-pointer"
+                      className="hover:bg-[var(--bg-elevated)]/20 group transition duration-150 cursor-pointer"
                       onClick={() => setSelectedLeadId(item.id)}
                     >
-                      <td className="py-4 font-bold text-white group-hover:text-blue-400 pl-2">
+                      <td className="py-4 font-bold text-[var(--text)] group-hover:text-blue-400 pl-2">
                         <div className="flex items-center gap-1.5">
                           <div>
                             <p className="font-extrabold text-sm">{item.name}</p>
-                            <p className="text-[9.5px] text-neutral-500 font-mono font-black text-neutral-500 uppercase mt-0.5">{item.id}</p>
+                            <p className="text-[9.5px] text-[var(--text-subtle)] font-mono font-black text-[var(--text-subtle)] uppercase mt-0.5">{item.id}</p>
                           </div>
                         </div>
                       </td>
                       <td className="py-4">
-                        <p className="font-mono text-[11px] text-white">{item.phone}</p>
-                        <p className="text-[10px] text-neutral-500 truncate max-w-[150px]">{item.email}</p>
+                        <p className="font-mono text-[11px] text-[var(--text)]">{item.phone}</p>
+                        <p className="text-[10px] text-[var(--text-subtle)] truncate max-w-[150px]">{item.email}</p>
                       </td>
                       <td className="py-4 text-center">
-                        <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border border-var(--border) bg-var(--bg-elevated)/50">
+                        <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)]/50">
                           {scoreClass.icon}
-                          <span className="text-[10px] font-black text-white font-mono">{item.leadScore}%</span>
+                          <span className="text-[10px] font-black text-[var(--text)] font-mono">{item.leadScore}%</span>
                         </div>
                       </td>
                       <td className="py-4">
@@ -985,7 +985,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                               handleStatusChangeManual(item.id, e.target.value as any);
                             }}
                             onClick={(e) => e.stopPropagation()}
-                            className="bg-[#0b0b0e] border border-var(--border) px-2 py-1 rounded text-[10px] text-neutral-300 font-bold focus:outline-none focus:border-blue-500/40 cursor-pointer"
+                            className="bg-[var(--bg-card)] border border-[var(--border)] px-2 py-1 rounded text-[10px] text-[var(--text)] font-bold focus:outline-none focus:border-blue-500/40 cursor-pointer"
                           >
                             <option value="New Lead">New Lead</option>
                             <option value="Contacted"> Contacted</option>
@@ -1000,31 +1000,31 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                           {item.source}
                         </span>
                       </td>
-                      <td className="py-4 text-neutral-400 font-bold text-[11px]">
+                      <td className="py-4 text-[var(--text-muted)] font-bold text-[11px]">
                         {item.assignedTo}
                       </td>
-                      <td className="py-4 font-mono text-[10px] text-neutral-500">
+                      <td className="py-4 font-mono text-[10px] text-[var(--text-subtle)]">
                         {item.createdDate}
                       </td>
                       <td className="py-4 text-right pr-2">
                         <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                           <button
                             onClick={() => makeCallMock(item)}
-                            className="p-1.5 bg-[#101015] border border-var(--border) text-neutral-400 hover:text-white rounded-lg transition hover:border-neutral-800"
+                            className="p-1.5 bg-[#101015] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] rounded-lg transition hover:border-[var(--border)]"
                             title="Call customer"
                           >
                             <Phone className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => openWhatsAppMock(item)}
-                            className="p-1.5 bg-[#101015] border border-var(--border) text-neutral-400 hover:text-emerald-400 rounded-lg transition hover:border-neutral-800"
+                            className="p-1.5 bg-[#101015] border border-[var(--border)] text-[var(--text-muted)] hover:text-emerald-400 rounded-lg transition hover:border-[var(--border)]"
                             title="WhatsApp client lines"
                           >
                             <MessageSquare className="w-3.5 h-3.5" />
                           </button>
                           <button
                             onClick={() => archiveDeleteLead(item.id, item.name)}
-                            className="p-1.5 bg-[#1a0c0c] border border-red-950 text-neutral-500 hover:text-red-400 rounded-lg transition"
+                            className="p-1.5 bg-[#1a0c0c] border border-red-950 text-[var(--text-subtle)] hover:text-red-400 rounded-lg transition"
                             title="Delete Lead node"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -1039,9 +1039,9 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
 
             {filteredLeads.length === 0 && (
               <div className="text-center py-20 font-sans">
-                <Users className="w-10 h-10 text-neutral-700 mx-auto mb-3" />
-                <h4 className="text-sm font-black text-white">Your filtered list is empty</h4>
-                <p className="text-xs text-neutral-500 mt-1">Try relaxing search parameters or filters to load more prospects.</p>
+                <Users className="w-10 h-10 text-[var(--text-subtle)] mx-auto mb-3" />
+                <h4 className="text-sm font-black text-[var(--text)]">Your filtered list is empty</h4>
+                <p className="text-xs text-[var(--text-subtle)] mt-1">Try relaxing search parameters or filters to load more prospects.</p>
               </div>
             )}
           </motion.div>
@@ -1051,13 +1051,13 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
 
       {/* FILTER EMPTY DATABASE STATE (IF NO LEADS REGISTERED AT ALL) */}
       {crmLeads.length === 0 && (
-        <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-12 text-center backdrop-blur-md space-y-4 font-sans max-w-lg mx-auto">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-12 text-center backdrop-blur-md space-y-4 font-sans max-w-lg mx-auto">
           <div className="w-16 h-16 rounded-full bg-blue-600/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mx-auto animate-bounce">
             <Smartphone className="w-8 h-8" />
           </div>
           <div>
-            <h3 className="text-base font-black text-white uppercase tracking-wider">Your captured leads will appear here</h3>
-            <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto leading-relaxed">
+            <h3 className="text-base font-black text-[var(--text)] uppercase tracking-wider">Your captured leads will appear here</h3>
+            <p className="text-xs text-[var(--text-subtle)] mt-1 max-w-sm mx-auto leading-relaxed">
               Connect your professional WhatsApp sandbox line to capture automated incoming chats and turn inquiries into hot sales leads instantly on Autofy CRM!
             </p>
           </div>
@@ -1065,7 +1065,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
             onClick={() => {
               triggerNotification(" WhatsApp Live API session requested. Redirecting...");
             }}
-            className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-extrabold text-xs rounded-xl hover:from-blue-500 hover:to-indigo-500 shadow shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-1.5 mx-auto"
+            className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-[var(--text)] font-extrabold text-xs rounded-xl hover:from-blue-500 hover:to-indigo-500 shadow shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-1.5 mx-auto"
           >
             Connect WhatsApp
           </button>
@@ -1091,32 +1091,32 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
               animate={{ x: 0, opacity: 1 }}
               exit={{ x: "100%", opacity: 0.95 }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-full max-w-[500px] bg-[#0c0c0f]/95 border-l border-var(--border) z-50 p-6 flex flex-col justify-between shadow-2xl backdrop-blur-md text-white font-sans overflow-y-auto"
+              className="fixed top-0 right-0 h-full w-full max-w-[500px] bg-[var(--bg-card)] border-l border-[var(--border)] z-50 p-6 flex flex-col justify-between shadow-2xl backdrop-blur-md text-[var(--text)] font-sans overflow-y-auto"
             >
               <div className="space-y-6">
                 
                 {/* Header detail */}
-                <div className="flex items-start justify-between pb-4 border-b border-var(--border)">
+                <div className="flex items-start justify-between pb-4 border-b border-[var(--border)]">
                   <div className="space-y-1">
                     <span className="text-[10px] font-black uppercase text-blue-400 bg-blue-500/5 px-2 py-0.5 rounded border border-blue-500/10">
                       Funnel Prospect Node
                     </span>
-                    <h3 className="text-lg sm:text-xl font-black text-white font-sans mt-1.5">{selectedLead.name}</h3>
-                    <p className="text-xs text-neutral-500 font-mono">Database Record: {selectedLead.id}</p>
+                    <h3 className="text-lg sm:text-xl font-black text-[var(--text)] font-sans mt-1.5">{selectedLead.name}</h3>
+                    <p className="text-xs text-[var(--text-subtle)] font-mono">Database Record: {selectedLead.id}</p>
                   </div>
 
                   <button
                     onClick={() => setSelectedLeadId(null)}
-                    className="p-1.5 bg-[#141418] border border-var(--border) hover:bg-neutral-800 text-neutral-400 hover:text-white rounded-lg transition"
+                    className="p-1.5 bg-[var(--bg-elevated)] border border-[var(--border)] hover:bg-[var(--bg-elevated)] text-[var(--text-muted)] hover:text-[var(--text)] rounded-lg transition"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 </div>
 
                 {/* SCORING CLASSIFICATION HEAT STATUS */}
-                <div className="bg-var(--bg-elevated)/40 border border-var(--border) p-4 rounded-2xl space-y-2 relative overflow-hidden">
+                <div className="bg-[var(--bg-elevated)]/40 border border-[var(--border)] p-4 rounded-2xl space-y-2 relative overflow-hidden">
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-bold text-neutral-400">Autofy Scoring index</span>
+                    <span className="text-[10px] uppercase font-bold text-[var(--text-muted)]">Autofy Scoring index</span>
                     <span className={`text-[10px] font-black uppercase px-2.5 py-0.5 rounded border flex items-center gap-1 ${getScoreClassification(selectedLead.leadScore).style}`}>
                       {getScoreClassification(selectedLead.leadScore).icon}
                       {getScoreClassification(selectedLead.leadScore).label}
@@ -1125,13 +1125,13 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                   
                   {/* Progress bar gauge details */}
                   <div className="flex items-center gap-3 mt-1">
-                    <div className="flex-1 bg-[#151519] h-2 rounded-full overflow-hidden">
+                    <div className="flex-1 bg-[var(--bg-elevated)] h-2 rounded-full overflow-hidden">
                       <div className="bg-gradient-to-r from-amber-500 to-red-500 h-full rounded-full" style={{ width: `${selectedLead.leadScore}%` }} />
                     </div>
-                    <span className="font-mono text-xs font-black text-white">{selectedLead.leadScore}% Profile Weight</span>
+                    <span className="font-mono text-xs font-black text-[var(--text)]">{selectedLead.leadScore}% Profile Weight</span>
                   </div>
 
-                  <div className="pt-2 text-[10px] text-neutral-500 font-semibold leading-relaxed flex items-center gap-1.5">
+                  <div className="pt-2 text-[10px] text-[var(--text-subtle)] font-semibold leading-relaxed flex items-center gap-1.5">
                     <AlertCircle className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                     Calculated by AI based on response rate, booking calendar attempts & payment intent checks.
                   </div>
@@ -1139,21 +1139,21 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
 
                 {/* CUSTOMER DETAILED INFORMATION DIRECTORY */}
                 <div className="space-y-3">
-                  <h4 className="text-xs font-black text-neutral-400 uppercase tracking-widest font-sans">Customer Profile Facts</h4>
+                  <h4 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest font-sans">Customer Profile Facts</h4>
                   
-                  <div className="p-4 bg-[#0d0d10] border border-var(--border) rounded-2xl space-y-3 text-[11.5px] leading-relaxed">
+                  <div className="p-4 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl space-y-3 text-[11.5px] leading-relaxed">
                     <div className="flex items-start justify-between gap-3">
                       <div className="space-y-1">
                         <span className="text-[10px] text-[#4b4c53] font-black uppercase font-mono block">Registered Phone</span>
-                        <p className="font-mono font-bold text-white select-all">{selectedLead.phone}</p>
+                        <p className="font-mono font-bold text-[var(--text)] select-all">{selectedLead.phone}</p>
                       </div>
                       <div className="space-y-1">
                         <span className="text-[10px] text-[#4b4c53] font-black uppercase font-mono block">Email Line</span>
-                        <p className="text-neutral-300 font-semibold select-all truncate max-w-[150px]">{selectedLead.email}</p>
+                        <p className="text-[var(--text)] font-semibold select-all truncate max-w-[150px]">{selectedLead.email}</p>
                       </div>
                     </div>
 
-                    <div className="flex items-start justify-between gap-3 pt-3 border-t border-var(--border)/60">
+                    <div className="flex items-start justify-between gap-3 pt-3 border-t border-[var(--border)]/60">
                       <div className="space-y-1">
                         <span className="text-[10px] text-[#4b4c53] font-black uppercase font-mono block">Funnel Source</span>
                         <p className="text-blue-400 font-extrabold">{selectedLead.source}</p>
@@ -1164,38 +1164,38 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                       </div>
                     </div>
 
-                    <div className="space-y-1 pt-3 border-t border-var(--border)/60 select-all">
+                    <div className="space-y-1 pt-3 border-t border-[var(--border)]/60 select-all">
                       <span className="text-[10px] text-[#4b4c53] font-black uppercase font-mono block">Physical Address / Shipping Destination</span>
-                      <p className="text-neutral-300 leading-normal font-sans"><MapPin className="w-3.5 h-3.5 text-neutral-500 inline mr-1" />{selectedLead.address}</p>
+                      <p className="text-[var(--text)] leading-normal font-sans"><MapPin className="w-3.5 h-3.5 text-[var(--text-subtle)] inline mr-1" />{selectedLead.address}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* SMART INSIGHT PANEL (AI DEEP ANALYSIS COGNIZANT ENGINE) */}
                 <div className="space-y-3 font-sans">
-                  <h4 className="text-xs font-black text-neutral-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <h4 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-blue-400 animate-pulse" /> Smart Funnel Insights
                   </h4>
                   
                   <div className="p-4 bg-gradient-to-r from-[#030712] to-[#111827] border border-blue-500/10 rounded-2xl space-y-2">
                     {selectedLead.insights.map((insight, id) => (
-                      <div key={id} className="flex items-start gap-2.5 text-neutral-300 text-xs">
+                      <div key={id} className="flex items-start gap-2.5 text-[var(--text)] text-xs">
                         <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
                         <p className="leading-relaxed font-semibold">{insight}</p>
                       </div>
                     ))}
                     {selectedLead.insights.length === 0 && (
-                      <p className="text-xs text-neutral-500">No active alerts. Client is progressing naturally inside normal pipeline tracks.</p>
+                      <p className="text-xs text-[var(--text-subtle)]">No active alerts. Client is progressing naturally inside normal pipeline tracks.</p>
                     )}
                   </div>
                 </div>
 
                 {/* INTEGRATIVE CHATBOT CONVERSATION HISTORY STREAM */}
                 <div className="space-y-3 font-sans">
-                  <h4 className="text-xs font-black text-neutral-400 uppercase tracking-widest">WhatsApp Chat History Interaction</h4>
+                  <h4 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">WhatsApp Chat History Interaction</h4>
                   
-                  <div className="bg-[#08080a] border border-var(--border) rounded-2xl overflow-hidden">
-                    <div className="px-4 py-2 bg-var(--bg-elevated)/50 border-b border-var(--border) text-[10px] font-mono text-neutral-500 flex items-center justify-between">
+                  <div className="bg-[#08080a] border border-[var(--border)] rounded-2xl overflow-hidden">
+                    <div className="px-4 py-2 bg-[var(--bg-elevated)]/50 border-b border-[var(--border)] text-[10px] font-mono text-[var(--text-subtle)] flex items-center justify-between">
                       <span>Live Sandbox Log</span>
                       <span className="text-emerald-400">● Live Feed synced</span>
                     </div>
@@ -1205,12 +1205,12 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                         <div key={i} className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}>
                           <div className={`p-3 rounded-2xl max-w-[85%] text-xs leading-relaxed ${
                             msg.sender === "user"
-                              ? "bg-blue-600 text-white rounded-tr-none"
-                              : "bg-var(--bg-elevated) border border-var(--border) text-neutral-250 text-neutral-200 rounded-tl-none"
+                              ? "bg-blue-600 text-[var(--text)] rounded-tr-none"
+                              : "bg-[var(--bg-elevated)] border border-[var(--border)] text-neutral-250 text-[var(--text)] rounded-tl-none"
                           }`}>
                             {msg.text}
                           </div>
-                          <span className="text-[8.5px] text-neutral-500 mt-1 font-mono tracking-tight">{msg.time}</span>
+                          <span className="text-[8.5px] text-[var(--text-subtle)] mt-1 font-mono tracking-tight">{msg.time}</span>
                         </div>
                       ))}
                     </div>
@@ -1219,12 +1219,12 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
 
                 {/* EVENT TIMELINE CHRONICLES */}
                 <div className="space-y-3.5 font-sans">
-                  <h4 className="text-xs font-black text-neutral-400 uppercase tracking-widest">Activity Funnel Timeline</h4>
+                  <h4 className="text-xs font-black text-[var(--text-muted)] uppercase tracking-widest">Activity Funnel Timeline</h4>
                   
-                  <div className="p-4 bg-neutral-950/40 border border-var(--border) rounded-2xl space-y-5 relative">
+                  <div className="p-4 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl space-y-5 relative">
                     
                     {/* Visual Connector Line */}
-                    <div className="absolute left-[23px] top-6 bottom-6 w-0.5 bg-var(--bg-elevated) z-0" />
+                    <div className="absolute left-[23px] top-6 bottom-6 w-0.5 bg-[var(--bg-elevated)] z-0" />
 
                     {selectedLead.timeline.map((evt, index) => {
                       // Check standard milestones matching layout
@@ -1235,20 +1235,20 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                           {/* Point indicator */}
                           <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 border transition-all ${
                             isPast 
-                              ? "bg-blue-600 border-blue-500 text-white shadow-md shadow-blue-500/10" 
-                              : "bg-neutral-950 border-var(--border) text-neutral-500"
+                              ? "bg-blue-600 border-blue-500 text-[var(--text)] shadow-md shadow-blue-500/10" 
+                              : "bg-[var(--bg-card)] border-[var(--border)] text-[var(--text-subtle)]"
                           }`}>
                             {isPast ? <CheckCircle size={12} /> : index + 1}
                           </div>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-2.5">
-                              <h5 className={`font-bold transition-colors ${isPast ? "text-white" : "text-neutral-500"}`}>
+                              <h5 className={`font-bold transition-colors ${isPast ? "text-[var(--text)]" : "text-[var(--text-subtle)]"}`}>
                                 {evt.title}
                               </h5>
-                              <span className="text-[9px] text-neutral-500 font-mono font-medium shrink-0">{evt.date}</span>
+                              <span className="text-[9px] text-[var(--text-subtle)] font-mono font-medium shrink-0">{evt.date}</span>
                             </div>
-                            <p className={`text-[11px] leading-relaxed mt-0.5 ${isPast ? "text-neutral-400" : "text-neutral-600"}`}>
+                            <p className={`text-[11px] leading-relaxed mt-0.5 ${isPast ? "text-[var(--text-muted)]" : "text-[var(--text-subtle)]"}`}>
                               {evt.description}
                             </p>
                           </div>
@@ -1262,37 +1262,37 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
               </div>
 
               {/* QUICK CONTROL ACTION PLATFORMS PANEL (BOTTOM OF DRAWER) */}
-              <div className="pt-4 border-t border-var(--border) mt-6 grid grid-cols-2 gap-2 text-xs font-semibold">
+              <div className="pt-4 border-t border-[var(--border)] mt-6 grid grid-cols-2 gap-2 text-xs font-semibold">
                 
                 <button
                   onClick={() => makeCallMock(selectedLead)}
-                  className="px-3.5 py-2.5 bg-var(--bg-elevated) border border-var(--border) hover:bg-neutral-80 & text-white rounded-xl hover:border-neutral-800 font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2.5 bg-[var(--bg-elevated)] border border-[var(--border)] hover:bg-[var(--bg-elevated)] & text-[var(--text)] rounded-xl hover:border-[var(--border)] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Phone className="w-3.5 h-3.5 text-blue-400" /> Call Client
                 </button>
 
                 <button
                   onClick={() => openWhatsAppMock(selectedLead)}
-                  className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-[var(--text)] rounded-xl font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <MessageSquare className="w-3.5 h-3.5" /> WhatsApp Line
                 </button>
 
                 <button
                   onClick={() => bookAppointmentMock(selectedLead)}
-                  className="px-3.5 py-2.5 bg-var(--bg-elevated) border border-var(--border) text-white rounded-xl hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2.5 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text)] rounded-xl hover:bg-[var(--bg-elevated)] transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Calendar className="w-3.5 h-3.5 text-amber-500" /> Book Slot
                 </button>
 
                 <button
                   onClick={() => generatePaymentLinkMock(selectedLead)}
-                  className="px-3.5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-bold hover:from-blue-550 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-[var(--text)] rounded-xl font-bold hover:from-blue-550 transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
-                  <CreditCard className="w-3.5 h-3.5 text-white" /> Pay Invoice
+                  <CreditCard className="w-3.5 h-3.5 text-[var(--text)]" /> Pay Invoice
                 </button>
 
-                <div className="col-span-2 grid grid-cols-3 gap-2 pt-2 border-t border-neutral-950">
+                <div className="col-span-2 grid grid-cols-3 gap-2 pt-2 border-t border-[var(--border)]">
                   <button
                     onClick={() => handleStatusChangeManual(selectedLead.id, "Converted")}
                     className="py-2 bg-emerald-500/10 text-emerald-400 border border-emerald-500/10 hover:bg-emerald-500/20 text-[10.5px] font-bold rounded-xl transition cursor-pointer"
@@ -1307,7 +1307,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                       const next = list[(currentId + 1) % list.length];
                       assignToTeamMock(selectedLead, next);
                     }}
-                    className="py-2 bg-var(--bg-elevated) border border-var(--border) text-neutral-400 hover:text-white text-[10.5px] font-bold rounded-xl transition cursor-pointer"
+                    className="py-2 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] text-[10.5px] font-bold rounded-xl transition cursor-pointer"
                   >
                     Reassign Owner
                   </button>
@@ -1344,67 +1344,67 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
               initial={{ scale: 0.95, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.95, opacity: 0 }}
-              className="fixed inset-2 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-md w-full bg-[#0a0a0d] border border-var(--border) rounded-3xl p-6 shadow-2xl z-[60] backdrop-blur-md text-white font-sans overflow-y-auto max-h-[90vh]"
+              className="fixed inset-2 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-md w-full bg-[var(--bg-elevated)] border border-[var(--border)] rounded-3xl p-6 shadow-2xl z-[60] backdrop-blur-md text-[var(--text)] font-sans overflow-y-auto max-h-[90vh]"
             >
               
-              <div className="flex items-center justify-between pb-3.5 border-b border-var(--border) mb-5">
+              <div className="flex items-center justify-between pb-3.5 border-b border-[var(--border)] mb-5">
                 <h3 className="text-xs sm:text-sm font-black uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
                   <UserPlus className="w-4 h-4 text-blue-400" /> Capture Prospect Manually
                 </h3>
                 <button
                   onClick={() => setIsAddingLead(false)}
-                  className="p-1 text-neutral-500 hover:text-white rounded-lg transition"
+                  className="p-1 text-[var(--text-subtle)] hover:text-[var(--text)] rounded-lg transition"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              <form onSubmit={handleCreateLead} className="space-y-4 text-xs text-neutral-300 font-medium">
+              <form onSubmit={handleCreateLead} className="space-y-4 text-xs text-[var(--text)] font-medium">
                 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-black text-neutral-500">FullName *</label>
+                  <label className="text-[10px] uppercase font-black text-[var(--text-subtle)]">FullName *</label>
                   <input
                     type="text"
                     required
                     value={newLeadName}
                     onChange={(e) => setNewLeadName(e.target.value)}
                     placeholder="e.g. Sridhar Murthy"
-                    className="w-full bg-[#121217] border border-var(--border) rounded-xl px-3.5 py-3 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-blue-500/40 font-semibold"
+                    className="w-full bg-[#121217] border border-[var(--border)] rounded-xl px-3.5 py-3 text-xs text-[var(--text)] placeholder-neutral-600 focus:outline-none focus:border-blue-500/40 font-semibold"
                   />
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-black text-neutral-500">Phone Mobile *</label>
+                    <label className="text-[10px] uppercase font-black text-[var(--text-subtle)]">Phone Mobile *</label>
                     <input
                       type="text"
                       required
                       value={newLeadPhone}
                       onChange={(e) => setNewLeadPhone(e.target.value)}
                       placeholder="e.g. +91 99887 76655"
-                      className="w-full bg-[#121217] border border-var(--border) rounded-xl px-3.5 py-3 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-blue-500/40 font-mono font-bold"
+                      className="w-full bg-[#121217] border border-[var(--border)] rounded-xl px-3.5 py-3 text-xs text-[var(--text)] placeholder-neutral-600 focus:outline-none focus:border-blue-500/40 font-mono font-bold"
                     />
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-black text-neutral-500">Email Address (Optional)</label>
+                    <label className="text-[10px] uppercase font-black text-[var(--text-subtle)]">Email Address (Optional)</label>
                     <input
                       type="email"
                       value={newLeadEmail}
                       onChange={(e) => setNewLeadEmail(e.target.value)}
                       placeholder="e.g. sridhar@gmail.com"
-                      className="w-full bg-[#121217] border border-var(--border) rounded-xl px-3.5 py-3 text-xs text-white placeholder-neutral-600 focus:outline-none focus:border-blue-500/40"
+                      className="w-full bg-[#121217] border border-[var(--border)] rounded-xl px-3.5 py-3 text-xs text-[var(--text)] placeholder-neutral-600 focus:outline-none focus:border-blue-500/40"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-black text-neutral-500">Traffic Source</label>
+                    <label className="text-[10px] uppercase font-black text-[var(--text-subtle)]">Traffic Source</label>
                     <select
                       value={newLeadSource}
                       onChange={(e) => setNewLeadSource(e.target.value)}
-                      className="w-full bg-[#121217] border border-var(--border) rounded-xl p-3 text-xs text-white focus:outline-none focus:border-blue-500/40 font-semibold cursor-pointer"
+                      className="w-full bg-[#121217] border border-[var(--border)] rounded-xl p-3 text-xs text-[var(--text)] focus:outline-none focus:border-blue-500/40 font-semibold cursor-pointer"
                     >
                       <option value="WhatsApp Chat"> WhatsApp Chat</option>
                       <option value="Instagram ad"> Instagram Ad Campaign</option>
@@ -1415,11 +1415,11 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                   </div>
 
                   <div className="space-y-1.5">
-                    <label className="text-[10px] uppercase font-black text-neutral-500">Business Unit Category</label>
+                    <label className="text-[10px] uppercase font-black text-[var(--text-subtle)]">Business Unit Category</label>
                     <select
                       value={newLeadBizType}
                       onChange={(e) => setNewLeadBizType(e.target.value)}
-                      className="w-full bg-[#121217] border border-var(--border) rounded-xl p-3 text-xs text-white focus:outline-none focus:border-blue-500/40 font-semibold cursor-pointer"
+                      className="w-full bg-[#121217] border border-[var(--border)] rounded-xl p-3 text-xs text-[var(--text)] focus:outline-none focus:border-blue-500/40 font-semibold cursor-pointer"
                     >
                       <option value="Fitness Studio"> Gym & Fitness Studio</option>
                       <option value="Motorcycle Accessories"> AEW Motorcycle Spares</option>
@@ -1429,12 +1429,12 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-[10px] uppercase font-black text-neutral-500">Physical Address / Territory Location</label>
+                  <label className="text-[10px] uppercase font-black text-[var(--text-subtle)]">Physical Address / Territory Location</label>
                   <textarea
                     value={newLeadAddress}
                     onChange={(e) => setNewLeadAddress(e.target.value)}
                     placeholder="e.g. Indiranagar, Bengaluru, KA"
-                    className="w-full bg-[#121217] border border-var(--border) rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-neutral-600 h-16 placeholder-neutral-700"
+                    className="w-full bg-[#121217] border border-[var(--border)] rounded-xl px-3.5 py-2.5 text-xs text-[var(--text)] placeholder-neutral-600 h-16 placeholder-neutral-700"
                   />
                 </div>
 
@@ -1442,14 +1442,14 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                   <button
                     type="button"
                     onClick={() => setIsAddingLead(false)}
-                    className="px-4 py-2.5 bg-[#141418] hover:bg-neutral-800 rounded-xl text-neutral-400 hover:text-white transition cursor-pointer"
+                    className="px-4 py-2.5 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] rounded-xl text-[var(--text-muted)] hover:text-[var(--text)] transition cursor-pointer"
                   >
                     Cancel
                   </button>
 
                   <button
                     type="submit"
-                    className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl shadow-lg shadow-blue-500/10 cursor-pointer hover:from-blue-500 hover:to-indigo-500 transition-all font-extrabold"
+                    className="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-[var(--text)] rounded-xl shadow-lg shadow-blue-500/10 cursor-pointer hover:from-blue-500 hover:to-indigo-500 transition-all font-extrabold"
                   >
                     Register Prospect
                   </button>

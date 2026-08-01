@@ -83,14 +83,14 @@ export const SuperAdminDashboardTab: React.FC = () => {
   };
 
   return (
-    <div id="super-admin-view" className="space-y-8 animate-fade-in text-neutral-200">
+    <div id="super-admin-view" className="space-y-8 animate-fade-in text-[var(--text)]">
       
       {/* Header section with luxury dark/grey styling */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-white/[0.08] pb-6 gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-[var(--border)] pb-6 gap-4">
         <div>
-          <span className="text-[10px] uppercase font-bold tracking-wider text-neutral-500 font-sans">Platform Central Console</span>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight mt-1">Super Admin Dashboard</h1>
-          <p className="text-xs text-neutral-400 mt-1">Master operational, data, telemetry, billing, and system metrics across all registered clients.</p>
+          <span className="text-[10px] uppercase font-bold tracking-wider text-[var(--text-subtle)] font-sans">Platform Central Console</span>
+          <h1 className="text-3xl font-extrabold text-[var(--text)] tracking-tight mt-1">Super Admin Dashboard</h1>
+          <p className="text-xs text-[var(--text-muted)] mt-1">Master operational, data, telemetry, billing, and system metrics across all registered clients.</p>
         </div>
 
         {/* Top Control Options */}
@@ -103,7 +103,7 @@ export const SuperAdminDashboardTab: React.FC = () => {
                 ...logs
               ]);
             }}
-            className="px-4 py-2 bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.08] rounded-xl text-xs font-bold text-neutral-100 flex items-center gap-2 transition-all"
+            className="px-4 py-2 bg-white/[0.04] hover:bg-white/[0.1] border border-[var(--border)] rounded-xl text-xs font-bold text-[var(--text)] flex items-center gap-2 transition-all"
           >
             <RefreshCw className="w-4 h-4" /> Hard Refresh Cluster
           </button>
@@ -112,103 +112,103 @@ export const SuperAdminDashboardTab: React.FC = () => {
 
       {/* Primary Statistics Grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-2">
-          <div className="flex justify-between items-center text-neutral-400">
+        <div className="p-5 rounded-2xl bg-white/[0.03] border border-[var(--border)] space-y-2">
+          <div className="flex justify-between items-center text-[var(--text-muted)]">
             <span className="text-[10.5px] font-bold uppercase tracking-wider">Total Businesses</span>
-            <Briefcase className="w-4 h-4 text-neutral-500" />
+            <Briefcase className="w-4 h-4 text-[var(--text-subtle)]" />
           </div>
-          <p className="text-2xl font-black text-white">{businesses.length + 8}</p>
+          <p className="text-2xl font-black text-[var(--text)]">{businesses.length + 8}</p>
           <span className="text-[10px] text-green-400 font-bold">+12% growth rate</span>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-2">
-          <div className="flex justify-between items-center text-neutral-400">
+        <div className="p-5 rounded-2xl bg-white/[0.03] border border-[var(--border)] space-y-2">
+          <div className="flex justify-between items-center text-[var(--text-muted)]">
             <span className="text-[10.5px] font-bold uppercase tracking-wider">Active Tenants</span>
-            <CheckCircle className="w-4 h-4 text-neutral-500" />
+            <CheckCircle className="w-4 h-4 text-[var(--text-subtle)]" />
           </div>
-          <p className="text-2xl font-black text-white">{businesses.filter(b => b.status === "Active").length + 7}</p>
-          <span className="text-[10px] text-neutral-500 font-mono">1 Suspended Client</span>
+          <p className="text-2xl font-black text-[var(--text)]">{businesses.filter(b => b.status === "Active").length + 7}</p>
+          <span className="text-[10px] text-[var(--text-subtle)] font-mono">1 Suspended Client</span>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-2">
-          <div className="flex justify-between items-center text-neutral-400">
+        <div className="p-5 rounded-2xl bg-white/[0.03] border border-[var(--border)] space-y-2">
+          <div className="flex justify-between items-center text-[var(--text-muted)]">
             <span className="text-[10.5px] font-bold uppercase tracking-wider">Monthly Revenue</span>
-            <DollarSign className="w-4 h-4 text-neutral-500" />
+            <DollarSign className="w-4 h-4 text-[var(--text-subtle)]" />
           </div>
-          <p className="text-2xl font-black text-white">₹2,84,000</p>
+          <p className="text-2xl font-black text-[var(--text)]">₹2,84,000</p>
           <span className="text-[10px] text-green-400 font-bold">+24% MRR Expansion</span>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06] space-y-2">
-          <div className="flex justify-between items-center text-neutral-400">
+        <div className="p-5 rounded-2xl bg-white/[0.03] border border-[var(--border)] space-y-2">
+          <div className="flex justify-between items-center text-[var(--text-muted)]">
             <span className="text-[10.5px] font-bold uppercase tracking-wider">Gemini Prompt Usage</span>
-            <Activity className="w-4 h-4 text-neutral-500" />
+            <Activity className="w-4 h-4 text-[var(--text-subtle)]" />
           </div>
-          <p className="text-2xl font-black text-white">1,42,850</p>
-          <span className="text-[10px] text-neutral-500 font-mono">Success rate 99.82%</span>
+          <p className="text-2xl font-black text-[var(--text)]">1,42,850</p>
+          <span className="text-[10px] text-[var(--text-subtle)] font-mono">Success rate 99.82%</span>
         </div>
       </div>
 
       {/* Platform Health and Quick System Indicators */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-3.5">
-        <div className="p-4 rounded-xl bg-white/[0.02]/80 border border-white/[0.05] flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-white/[0.02]/80 border border-[var(--border)] flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="block text-[9.5px] text-neutral-500 uppercase font-black">Database Cluster</span>
-            <div className="text-xs font-bold text-white flex items-center gap-1.5">
+            <span className="block text-[9.5px] text-[var(--text-subtle)] uppercase font-black">Database Cluster</span>
+            <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${dbStatus === "Healthy" ? "bg-green-500" : "bg-yellow-500"}`} />
               {dbStatus}
             </div>
           </div>
-          <button onClick={() => setDbStatus(d => d === "Healthy" ? "Degraded" : "Healthy")} className="text-[9px] text-neutral-500 hover:text-white uppercase font-bold">Toggle</button>
+          <button onClick={() => setDbStatus(d => d === "Healthy" ? "Degraded" : "Healthy")} className="text-[9px] text-[var(--text-subtle)] hover:text-[var(--text)] uppercase font-bold">Toggle</button>
         </div>
 
-        <div className="p-4 rounded-xl bg-white/[0.02]/80 border border-white/[0.05] flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-white/[0.02]/80 border border-[var(--border)] flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="block text-[9.5px] text-neutral-500 uppercase font-black">API Router Gateway</span>
-            <div className="text-xs font-bold text-white flex items-center gap-1.5">
+            <span className="block text-[9.5px] text-[var(--text-subtle)] uppercase font-black">API Router Gateway</span>
+            <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${apiStatus === "Online" ? "bg-green-500" : "bg-red-500"}`} />
               {apiStatus}
             </div>
           </div>
-          <button onClick={() => setApiStatus(a => a === "Online" ? "Maintenance" : "Online")} className="text-[9px] text-neutral-500 hover:text-white uppercase font-bold">Toggle</button>
+          <button onClick={() => setApiStatus(a => a === "Online" ? "Maintenance" : "Online")} className="text-[9px] text-[var(--text-subtle)] hover:text-[var(--text)] uppercase font-bold">Toggle</button>
         </div>
 
-        <div className="p-4 rounded-xl bg-white/[0.02]/80 border border-white/[0.05] flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-white/[0.02]/80 border border-[var(--border)] flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="block text-[9.5px] text-neutral-500 uppercase font-black">WhatsApp Webhook</span>
-            <div className="text-xs font-bold text-white flex items-center gap-1.5">
+            <span className="block text-[9.5px] text-[var(--text-subtle)] uppercase font-black">WhatsApp Webhook</span>
+            <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${whatsappStatus === "Connected" ? "bg-green-500" : "bg-red-500"}`} />
               {whatsappStatus}
             </div>
           </div>
-          <button onClick={() => setWhatsappStatus(w => w === "Connected" ? "Error" : "Connected")} className="text-[9px] text-neutral-500 hover:text-white uppercase font-bold">Toggle</button>
+          <button onClick={() => setWhatsappStatus(w => w === "Connected" ? "Error" : "Connected")} className="text-[9px] text-[var(--text-subtle)] hover:text-[var(--text)] uppercase font-bold">Toggle</button>
         </div>
 
-        <div className="p-4 rounded-xl bg-white/[0.02]/80 border border-white/[0.05] flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-white/[0.02]/80 border border-[var(--border)] flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="block text-[9.5px] text-neutral-500 uppercase font-black">Gemini 3.5 Engine</span>
-            <div className="text-xs font-bold text-white flex items-center gap-1.5">
+            <span className="block text-[9.5px] text-[var(--text-subtle)] uppercase font-black">Gemini 3.5 Engine</span>
+            <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${geminiStatus === "Active" ? "bg-green-500" : "bg-yellow-500"}`} />
               {geminiStatus}
             </div>
           </div>
-          <button onClick={() => setGeminiStatus(g => g === "Active" ? "Delayed" : "Active")} className="text-[9px] text-neutral-500 hover:text-white uppercase font-bold">Toggle</button>
+          <button onClick={() => setGeminiStatus(g => g === "Active" ? "Delayed" : "Active")} className="text-[9px] text-[var(--text-subtle)] hover:text-[var(--text)] uppercase font-bold">Toggle</button>
         </div>
 
-        <div className="p-4 rounded-xl bg-white/[0.02]/80 border border-white/[0.05] flex items-center justify-between">
+        <div className="p-4 rounded-xl bg-white/[0.02]/80 border border-[var(--border)] flex items-center justify-between">
           <div className="space-y-0.5">
-            <span className="block text-[9.5px] text-neutral-500 uppercase font-black">Razorpay Linker</span>
-            <div className="text-xs font-bold text-white flex items-center gap-1.5">
+            <span className="block text-[9.5px] text-[var(--text-subtle)] uppercase font-black">Razorpay Linker</span>
+            <div className="text-xs font-bold text-[var(--text)] flex items-center gap-1.5">
               <span className={`w-2 h-2 rounded-full ${gatewayStatus === "Active" ? "bg-green-500" : "bg-red-500"}`} />
               {gatewayStatus}
             </div>
           </div>
-          <button onClick={() => setGatewayStatus(gw => gw === "Active" ? "Offline" : "Active")} className="text-[9px] text-neutral-500 hover:text-white uppercase font-bold">Toggle</button>
+          <button onClick={() => setGatewayStatus(gw => gw === "Active" ? "Offline" : "Active")} className="text-[9px] text-[var(--text-subtle)] hover:text-[var(--text)] uppercase font-bold">Toggle</button>
         </div>
       </div>
 
       {/* Tab Switching Menu */}
-      <div className="flex gap-2 border-b border-white/[0.06] pb-1">
+      <div className="flex gap-2 border-b border-[var(--border)] pb-1">
         {[
           { id: "businesses", label: "Registered Businesses", count: businesses.length },
           { id: "logs", label: "Operational Logs Feed", count: logs.length },
@@ -220,8 +220,8 @@ export const SuperAdminDashboardTab: React.FC = () => {
             onClick={() => setSelectedSubTab(tab.id as any)}
             className={`px-4 py-2.5 text-xs font-black uppercase tracking-wider border-b-2 transition-all ${
               selectedSubTab === tab.id 
-                ? "border-white text-white" 
-                : "border-transparent text-neutral-400 hover:text-white"
+                ? "border-white text-[var(--text)]" 
+                : "border-transparent text-[var(--text-muted)] hover:text-[var(--text)]"
             }`}
           >
             {tab.label} {tab.count !== null && <span className="ml-1.5 bg-white/[0.08] px-1.5 py-0.5 rounded text-[10px]">{tab.count}</span>}
@@ -233,16 +233,16 @@ export const SuperAdminDashboardTab: React.FC = () => {
       <div className="space-y-6">
 
         {selectedSubTab === "businesses" && (
-          <div className="p-6 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md">
+          <div className="p-6 rounded-2xl bg-white/[0.04] border border-[var(--border)] backdrop-blur-md">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Multi-Tenant Business Registry</h3>
-              <p className="text-xs text-neutral-500 font-mono">Viewing 1-4 of {businesses.length} database entries</p>
+              <h3 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider">Multi-Tenant Business Registry</h3>
+              <p className="text-xs text-[var(--text-subtle)] font-mono">Viewing 1-4 of {businesses.length} database entries</p>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="border-b border-white/[0.08] text-neutral-500 uppercase tracking-widest text-[9.5px]">
+                  <tr className="border-b border-[var(--border)] text-[var(--text-subtle)] uppercase tracking-widest text-[9.5px]">
                     <th className="py-3 px-2">Business Name & Owner</th>
                     <th className="py-3 px-2">Billing Plan</th>
                     <th className="py-3 px-2">Created On</th>
@@ -254,32 +254,32 @@ export const SuperAdminDashboardTab: React.FC = () => {
                   {businesses.map((biz) => (
                     <tr key={biz.id} className="hover:bg-white/[0.02] transition-all">
                       <td className="py-4 px-2">
-                        <p className="font-extrabold text-white text-xs">{biz.name}</p>
-                        <p className="text-[10px] text-neutral-500 font-sans">Owner: {biz.owner} • ID: {biz.id}</p>
+                        <p className="font-extrabold text-[var(--text)] text-xs">{biz.name}</p>
+                        <p className="text-[10px] text-[var(--text-subtle)] font-sans">Owner: {biz.owner} • ID: {biz.id}</p>
                       </td>
                       <td className="py-4 px-2 space-y-1">
-                        <span className="px-2 py-0.5 bg-white/[0.06] border border-white/[0.1] rounded text-[9.5px] font-bold text-neutral-300">{biz.plan}</span>
+                        <span className="px-2 py-0.5 bg-white/[0.06] border border-[var(--border)] rounded text-[9.5px] font-bold text-[var(--text)]">{biz.plan}</span>
                         <div className="flex gap-1.5 pt-1">
                           <button onClick={() => forceUpgradePlan(biz.id, "Enterprise")} className="text-[9px] text-[#A3A3A3] hover:underline">Enterprise</button>
-                          <span className="text-[9px] text-neutral-700">|</span>
+                          <span className="text-[9px] text-[var(--text-subtle)]">|</span>
                           <button onClick={() => forceUpgradePlan(biz.id, "Professional")} className="text-[9px] text-[#A3A3A3] hover:underline">Professional</button>
                         </div>
                       </td>
-                      <td className="py-4 px-2 font-mono text-neutral-400">{biz.created}</td>
+                      <td className="py-4 px-2 font-mono text-[var(--text-muted)]">{biz.created}</td>
                       <td className="py-4 px-2">
                         <span className={`inline-block w-2.5 h-2.5 rounded-full mr-1 ${biz.status === "Active" ? "bg-green-500" : "bg-red-500"}`} />
-                        <span className="text-neutral-300 font-semibold">{biz.status}</span>
+                        <span className="text-[var(--text)] font-semibold">{biz.status}</span>
                       </td>
                       <td className="py-4 px-2 text-right space-x-1">
                         <button 
                           onClick={() => toggleBusinessStatus(biz.id)} 
-                          className="px-2 rounded py-1 text-[10px] font-bold bg-white/[0.06] hover:bg-white/[0.1] text-white border border-white/[0.08]"
+                          className="px-2 rounded py-1 text-[10px] font-bold bg-white/[0.06] hover:bg-white/[0.1] text-[var(--text)] border border-[var(--border)]"
                         >
                           {biz.status === "Active" ? "Suspend" : "Activate"}
                         </button>
                         <button 
                           onClick={() => deleteBusiness(biz.id, biz.name)}
-                          className="p-1 px-2.5 rounded bg-transparent hover:bg-red-500/10 text-neutral-400 hover:text-red-400 border border-transparent hover:border-red-500/20"
+                          className="p-1 px-2.5 rounded bg-transparent hover:bg-red-500/10 text-[var(--text-muted)] hover:text-red-400 border border-transparent hover:border-red-500/20"
                         >
                           <Trash2 className="w-3.5 h-3.5 inline" />
                         </button>
@@ -293,24 +293,24 @@ export const SuperAdminDashboardTab: React.FC = () => {
         )}
 
         {selectedSubTab === "logs" && (
-          <div className="p-6 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md space-y-4">
-            <div className="flex justify-between items-center pb-2 border-b border-white/[0.05]">
+          <div className="p-6 rounded-2xl bg-white/[0.04] border border-[var(--border)] backdrop-blur-md space-y-4">
+            <div className="flex justify-between items-center pb-2 border-b border-[var(--border)]">
               <div className="flex items-center gap-2">
-                <Terminal className="w-4 h-4 text-neutral-400" />
-                <h3 className="text-sm font-bold text-white uppercase tracking-wider">Superuser System Logs</h3>
+                <Terminal className="w-4 h-4 text-[var(--text-muted)]" />
+                <h3 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider">Superuser System Logs</h3>
               </div>
               <button 
                 onClick={() => setLogs([])}
-                className="text-[10px] font-bold text-neutral-400 hover:text-white uppercase tracking-wider"
+                className="text-[10px] font-bold text-[var(--text-muted)] hover:text-[var(--text)] uppercase tracking-wider"
               >
                 Clear Log List
               </button>
             </div>
 
-            <div className="bg-[#050505] p-4 rounded-xl border border-white/[0.05] font-mono text-[11px] leading-relaxed space-y-2 p-4 h-[300px] overflow-y-auto">
+            <div className="bg-[#050505] p-4 rounded-xl border border-[var(--border)] font-mono text-[11px] leading-relaxed space-y-2 p-4 h-[300px] overflow-y-auto">
               {logs.map((log, index) => (
                 <div key={index} className="flex gap-4">
-                  <span className="text-neutral-600 shrink-0">[{log.time}]</span>
+                  <span className="text-[var(--text-subtle)] shrink-0">[{log.time}]</span>
                   <span className={`font-bold shrink-0 ${
                     log.type === "Security" ? "text-red-400" :
                     log.type === "Billing" ? "text-green-400" :
@@ -318,10 +318,10 @@ export const SuperAdminDashboardTab: React.FC = () => {
                   }`}>
                     {log.type.toUpperCase()}:
                   </span>
-                  <span className="text-neutral-300">{log.text}</span>
+                  <span className="text-[var(--text)]">{log.text}</span>
                 </div>
               ))}
-              {logs.length === 0 && <p className="text-neutral-600 text-center py-12">No event listings detected currently.</p>}
+              {logs.length === 0 && <p className="text-[var(--text-subtle)] text-center py-12">No event listings detected currently.</p>}
             </div>
           </div>
         )}
@@ -329,56 +329,56 @@ export const SuperAdminDashboardTab: React.FC = () => {
         {selectedSubTab === "monitoring" && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            <div className="p-6 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Storage & Hardware Telemetry</h3>
+            <div className="p-6 rounded-2xl bg-white/[0.04] border border-[var(--border)] backdrop-blur-md space-y-4">
+              <h3 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider">Storage & Hardware Telemetry</h3>
               <div className="space-y-4 font-sans text-xs">
                 
                 <div className="space-y-1">
                   <div className="flex justify-between text-[11px]">
-                    <span className="text-neutral-400">Memory Core Allocation</span>
-                    <span className="font-mono text-white">4.12 GB / 8.00 GB (51.5%)</span>
+                    <span className="text-[var(--text-muted)]">Memory Core Allocation</span>
+                    <span className="font-mono text-[var(--text)]">4.12 GB / 8.00 GB (51.5%)</span>
                   </div>
                   <div className="w-full bg-white/[0.08] h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-neutral-400 h-full w-[51.5%]" />
+                    <div className="bg-[var(--text-muted)] h-full w-[51.5%]" />
                   </div>
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex justify-between text-[11px]">
-                    <span className="text-neutral-400">Database Block-Level Access Volume</span>
-                    <span className="font-mono text-white">480 IOPs (Normal)</span>
+                    <span className="text-[var(--text-muted)]">Database Block-Level Access Volume</span>
+                    <span className="font-mono text-[var(--text)]">480 IOPs (Normal)</span>
                   </div>
                   <div className="w-full bg-white/[0.08] h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-neutral-500 h-full w-[35%]" />
+                    <div className="bg-[var(--text-subtle)] h-full w-[35%]" />
                   </div>
                 </div>
 
                 <div className="space-y-1">
                   <div className="flex justify-between text-[11px]">
-                    <span className="text-neutral-400">Docker Node CPU Throttle</span>
-                    <span className="font-mono text-white">12% Peak Hold</span>
+                    <span className="text-[var(--text-muted)]">Docker Node CPU Throttle</span>
+                    <span className="font-mono text-[var(--text)]">12% Peak Hold</span>
                   </div>
                   <div className="w-full bg-white/[0.08] h-1.5 rounded-full overflow-hidden">
-                    <div className="bg-neutral-300 h-full w-[12%]" />
+                    <div className="bg-[var(--text)] h-full w-[12%]" />
                   </div>
                 </div>
 
               </div>
             </div>
 
-            <div className="p-6 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md space-y-4">
-              <h3 className="text-sm font-bold text-white uppercase tracking-wider">Platform Operations Control</h3>
+            <div className="p-6 rounded-2xl bg-white/[0.04] border border-[var(--border)] backdrop-blur-md space-y-4">
+              <h3 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider">Platform Operations Control</h3>
               <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => alert("Cluster backup manual snapshot initiated.")} className="py-3 bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.08] rounded-xl text-xs font-bold text-white text-center">
+                <button onClick={() => alert("Cluster backup manual snapshot initiated.")} className="py-3 bg-white/[0.04] hover:bg-white/[0.1] border border-[var(--border)] rounded-xl text-xs font-bold text-[var(--text)] text-center">
                   Backup Storage Nodes
                 </button>
-                <button onClick={() => alert("Rebooting nginx routing reverse proxies...")} className="py-3 bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.08] rounded-xl text-xs font-bold text-white text-center">
+                <button onClick={() => alert("Rebooting nginx routing reverse proxies...")} className="py-3 bg-white/[0.04] hover:bg-white/[0.1] border border-[var(--border)] rounded-xl text-xs font-bold text-[var(--text)] text-center">
                   Reboot Proxy Layer
                 </button>
-                <button onClick={() => alert("Purged CDN cache globally.")} className="py-3 bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.08] rounded-xl text-xs font-bold text-white text-center">
+                <button onClick={() => alert("Purged CDN cache globally.")} className="py-3 bg-white/[0.04] hover:bg-white/[0.1] border border-[var(--border)] rounded-xl text-xs font-bold text-[var(--text)] text-center">
                   Purge Cloud CDN
                 </button>
-                <button onClick={() => alert("Triggered SSL handshake re-negotiation of domains")} className="py-3 bg-white/[0.04] hover:bg-white/[0.1] border border-white/[0.08] rounded-xl text-xs font-bold text-white text-center">
+                <button onClick={() => alert("Triggered SSL handshake re-negotiation of domains")} className="py-3 bg-white/[0.04] hover:bg-white/[0.1] border border-[var(--border)] rounded-xl text-xs font-bold text-[var(--text)] text-center">
                   Renew SSL Bindings
                 </button>
               </div>
@@ -388,20 +388,20 @@ export const SuperAdminDashboardTab: React.FC = () => {
         )}
 
         {selectedSubTab === "revenue" && (
-          <div className="p-6 rounded-2xl bg-white/[0.04] border border-white/[0.08] backdrop-blur-md space-y-4">
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">Historical Subscriptions Stream</h3>
+          <div className="p-6 rounded-2xl bg-white/[0.04] border border-[var(--border)] backdrop-blur-md space-y-4">
+            <h3 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider">Historical Subscriptions Stream</h3>
             <div className="space-y-3 text-xs">
               {[
                 { date: "Today 10:48 AM", tenant: "Supreme Athletics Team", event: "Standard Subscription Renew", amount: "+₹18,000" },
                 { date: "Yesterday, 3:14 PM", tenant: "AEW Motors India", event: "Professional Plan Upgrade", amount: "+₹12,000" },
                 { date: "June 11, 2026", tenant: "Aparna Yoga Shala", event: "Starter Plan Signup Setup", amount: "+₹5,000" }
               ].map((billingEvent, idx) => (
-                <div key={idx} className="p-4 bg-white/[0.01] border border-white/[0.04] rounded-xl flex items-center justify-between">
+                <div key={idx} className="p-4 bg-white/[0.01] border border-[var(--border)] rounded-xl flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <p className="font-extrabold text-white text-xs">{billingEvent.tenant}</p>
-                    <p className="text-[10px] text-neutral-500 text-neutral-500">{billingEvent.event} • {billingEvent.date}</p>
+                    <p className="font-extrabold text-[var(--text)] text-xs">{billingEvent.tenant}</p>
+                    <p className="text-[10px] text-[var(--text-subtle)] text-[var(--text-subtle)]">{billingEvent.event} • {billingEvent.date}</p>
                   </div>
-                  <span className="font-mono text-sm font-black text-white">{billingEvent.amount}</span>
+                  <span className="font-mono text-sm font-black text-[var(--text)]">{billingEvent.amount}</span>
                 </div>
               ))}
             </div>

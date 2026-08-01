@@ -320,11 +320,11 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
       {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-black font-display tracking-tight flex items-center gap-2" style={{ color: "var(--text)" }}>
             <Brain className="w-6 h-6 text-indigo-400 stroke-[1.8]" />
             AI Performance Training Lab
           </h2>
-          <p className="text-xs text-neutral-400 mt-1">
+          <p className="text-xs text-[var(--text-muted)] mt-1">
             Empower your WhatsApp agent! Correct wrong answers, review logs, verify knowledge gaps, and update FAQ triggers.
           </p>
         </div>
@@ -332,7 +332,7 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
         {/* REFRESH CAP */}
         <button
           onClick={fetchTrainingData}
-          className="flex items-center gap-1.5 px-3 py-1.5 bg-var(--bg-elevated) hover:bg-neutral-800 text-neutral-300 text-xs font-bold border border-white/[0.08] rounded-xl cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] text-[var(--text)] text-xs font-bold border border-[var(--border)] rounded-xl cursor-pointer"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />
           <span>Refresh Records</span>
@@ -342,11 +342,11 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
       {/* CORE STATS KPI CARDS CARD */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-5 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">
             AI Average Confidence
           </span>
-          <p className="text-2xl font-black text-white mt-1">
+          <p className="text-2xl font-black text-[var(--text)] mt-1">
             {Math.round(stats.avgConfidence * 100)}%
           </p>
           <div className="text-[10px] text-green-400 font-bold mt-1.5 flex items-center gap-1">
@@ -355,56 +355,56 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
           </div>
         </div>
 
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-5 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">
             Pending Reviews
           </span>
           <p className="text-2xl font-black mt-1 text-amber-400">
             {logs.filter(l => l.status === "raw").length} Queries
           </p>
-          <p className="text-[10px] text-neutral-400 mt-1.5">Needs correction check</p>
+          <p className="text-[10px] text-[var(--text-muted)] mt-1.5">Needs correction check</p>
         </div>
 
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-5 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">
             Missing Knowledge Gaps
           </span>
           <p className="text-2xl font-black mt-1 text-red-400">
             {gaps.filter(g => g.status === "detected").length} Hot Gaps
           </p>
-          <p className="text-[10px] text-neutral-400 mt-1.5">Customers asked but failed</p>
+          <p className="text-[10px] text-[var(--text-muted)] mt-1.5">Customers asked but failed</p>
         </div>
 
-        <div className="bg-[#0e0e11] border border-white/[0.06] p-5 rounded-2xl">
-          <span className="text-[10px] uppercase font-black tracking-widest text-[#9CA3AF]">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] p-5 rounded-2xl">
+          <span className="text-[10px] uppercase font-black tracking-widest text-[var(--text-muted)]">
             Active Rules Trained
           </span>
           <p className="text-2xl font-black text-indigo-400 mt-1">
             {trainedAnswers.length} Rules
           </p>
-          <p className="text-[10px] text-neutral-400 mt-1.5">Custom triggers injected</p>
+          <p className="text-[10px] text-[var(--text-muted)] mt-1.5">Custom triggers injected</p>
         </div>
 
       </div>
 
       {/* SUB TAB CONTROLLERS */}
-      <div className="flex border-b border-white/[0.08] gap-1 pb-px">
+      <div className="flex border-b border-[var(--border)] gap-1 pb-px">
         <button
           onClick={() => setActiveSubTab("review")}
-          className={`pb-2.5 px-4 text-xs font-extrabold transition-all outline-none border-b-2 hover:text-white cursor-pointer ${
+          className={`pb-2.5 px-4 text-xs font-extrabold transition-all outline-none border-b-2 hover:text-[var(--text)] cursor-pointer ${
             activeSubTab === "review" 
-              ? "border-indigo-500 text-white" 
-              : "border-transparent text-neutral-400"
+              ? "border-indigo-500 text-[var(--text)]" 
+              : "border-transparent text-[var(--text-muted)]"
           }`}
         >
           Response Review ({logs.length})
         </button>
         <button
           onClick={() => setActiveSubTab("gaps")}
-          className={`pb-2.5 px-4 text-xs font-extrabold transition-all outline-none border-b-2 hover:text-white cursor-pointer relative ${
+          className={`pb-2.5 px-4 text-xs font-extrabold transition-all outline-none border-b-2 hover:text-[var(--text)] cursor-pointer relative ${
             activeSubTab === "gaps" 
-              ? "border-indigo-500 text-white" 
-              : "border-transparent text-neutral-400"
+              ? "border-indigo-500 text-[var(--text)]" 
+              : "border-transparent text-[var(--text-muted)]"
           }`}
         >
           Knowledge Gap Detector
@@ -414,20 +414,20 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
         </button>
         <button
           onClick={() => setActiveSubTab("training")}
-          className={`pb-2.5 px-4 text-xs font-extrabold transition-all outline-none border-b-2 hover:text-white cursor-pointer ${
+          className={`pb-2.5 px-4 text-xs font-extrabold transition-all outline-none border-b-2 hover:text-[var(--text)] cursor-pointer ${
             activeSubTab === "training" 
-              ? "border-indigo-500 text-white" 
-              : "border-transparent text-neutral-400"
+              ? "border-indigo-500 text-[var(--text)]" 
+              : "border-transparent text-[var(--text-muted)]"
           }`}
         >
           Train AI Triggers
         </button>
         <button
           onClick={() => setActiveSubTab("reports")}
-          className={`pb-2.5 px-4 text-xs font-extrabold transition-all outline-none border-b-2 hover:text-white cursor-pointer ${
+          className={`pb-2.5 px-4 text-xs font-extrabold transition-all outline-none border-b-2 hover:text-[var(--text)] cursor-pointer ${
             activeSubTab === "reports" 
-              ? "border-indigo-500 text-white" 
-              : "border-transparent text-neutral-400"
+              ? "border-indigo-500 text-[var(--text)]" 
+              : "border-transparent text-[var(--text-muted)]"
           }`}
         >
           AI Confidence Analytics
@@ -442,17 +442,17 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
 
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="relative w-full md:w-80">
-              <Search className="w-4 h-4 text-neutral-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[var(--text-muted)] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search raw conversations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#111113] border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2 pl-9 pr-4 text-xs text-white focus:outline-none transition-colors"
+                className="w-full bg-[var(--bg-card)] border border-[var(--border)] focus:border-[var(--brand)] rounded-xl py-2 pl-9 pr-4 text-xs text-[var(--text)] focus:outline-none transition-colors"
               />
             </div>
 
-            <div className="text-[10px] text-neutral-400 uppercase tracking-widest font-bold">
+            <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-widest font-bold">
               Review rating is computed using natural language logic confidence scores.
             </div>
           </div>
@@ -466,12 +466,12 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
               return (
                 <div 
                   key={log.id} 
-                  className={`border rounded-2xl p-5 bg-[#0e0e11]/40 overflow-hidden transition-all text-left relative ${
+                  className={`border rounded-2xl p-5 bg-[var(--bg-card)] overflow-hidden transition-all text-left relative ${
                     isRaw && isLow 
                       ? "border-amber-500/20 bg-amber-950/5" 
                       : log.status === "corrected" 
                         ? "border-indigo-500/25 bg-indigo-950/5" 
-                        : "border-white/[0.05]"
+                        : "border-[var(--border)]"
                   }`}
                 >
                   
@@ -487,34 +487,34 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
                       </span>
 
                       <div className="flex items-center gap-1">
-                        <span className="text-[10.5px] text-neutral-400">Confidence:</span>
+                        <span className="text-[10.5px] text-[var(--text-muted)]">Confidence:</span>
                         <span className={`text-[10.5px] font-bold ${isLow ? "text-amber-400" : "text-green-400"}`}>
                           {Math.round(log.confidence * 100)}%
                         </span>
                       </div>
                     </div>
 
-                    <span className="text-[10px] text-neutral-500">{log.created_at}</span>
+                    <span className="text-[10px] text-[var(--text-subtle)]">{log.created_at}</span>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     
                     {/* User Asked */}
-                    <div className="space-y-1 bg-white/[0.01] p-3 rounded-xl border border-white/[0.03]">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#9CA3AF]">
+                    <div className="space-y-1 bg-white/[0.01] p-3 rounded-xl border border-[var(--border)]">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--text-muted)]">
                         Incoming Customer Query
                       </p>
-                      <p className="text-xs font-bold text-white italic">
+                      <p className="text-xs font-bold text-[var(--text)] italic">
                         "{log.user_query}"
                       </p>
                     </div>
 
                     {/* AI Answered */}
-                    <div className="space-y-1 bg-white/[0.01] p-3 rounded-xl border border-white/[0.03]">
-                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#9CA3AF]">
+                    <div className="space-y-1 bg-white/[0.01] p-3 rounded-xl border border-[var(--border)]">
+                      <p className="text-[10px] font-extrabold uppercase tracking-widest text-[var(--text-muted)]">
                         AI Agent Generated Reply
                       </p>
-                      <p className="text-xs text-neutral-300">
+                      <p className="text-xs text-[var(--text)]">
                         {log.ai_response}
                       </p>
                       {log.corrected_response && (
@@ -533,19 +533,19 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
 
                   {/* Operational actions footer */}
                   {isRaw && (
-                    <div className="mt-4 pt-4 border-t border-white/[0.04] flex justify-end gap-3">
+                    <div className="mt-4 pt-4 border-t border-[var(--border)] flex justify-end gap-3">
                       <button
                         onClick={() => {
                           setReviewIdToCorrect(log.id);
                           setTempCorrectedText(log.ai_response);
                         }}
-                        className="px-3.5 py-1.5 rounded-xl border border-white/[0.08] bg-white/[0.02] hover:bg-white/[0.06] text-xs font-bold text-white transition-all cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl border border-[var(--border)] bg-white/[0.02] hover:bg-white/[0.06] text-xs font-bold text-[var(--text)] transition-all cursor-pointer"
                       >
                         Correct Wrong Answer
                       </button>
                       <button
                         onClick={() => handleApproveLog(log.id)}
-                        className="px-3.5 py-1.5 rounded-xl bg-green-600 hover:bg-green-500 text-xs font-extrabold text-white transition-all flex items-center gap-1 cursor-pointer"
+                        className="px-3.5 py-1.5 rounded-xl bg-green-600 hover:bg-green-500 text-xs font-extrabold text-[var(--text)] transition-all flex items-center gap-1 cursor-pointer"
                       >
                         <Check className="w-3.5 h-3.5" /> Approve Response
                       </button>
@@ -567,8 +567,8 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
           <div className="p-4 bg-red-950/20 border border-red-500/20 rounded-2xl flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
             <div className="space-y-1">
-              <h4 className="text-sm font-bold text-white">Missing Knowledge Gap Detection</h4>
-              <p className="text-xs text-[#D1D5DB] leading-relaxed">
+              <h4 className="text-sm font-bold text-[var(--text)]">Missing Knowledge Gap Detection</h4>
+              <p className="text-xs text-[var(--text-muted)] leading-relaxed">
                 The AI identified these hot topics where customer conversion was missed or queries fell short due to absent FAQ context. Click "Approve & Convert to FAQ" to automatically install structured responses within the client base.
               </p>
             </div>
@@ -581,44 +581,44 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
               return (
                 <div 
                   key={gap.id}
-                  className={`bg-[#0C0C0E] border rounded-2xl p-5 space-y-4 flex flex-col justify-between transition-all ${
+                  className={`bg-[var(--bg-card)] border rounded-2xl p-5 space-y-4 flex flex-col justify-between transition-all ${
                     isTrained 
-                      ? "border-green-500/20 bg-green-950/5 text-neutral-400" 
-                      : "border-white/[0.06] hover:border-white/10"
+                      ? "border-green-500/20 bg-green-950/5 text-[var(--text-muted)]" 
+                      : "border-[var(--border)] hover:border-white/10"
                   }`}
                 >
                   <div className="space-y-3.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs uppercase tracking-wider bg-white/[0.03] border border-white/[0.08] px-2.5 py-1.5 rounded-lg text-white font-extrabold">
+                      <span className="text-xs uppercase tracking-wider bg-white/[0.03] border border-[var(--border)] px-2.5 py-1.5 rounded-lg text-[var(--text)] font-extrabold">
                         {gap.topic}
                       </span>
-                      <span className="text-xs font-mono font-bold text-[#9CA3AF]">
+                      <span className="text-xs font-mono font-bold text-[var(--text-muted)]">
                         Hit Count: <strong className="text-red-400 font-extrabold">{gap.hit_count} customers</strong>
                       </span>
                     </div>
 
                     <div className="space-y-1">
                       <span className="text-[10px] font-black uppercase text-red-400 tracking-wider">Example Failed Quote:</span>
-                      <p className="text-xs text-white font-bold italic">
+                      <p className="text-xs text-[var(--text)] font-bold italic">
                         "{gap.unanswered_query}"
                       </p>
                     </div>
 
                     {/* SUGGESTED FAQ PREVIEW CARD */}
-                    <div className="p-3.5 bg-var(--bg-elevated) border border-white/[0.04] rounded-xl space-y-2 text-left">
+                    <div className="p-3.5 bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl space-y-2 text-left">
                       <div className="flex items-center gap-1 text-xs text-yellow-400 font-black">
                         <Sparkles className="w-3.5 h-3.5" />
                         <span>AI Autogenerated FAQ Solution</span>
                       </div>
                       <div>
-                        <p className="text-[11px] font-extrabold text-neutral-300">Q: {gap.suggested_faq_question}</p>
-                        <p className="text-[11px] text-[#D1D5DB] mt-1 leading-normal">A: {gap.suggested_faq_answer}</p>
+                        <p className="text-[11px] font-extrabold text-[var(--text)]">Q: {gap.suggested_faq_question}</p>
+                        <p className="text-[11px] text-[var(--text-muted)] mt-1 leading-normal">A: {gap.suggested_faq_answer}</p>
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-2 border-t border-white/[0.04] flex justify-between items-center">
-                    <span className="text-[10px] text-neutral-500">Status: {gap.status}</span>
+                  <div className="pt-2 border-t border-[var(--border)] flex justify-between items-center">
+                    <span className="text-[10px] text-[var(--text-subtle)]">Status: {gap.status}</span>
                     
                     {isTrained ? (
                       <span className="text-xs text-green-400 font-bold flex items-center gap-1">
@@ -627,7 +627,7 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
                     ) : (
                       <button
                         onClick={() => handleConvertGapToFAQ(gap)}
-                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-black text-white rounded-xl transition-all cursor-pointer shadow flex items-center gap-1 active:scale-97"
+                        className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-xs font-black text-[var(--text)] rounded-xl transition-all cursor-pointer shadow flex items-center gap-1 active:scale-97"
                       >
                         <Zap className="w-3.5 h-3.5" /> Convert to FAQ
                       </button>
@@ -646,42 +646,42 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* Form left */}
-          <div className="lg:col-span-5 bg-[#0c0c0e] border border-white/[0.08] rounded-3xl p-6 h-fit text-left space-y-5">
+          <div className="lg:col-span-5 bg-[#0c0c0e] border border-[var(--border)] rounded-3xl p-6 h-fit text-left space-y-5">
             <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider font-sans">
+              <h4 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider font-sans">
                 Train a New Answer Trigger
               </h4>
-              <p className="text-xs text-[#9CA3AF] mt-1">Incorporate custom rules or specific engine answers directly.</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Incorporate custom rules or specific engine answers directly.</p>
             </div>
 
             <form onSubmit={handleAddNewTrainedRule} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-neutral-300">Trigger phrase / Customer intent:</label>
+                <label className="text-xs font-black text-[var(--text)]">Trigger phrase / Customer intent:</label>
                 <input
                   type="text"
                   placeholder="e.g. shipping time to Bangalore, heavy duty warranty"
                   value={newTrigger}
                   onChange={(e) => setNewTrigger(e.target.value)}
-                  className="w-full bg-black border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none transition-colors"
+                  className="w-full bg-black border border-[var(--border)] focus:border-[var(--brand)] rounded-xl py-2.5 px-3.5 text-xs text-[var(--text)] focus:outline-none transition-colors"
                   required
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-neutral-300">Trained AI Response Text:</label>
+                <label className="text-xs font-black text-[var(--text)]">Trained AI Response Text:</label>
                 <textarea
                   rows={4}
                   placeholder="Type the exact verified answer the chatbot should send when this intent is identified."
                   value={newTrainedText}
                   onChange={(e) => setNewTrainedText(e.target.value)}
-                  className="w-full bg-black border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none transition-colors leading-relaxed"
+                  className="w-full bg-black border border-[var(--border)] focus:border-[var(--brand)] rounded-xl py-2.5 px-3.5 text-xs text-[var(--text)] focus:outline-none transition-colors leading-relaxed"
                   required
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-2.5 bg-white hover:bg-neutral-200 text-black font-black text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-97 shadow"
+                className="w-full py-2.5 bg-white hover:bg-[var(--text)] text-black font-black text-xs rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer active:scale-97 shadow"
               >
                 <Plus className="w-4 h-4 stroke-[2.3]" />
                 Inject Response Rule
@@ -697,36 +697,36 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
           </div>
 
           {/* List right */}
-          <div className="lg:col-span-7 bg-[#0b0c10] border border-white/[0.08] rounded-3xl p-6 space-y-4 text-left">
+          <div className="lg:col-span-7 bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 space-y-4 text-left">
             <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider font-sans">
+              <h4 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider font-sans">
                 Active Training Catalog
               </h4>
-              <p className="text-xs text-neutral-400 mt-1">Manage standard rules bypassing Gemini hallucinations.</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Manage standard rules bypassing Gemini hallucinations.</p>
             </div>
 
             {trainedAnswers.length === 0 ? (
-              <div className="text-center p-14 border border-white/[0.06] rounded-2xl bg-[#09090b]">
-                <p className="text-xs text-neutral-400">No custom triggering rules have been trained yet.</p>
+              <div className="text-center p-14 border border-[var(--border)] rounded-2xl bg-[var(--bg)]">
+                <p className="text-xs text-[var(--text-muted)]">No custom triggering rules have been trained yet.</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {trainedAnswers.map((item) => (
-                  <div key={item.id} className="p-4 bg-black border border-white/[0.05] rounded-2xl justify-between flex items-start gap-4 text-left">
+                  <div key={item.id} className="p-4 bg-black border border-[var(--border)] rounded-2xl justify-between flex items-start gap-4 text-left">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
-                        <span className="text-xs font-black text-white">{item.trigger_phrase}</span>
+                        <span className="text-xs font-black text-[var(--text)]">{item.trigger_phrase}</span>
                       </div>
-                      <p className="text-xs text-neutral-300 leading-relaxed pl-3.5">
+                      <p className="text-xs text-[var(--text)] leading-relaxed pl-3.5">
                         {item.trained_response}
                       </p>
-                      <span className="text-[10px] text-neutral-500 block pl-3.5">Assigned: {item.created_at}</span>
+                      <span className="text-[10px] text-[var(--text-subtle)] block pl-3.5">Assigned: {item.created_at}</span>
                     </div>
 
                     <button
                       onClick={() => handleDeleteTrainedRule(item.id)}
-                      className="p-1.5 rounded-lg border border-white/[0.08] hover:border-red-500/20 hover:text-red-400 text-neutral-500 hover:bg-red-500/5 transition-all flex-shrink-0 cursor-pointer"
+                      className="p-1.5 rounded-lg border border-[var(--border)] hover:border-red-500/20 hover:text-red-400 text-[var(--text-subtle)] hover:bg-red-500/5 transition-all flex-shrink-0 cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -743,17 +743,17 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
       {activeSubTab === "reports" && (
         <div className="space-y-6">
           
-          <div className="bg-[#0b0c10] border border-white/[0.08] rounded-3xl p-6 text-left space-y-4">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 text-left space-y-4">
             <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider font-sans">
+              <h4 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider font-sans">
                 Weekly AI Confidence Report
               </h4>
-              <p className="text-xs text-neutral-400">Conversational AI answering confidence scores tracked across daily cycles.</p>
+              <p className="text-xs text-[var(--text-muted)]">Conversational AI answering confidence scores tracked across daily cycles.</p>
             </div>
 
             {/* Custom styled bento graphs bar representation */}
             <div className="space-y-4 pt-2">
-              <div className="flex items-end justify-between gap-2.5 h-48 border-b border-white/[0.08] pb-1">
+              <div className="flex items-end justify-between gap-2.5 h-48 border-b border-[var(--border)] pb-1">
                 {[
                   { day: "Mon", count: 180, conf: 82 },
                   { day: "Tue", count: 220, conf: 84 },
@@ -782,13 +782,13 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
                         style={{ height: `${(item.conf / 100) * 100}%` }}
                       />
                     </div>
-                    <span className="text-[10px] text-neutral-500 font-mono">{item.day}</span>
+                    <span className="text-[10px] text-[var(--text-subtle)] font-mono">{item.day}</span>
                   </div>
                 ))}
               </div>
 
               {/* Legend keys */}
-              <div className="flex gap-4 justification-start text-[10px] font-mono text-neutral-400">
+              <div className="flex gap-4 justification-start text-[10px] font-mono text-[var(--text-muted)]">
                 <div className="flex items-center gap-1.5">
                   <span className="w-2.5 h-2.5 bg-indigo-600 rounded-xs" />
                   <span>Avg Answering Confidence (%)</span>
@@ -804,16 +804,16 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
           {/* MOST FAILED QUESTIONS BENTO SECTION */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-left">
             
-            <div className="bg-[#0b0c10] border border-white/[0.08] rounded-3xl p-6 space-y-4">
-              <h5 className="text-xs uppercase tracking-wider text-[#9CA3AF] font-black">
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 space-y-4">
+              <h5 className="text-xs uppercase tracking-wider text-[var(--text-muted)] font-black">
                 Most Failed Questions (Hits Count)
               </h5>
               
               <div className="space-y-3.5">
                 {gaps.slice(0, 3).map((item, idx) => (
-                  <div key={idx} className="flex justify-between items-center bg-black p-3.5 rounded-2xl border border-white/[0.03]">
+                  <div key={idx} className="flex justify-between items-center bg-black p-3.5 rounded-2xl border border-[var(--border)]">
                     <div className="space-y-1">
-                      <p className="text-xs text-white font-bold italic">"{item.unanswered_query}"</p>
+                      <p className="text-xs text-[var(--text)] font-bold italic">"{item.unanswered_query}"</p>
                       <span className="text-[10px] text-indigo-400 font-extrabold bg-indigo-500/10 py-0.5 px-2 rounded-xs inline-block">
                         Topic: {item.topic}
                       </span>
@@ -826,18 +826,18 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
               </div>
             </div>
 
-            <div className="bg-[#0b0c10] border border-white/[0.08] rounded-3xl p-6 space-y-4">
-              <h5 className="text-xs uppercase tracking-wider text-neutral-400 font-black">
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 space-y-4">
+              <h5 className="text-xs uppercase tracking-wider text-[var(--text-muted)] font-black">
                 Low Confidence Warnings & Recommendations
               </h5>
 
-              <div className="space-y-3.5 text-xs text-neutral-300 leading-relaxed font-sans">
+              <div className="space-y-3.5 text-xs text-[var(--text)] leading-relaxed font-sans">
                 <div className="p-4 bg-yellow-950/20 border border-yellow-500/20 rounded-2xl space-y-1.5">
                   <p className="font-bold text-yellow-100 flex items-center gap-1">
                     <span className="w-1.5 h-1.5 rounded-full bg-yellow-400" />
                     Expand Sizing Tables
                   </p>
-                  <p className="text-[11px] text-[#D1D5DB] leading-normal">
+                  <p className="text-[11px] text-[var(--text-muted)] leading-normal">
                     AI confidence scores dipped 12% during questions regarding helmet fitting guidelines. Consider adding detailed chest and head size-matrices into active knowledge bases.
                   </p>
                 </div>
@@ -847,7 +847,7 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
                     <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
                     Verify Sunday Logistics Info
                   </p>
-                  <p className="text-[11px] text-[#D1D5DB] leading-normal">
+                  <p className="text-[11px] text-[var(--text-muted)] leading-normal">
                     Sunday operational queries occurred heavily last week. Retrain model triggers on clear shop timings blocks to maintain standard transparency rating.
                   </p>
                 </div>
@@ -862,29 +862,29 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
       {/* CORRECT LOG MODAL OVERLAY */}
       {reviewIdToCorrect && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-[#0C0C0E] border border-neutral-800 rounded-3xl p-6 max-w-lg w-full space-y-5 text-left shadow-2xl">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 max-w-lg w-full space-y-5 text-left shadow-2xl">
             <div>
-              <h4 className="text-sm font-bold text-white uppercase tracking-wider font-sans">
+              <h4 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider font-sans">
                 Add Correct Answer Solution
               </h4>
-              <p className="text-xs text-neutral-400 mt-1">This correction auto-trains the AI trigger to always parse this response accurately.</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">This correction auto-trains the AI trigger to always parse this response accurately.</p>
             </div>
 
             <div className="space-y-3">
-              <div className="p-3.5 bg-[#111113] border border-white/[0.03] rounded-2xl">
-                <span className="text-[10px] font-black uppercase text-[#9CA3AF] tracking-wider">Customer Question Phrase:</span>
-                <p className="text-xs text-white font-extrabold italic mt-1 font-sans">
+              <div className="p-3.5 bg-[var(--bg-card)] border border-[var(--border)] rounded-2xl">
+                <span className="text-[10px] font-black uppercase text-[var(--text-muted)] tracking-wider">Customer Question Phrase:</span>
+                <p className="text-xs text-[var(--text)] font-extrabold italic mt-1 font-sans">
                   "{logs.find(l => l.id === reviewIdToCorrect)?.user_query}"
                 </p>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-neutral-300">Type Perfect Response text:</label>
+                <label className="text-xs font-black text-[var(--text)]">Type Perfect Response text:</label>
                 <textarea
                   rows={4}
                   value={tempCorrectedText}
                   onChange={(e) => setTempCorrectedText(e.target.value)}
-                  className="w-full bg-black border border-white/[0.08] focus:border-indigo-500/50 rounded-xl py-2 px-3 text-xs text-white focus:outline-none transition-colors leading-relaxed"
+                  className="w-full bg-black border border-[var(--border)] focus:border-[var(--brand)] rounded-xl py-2 px-3 text-xs text-[var(--text)] focus:outline-none transition-colors leading-relaxed"
                 />
               </div>
             </div>
@@ -892,13 +892,13 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
             <div className="flex justify-end gap-3.5 pt-2">
               <button
                 onClick={() => setReviewIdToCorrect(null)}
-                className="px-4 py-2 text-xs bg-white/[0.02] hover:bg-white/[0.06] border border-white/[0.08] text-[#D1D5DB] font-extrabold rounded-xl transition-all cursor-pointer"
+                className="px-4 py-2 text-xs bg-white/[0.02] hover:bg-white/[0.06] border border-[var(--border)] text-[var(--text-muted)] font-extrabold rounded-xl transition-all cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCorrectWrongAnswerSubmit}
-                className="px-5 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold rounded-xl transition-all cursor-pointer shadow"
+                className="px-5 py-2 text-xs bg-indigo-600 hover:bg-indigo-500 text-[var(--text)] font-extrabold rounded-xl transition-all cursor-pointer shadow"
               >
                 Confirm Train Rule
               </button>

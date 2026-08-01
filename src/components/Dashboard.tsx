@@ -4,6 +4,7 @@ import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import { Sun, Moon, LayoutDashboard, X, Bot, Menu } from "lucide-react";
 import { Logo } from "./Logo";
 import { useTheme } from "../context/ThemeContext";
+import { registerBackHandler } from "../lib/native";
 import {
   MessageSquare,
   Users,
@@ -275,6 +276,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
     const t = setTimeout(() => setIsTabLoading(false), 800);
     return () => clearTimeout(t);
   }, [currentTab]);
+
+  // Handle hardware back button on mobile: close sidebar drawer if open, or return to overview tab before exiting app
+  useEffect(() => {
+    const unregister = registerBackHandler(() => {
+      if (isMobileSidebarOpen) {
+        setIsMobileSidebarOpen(false);
+        return true;
+      }
+      if (currentTab !== "overview") {
+        navigate("/dashboard");
+        return true;
+      }
+      return false; // Let default back handler / app exit handle it
+    });
+    return unregister;
+  }, [isMobileSidebarOpen, currentTab, navigate]);
 
   // Statistics counters
   const [leadsCount, setLeadsCount] = useState(0);
@@ -661,101 +678,120 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setManualBkTime("");
   };
 
-  // Left Menu Items Definition
-  const menuItems = [
-    { id: "overview", label: "Dashboard", icon: MessageSquare },
-    { id: "owner_center", label: "Owner Control Center", icon: Shield, badge: "VIP" },
-    { id: "business_setup", label: "Business Setup", icon: Sliders },
-    { id: "conversations", label: "Conversations", icon: MessageSquare, badge: conversations.filter(c => c.unread).length || undefined },
-    { id: "inventory", label: "Inventory & Products", icon: Package },
-    { id: "orders", label: "Orders & Shipping", icon: ShoppingBag },
-    { id: "crm", label: "CRM System", icon: Users },
-    { id: "ai_training", label: "AI Training Center", icon: Brain },
-    { id: "marketing", label: "Marketing Automation", icon: Megaphone },
-    { id: "support_tickets", label: "Support Tickets", icon: LifeBuoy },
-    { id: "mobile_audit", label: "Mobile Code & Audit", icon: Smartphone },
-    { id: "memberships", label: "Membership Plans", icon: CreditCard },
-    { id: "faqs", label: "FAQ Management", icon: HelpCircle },
-    { id: "whatsapp_setup", label: "WhatsApp Setup", icon: Phone },
-    { id: "leads", label: "Leads", icon: Users, badge: leads.length },
-    { id: "appointments", label: "Appointments", icon: Calendar, badge: appointments.filter(a => a.status === "Today").length || undefined },
-    { id: "payments", label: "Payments", icon: DollarSign },
-    { id: "ai_playground", label: "AI Playground", icon: Sparkles },
-    { id: "kb", label: "Knowledge Base", icon: Database },
-    { id: "analytics", label: "Analytics", icon: Activity },
-    { id: "settings", label: "Settings", icon: Settings },
+  // 3-Tier Clean Sidebar Menu Definition
+  const menuSections = [
+    {
+      category: "PRIMARY",
+      items: [
+        { id: "overview", label: "Overview", icon: MessageSquare },
+        { id: "conversations", label: "Inbox (Chats)", icon: MessageSquare, badge: conversations.filter(c => c.unread).length || undefined },
+        { id: "leads", label: "Leads", icon: Users, badge: leads.length },
+        { id: "appointments", label: "Appointments", icon: Calendar, badge: appointments.filter(a => a.status === "Today").length || undefined },
+      ]
+    },
+    {
+      category: "AUTOFY AI",
+      items: [
+        { id: "ai_training", label: "AI Employee Training", icon: Brain },
+        { id: "kb", label: "Knowledge Base", icon: Database },
+        { id: "whatsapp_setup", label: "WhatsApp Setup", icon: Phone },
+        { id: "marketing", label: "Automations", icon: Megaphone },
+        { id: "ai_playground", label: "AI Playground", icon: Sparkles },
+      ]
+    },
+    {
+      category: "BUSINESS",
+      items: [
+        { id: "crm", label: "CRM System", icon: Users },
+        { id: "orders", label: "Sales & Orders", icon: ShoppingBag },
+        { id: "inventory", label: "Products & Inventory", icon: Package },
+        { id: "payments", label: "Payments & Billing", icon: DollarSign },
+        { id: "analytics", label: "Analytics & Growth", icon: Activity },
+        { id: "business_setup", label: "Business Setup", icon: Sliders },
+        { id: "owner_center", label: "Owner Control Center", icon: Shield, badge: "VIP" },
+        { id: "settings", label: "Settings", icon: Settings },
+      ]
+    }
   ];
 
   function SidebarContent() {
     return (
       <div className="flex flex-col justify-between h-full">
-        <div className="flex flex-col gap-6 overflow-y-auto scrollbar-none">
+        <div className="flex flex-col gap-4 overflow-y-auto scrollbar-none pr-1">
           {/* Logo */}
-          <div className="flex items-center gap-2.5 pt-1">
-            <div className="w-8 h-8 rounded-xl bg-white/[0.04] border border-white/[0.1] flex items-center justify-center">
-              <Logo size={18} />
+          <div className="flex items-center gap-2.5 pt-1 pb-1">
+            <div className="w-9 h-9 rounded-xl border flex items-center justify-center shadow-sm" style={{ background: "var(--brand-gradient)", borderColor: "transparent" }}>
+              <Logo size={20} />
             </div>
             <div>
-              <span className="font-extrabold text-[15px] tracking-tight bg-gradient-to-r from-white to-neutral-400 bg-clip-text text-transparent font-sans">
+              <span className="font-black text-[16px] tracking-tight font-display text-gradient-brand">
                 Autofy OS
               </span>
-              <span className="block text-[8px] font-bold uppercase tracking-widest text-[#8B5CF6]">
-                Active Workspace
+              <span className="block text-[8.5px] font-extrabold uppercase tracking-widest text-[var(--brand)]">
+                Enterprise AI Suite
               </span>
             </div>
           </div>
 
-          <div className="h-[1.5px] bg-white/[0.03]" />
+          <div className="h-[1px]" style={{ background: "var(--border)" }} />
 
-          {/* Navigation items */}
-          <nav className="flex flex-col gap-1 pr-1">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    handleTabChange(item.id);
-                    setIsMobileSidebarOpen(false);
-                  }}
-                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13.5px] font-medium tracking-tight transition-all duration-200 cursor-pointer whitespace-nowrap w-full"
-                  style={isActive ? {
-                    background: "rgba(139,92,246, 0.12)",
-                    color: "#8B5CF6",
-                    borderLeft: "2px solid #8B5CF6",
-                    fontWeight: 600,
-                  } : {
-                    color: "var(--text-muted)",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) e.currentTarget.style.background = "rgba(255, 255, 255, 0.04)";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) e.currentTarget.style.background = "transparent";
-                  }}
-                >
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{item.label}</span>
-                  {item.badge !== undefined && (
-                    <span
-                      className="ml-auto px-1.5 py-0.5 text-[9px] font-extrabold rounded-full text-center"
-                      style={{
-                        background: isActive ? "#8B5CF6" : "var(--bg-card)",
-                        color: "#FFF"
+          {/* Categorized Navigation items */}
+          <nav className="flex flex-col gap-4">
+            {menuSections.map((sec, secIdx) => (
+              <div key={secIdx} className="flex flex-col gap-1">
+                <span className="text-[9.5px] font-extrabold uppercase tracking-widest px-3 py-1 font-sans" style={{ color: "var(--text-subtle)" }}>
+                  {sec.category}
+                </span>
+                {sec.items.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = currentTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        handleTabChange(item.id);
+                        setIsMobileSidebarOpen(false);
+                      }}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium tracking-tight transition-all duration-200 cursor-pointer whitespace-nowrap w-full group"
+                      style={isActive ? {
+                        background: "var(--brand-subtle)",
+                        color: "var(--brand)",
+                        fontWeight: 700,
+                        boxShadow: "0 0 16px var(--brand-glow)",
+                      } : {
+                        color: "var(--text-muted)",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive) e.currentTarget.style.background = "var(--input-bg)";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive) e.currentTarget.style.background = "transparent";
                       }}
                     >
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+                      <Icon className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110" style={isActive ? { color: "var(--brand)" } : { color: "var(--text-subtle)" }} />
+                      <span className="truncate">{item.label}</span>
+                      {item.badge !== undefined && (
+                        <span
+                          className="ml-auto px-2 py-0.5 text-[9px] font-black rounded-full text-center"
+                          style={{
+                            background: isActive ? "var(--brand)" : "var(--input-bg)",
+                            color: isActive ? "#FFF" : "var(--brand)",
+                            border: isActive ? "none" : "1px solid var(--border)"
+                          }}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
         </div>
 
         {/* Bottom footer */}
-        <div className="pt-4 border-t border-white/[0.04] flex flex-col gap-3">
+        <div className="pt-4 flex flex-col gap-3" style={{ borderTop: "1px solid var(--border)" }}>
           {/* Profile Capsule */}
           <div
             className="p-3 rounded-2xl flex items-center gap-3"
@@ -771,7 +807,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {data.businessName ? data.businessName[0].toUpperCase() : "A"}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold truncate font-sans text-white">
+              <p className="text-xs font-bold truncate font-sans" style={{ color: "var(--text)" }}>
                 {data.businessName || "My Business"}
               </p>
               <span className="inline-block text-[8px] bg-green-500/10 text-green-400 font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-wider mt-0.5">
@@ -791,7 +827,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </button>
             <button
               onClick={() => { if (window.confirm("Sign out of Autofy?")) onLogout(); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border border-transparent hover:border-red-500/20 hover:bg-red-500/5 hover:text-red-400 text-neutral-400"
+              className="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border border-transparent hover:border-red-500/20 hover:bg-red-500/5 hover:text-red-400"
+              style={{ color: "var(--text-muted)" }}
             >
               <LogOut className="w-4 h-4" />
               <span>Sign out</span>
@@ -805,9 +842,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div
       id="autofy-main-dashboard"
-      className="w-full min-h-screen flex flex-col md:flex-row font-sans overflow-x-hidden"
+      className="w-full min-h-screen flex flex-col md:flex-row font-sans overflow-x-hidden relative"
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
+      {/* Floating Aurora background blobs */}
+      <div className="aurora">
+        <i className="a1" />
+        <i className="a2" />
+        <i className="a3" />
+      </div>
+
+      {/* Tech grid pattern */}
+      <div className="hero-grid" />
       
       {/* MOBILE DRAWER BACKDROP & SIDEBAR */}
       <AnimatePresence>
@@ -828,7 +874,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               exit={{ x: "-100%" }}
               transition={{ duration: 0.3 }}
               className="fixed top-0 bottom-0 left-0 z-50 w-[240px] flex flex-col justify-between p-5 md:hidden"
-              style={{ background: "var(--sidebar)", borderRight: "1px solid var(--border)" }}
+              style={{ background: "var(--header-bg)", backdropFilter: "blur(24px)", borderRight: "1px solid var(--border)" }}
             >
               <SidebarContent />
             </motion.aside>
@@ -841,7 +887,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         className="hidden md:flex flex-col justify-between p-5 flex-shrink-0 relative z-40"
         style={{
           width: "240px",
-          background: "var(--sidebar)",
+          background: "var(--header-bg)",
+          backdropFilter: "blur(24px)",
           borderRight: "1px solid var(--border)",
         }}
       >
@@ -849,50 +896,54 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </aside>
 
       {/* MAIN VIEWPORT BODY */}
-      <main className="flex-1 flex flex-col min-w-0 max-h-screen overflow-y-auto relative pb-20 md:pb-0">
+      <main className="flex-1 flex flex-col min-w-0 max-h-screen overflow-y-auto relative z-10 pb-20 md:pb-0">
         
         {/* Glow ambient background orbs */}
-        <div className="hidden md:block absolute top-0 right-1/4 w-[400px] h-[250px] bg-white/[0.012] rounded-full blur-[100px] pointer-events-none" />
+        <div className="hidden md:block absolute top-0 right-1/4 w-[500px] h-[300px] rounded-full blur-[100px] pointer-events-none" style={{ background: "var(--brand-subtle)" }} />
 
         {/* TOP STATUS HEADER BAR */}
         <header
-          className="px-6 flex items-center justify-between sticky top-0 backdrop-blur-md z-30"
+          className="px-6 flex items-center justify-between sticky top-0 z-30 glass-nav"
           style={{
             height: "60px",
-            background: "var(--header-bg)",
-            borderBottom: "1px solid var(--border)",
           }}
         >
-          {/* Left Title */}
+          {/* Left Title & Status */}
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="md:hidden p-1.5 rounded-xl border cursor-pointer hover:bg-white/5 transition"
-              style={{ borderColor: "var(--border)", color: "var(--text)" }}
+              className="md:hidden p-1.5 rounded-xl border cursor-pointer transition"
+              style={{ borderColor: "var(--border)", color: "var(--text)", background: "var(--input-bg)" }}
             >
               <Menu className="w-4 h-4" />
             </button>
-            <div>
+            <div className="flex items-center gap-3">
               <h1
-                className="text-[17px] font-black font-sans tracking-tight"
-                style={{ color: "var(--text)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                className="text-[18px] font-extrabold font-display tracking-tight"
+                style={{ color: "var(--text)" }}
               >
                 {TAB_TITLES[currentTab] ?? currentTab}
               </h1>
+              
+              {/* Live status badge */}
+              <div className="badge-glow px-3 py-1 hidden sm:flex items-center gap-2 text-[11px] font-bold border border-[var(--border)] shadow-sm">
+                <span className="pulse-dot" />
+                <span className="text-gradient-brand font-display">AIconcierge 24/7 Live</span>
+              </div>
             </div>
           </div>
 
           {/* Right actions */}
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3">
             {/* Search Input bar */}
             <div className="relative hidden sm:block">
-              <Search className="w-3.5 h-3.5 text-neutral-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "var(--text-subtle)" }} />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search index..."
-                className="w-36 focus:w-48 rounded-xl py-1.5 pl-8.5 pr-3 text-xs focus:outline-none transition-all duration-300"
+                placeholder="Search queries..."
+                className="w-40 focus:w-56 rounded-full py-1.5 pl-9 pr-3 text-xs focus:outline-none transition-all duration-300 font-sans"
                 style={{
                   background: "var(--input-bg)",
                   border: "1px solid var(--border)",
@@ -954,17 +1005,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       <span className="text-xs font-bold font-sans" style={{ color: "var(--text)" }}>Notifications</span>
                       <button 
                         onClick={() => setNotifications(prev => prev.map(n => ({ ...n, unread: false })))}
-                        className="text-[9.5px] text-[#9CA3AF] hover:underline font-sans cursor-pointer"
+                        className="text-[9.5px] text-[var(--text-muted)] hover:underline font-sans cursor-pointer"
                       >
                         Mark all read
                       </button>
                     </div>
-                    <div className="h-[1px] bg-white/[0.05]" />
+                    <div className="h-[1px]" style={{ background: "var(--border)" }} />
                     <div className="space-y-2.5 max-h-[220px] overflow-y-auto">
                       {notifications.map((n) => (
                         <div key={n.id} className="flex gap-2 text-[11px] leading-snug">
-                          <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${n.unread ? "bg-[#8B5CF6]" : "bg-neutral-700"}`} />
-                          <span className={`${n.unread ? "text-neutral-200" : "text-neutral-500"}`}>{n.text}</span>
+                          <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${n.unread ? "bg-[#8B5CF6]" : ""}`} style={!n.unread ? { background: "var(--border-strong)" } : {}} />
+                          <span style={{ color: n.unread ? "var(--text)" : "var(--text-muted)" }}>{n.text}</span>
                         </div>
                       ))}
                     </div>
@@ -999,8 +1050,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   style={{ background: "rgba(34,197,94,0.12)", color: "var(--success)" }}
                 ><Check size={14} /></div>
                 <div>
-                  <h4 className="text-[9px] font-black uppercase tracking-widest leading-none mb-1 text-neutral-400">AUTOFY INSTANT</h4>
-                  <p className="text-[11px] text-neutral-200 leading-normal font-semibold">{dashboardAlert}</p>
+                  <h4 className="text-[9px] font-black uppercase tracking-widest leading-none mb-1" style={{ color: "var(--text-muted)" }}>AUTOFY INSTANT</h4>
+                  <p className="text-[11px] leading-normal font-semibold" style={{ color: "var(--text)" }}>{dashboardAlert}</p>
                 </div>
               </motion.div>
             )}
@@ -1009,24 +1060,24 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* EMPTY MODE PREVIEW */}
           {emptyMode ? (
             <div className="space-y-6">
-              <div className="p-8 bg-neutral-950/40 border border-var(--border) rounded-3xl backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="p-8 rounded-3xl backdrop-blur-md flex flex-col md:flex-row items-center justify-between gap-6" style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}>
                 <div className="space-y-2 max-w-xl text-left">
                   <div className="inline-flex px-3 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 font-extrabold text-[10px] uppercase tracking-widest rounded-full font-mono">
                     Zero Clients Connected
                   </div>
-                  <h2 className="text-2xl font-black text-white font-sans tracking-tight">
+                  <h2 className="text-2xl font-black font-sans tracking-tight" style={{ color: "var(--text)" }}>
                     Establish Your First WhatsApp Connection Pipeline
                   </h2>
-                  <p className="text-xs text-neutral-400 leading-relaxed font-sans">
+                  <p className="text-xs leading-relaxed font-sans" style={{ color: "var(--text-muted)" }}>
                     Welcome to the Autofy Suite sandbox! Currently, your server has no active customer interaction data logs in its pipeline. Follow our clean, 4-step onboarding checklist below to start receiving real-time customers.
                   </p>
                 </div>
                 
-                <div className="p-4 bg-[#0a0a0c] border border-var(--border) rounded-2xl flex items-center gap-3">
-                  <QrCode className="w-12 h-12 text-neutral-400 stroke-[1.5]" />
+                <div className="p-4 rounded-2xl flex items-center gap-3" style={{ background: "var(--bg-elevated)", border: "1px solid var(--border)" }}>
+                  <QrCode className="w-12 h-12 stroke-[1.5]" style={{ color: "var(--text-muted)" }} />
                   <div className="text-left">
-                    <p className="text-xs font-extrabold text-white">Meta API Quick-Sync</p>
-                    <p className="text-[10px] text-neutral-500 font-mono">Scan QR code to connect Sandbox</p>
+                    <p className="text-xs font-extrabold" style={{ color: "var(--text)" }}>Meta API Quick-Sync</p>
+                    <p className="text-[10px] font-mono" style={{ color: "var(--text-subtle)" }}>Scan QR code to connect Sandbox</p>
                   </div>
                 </div>
               </div>
@@ -1041,7 +1092,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 ].map((item, id) => (
                   <div
                     key={id}
-                    className="p-5 bg-neutral-950/60 border border-neutral-950 hover:border-var(--border) rounded-3xl backdrop-blur-md flex flex-col justify-between gap-5 transition-all text-left"
+                    className="p-5 rounded-3xl backdrop-blur-md flex flex-col justify-between gap-5 transition-all text-left"
+                    style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
                   >
                     <div className="space-y-3">
                       <div className="flex items-center justify-between">
@@ -1058,8 +1110,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           </div>
                         )}
                       </div>
-                      <h3 className="text-xs font-black text-white font-sans tracking-tight">{item.title}</h3>
-                      <p className="text-[10.5px] text-neutral-500 leading-normal font-sans">{item.desc}</p>
+                      <h3 className="text-xs font-black font-sans tracking-tight" style={{ color: "var(--text)" }}>{item.title}</h3>
+                      <p className="text-[10.5px] leading-normal font-sans" style={{ color: "var(--text-muted)" }}>{item.desc}</p>
                     </div>
 
                     <button 
@@ -1067,9 +1119,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       disabled={item.done && item.step === "1"}
                       className={`w-full py-2 rounded-xl text-[10.5px] font-bold font-sans cursor-pointer transition-all ${
                         item.done 
-                          ? "bg-var(--bg-elevated) text-neutral-400 border border-var(--border) hover:text-white" 
+                          ? "border" 
                           : "bg-blue-600 hover:bg-blue-500 text-white"
                       }`}
+                      style={item.done ? { background: "var(--bg-elevated)", color: "var(--text-muted)", borderColor: "var(--border)" } : {}}
                     >
                       {item.actionLabel}
                     </button>
@@ -1091,98 +1144,162 @@ export const Dashboard: React.FC<DashboardProps> = ({
               >
                 <Routes>
                   <Route path="/" element={
-                    <div className="space-y-8">
+                    <div className="space-y-12">
                     
-                    {/* SKELETON LOADER STATE */}
-                    {isTabLoading ? (
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                        {[1, 2, 3, 4].map(id => (
-                          <div key={id} className="p-6 rounded-2xl border shimmer bg-var(--bg-elevated)/50" style={{ borderColor: "var(--border)", height: 130 }} />
-                        ))}
+                    {/* 01. STUNNING ASYMMETRIC OPEN-CANVAS HERO */}
+                    <div className="relative pt-4 pb-2 text-left">
+                      {/* Atmospheric background glows */}
+                      <div className="absolute top-0 right-10 w-96 h-96 rounded-full blur-[120px] pointer-events-none" style={{ background: "var(--brand-glow)" }} />
+                      <div className="absolute top-10 left-10 w-72 h-72 rounded-full blur-[100px] pointer-events-none opacity-40" style={{ background: "rgba(236,72,153,0.15)" }} />
+                      
+                      <div className="space-y-3 max-w-3xl relative z-10">
+                        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full badge-glow text-xs font-bold font-sans shadow-lg">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-gradient-brand font-display font-extrabold uppercase tracking-wider text-[10px]">AI Concierge • LIVE</span>
+                          <Sparkles className="w-3.5 h-3.5 text-pink-500 animate-pulse" />
+                        </div>
+                        
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-display tracking-tight leading-tight" style={{ color: "var(--text)" }}>
+                          Good morning, {data.businessName || "The Gym"}.
+                        </h1>
+                        <p className="text-sm sm:text-base font-sans font-medium leading-relaxed max-w-xl" style={{ color: "var(--text-muted)" }}>
+                          Your AI employee handled <span className="font-extrabold text-[var(--brand)] font-display">47 customer interactions</span> while you were away.
+                        </p>
                       </div>
-                    ) : (
-                      /* KPI Cards grid */
-                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-                        {[
-                          { title: "Total Conversations", value: conversations.length.toString(), trend: "+12%", trendUp: true, icon: MessageSquare },
-                          { title: "Active Leads", value: leads.length.toString(), trend: "+8%", trendUp: true, icon: Users },
-                          { title: "Revenue This Month", value: `₹24,965`, trend: "+20%", trendUp: true, icon: DollarSign },
-                          { title: "Response Rate", value: "99.8%", trend: "+0.5%", trendUp: true, icon: Activity }
-                        ].map((card, id) => {
-                          const Icon = card.icon;
-                          return (
-                            <div
-                              key={id}
-                              className="p-6 rounded-2xl border relative overflow-hidden group transition-all duration-300 transform hover:-translate-y-0.5 text-left"
-                              style={{ background: "var(--bg-card)", borderColor: "var(--border)", padding: "24px" }}
-                            >
-                              <div className="flex items-center justify-between mb-3 w-full">
-                                <span className="text-[10px] font-extrabold uppercase tracking-widest font-sans" style={{ color: "var(--text-subtle)" }}>{card.title}</span>
-                                <Icon className="w-5 h-5 opacity-30 shrink-0" style={{ color: "var(--text)" }} />
-                              </div>
 
-                              <p className="text-3xl font-black tracking-tight font-sans text-white" style={{ fontWeight: 800 }}>
-                                {card.value}
-                              </p>
-                              
-                              <div className="flex items-center gap-1 mt-2 text-[12px] font-bold" style={{ color: card.trendUp ? "var(--success)" : "var(--danger)" }}>
-                                {card.trend}
-                              </div>
+                      {/* ASYMMETRIC HERO METRICS: DOMINANT REVENUE + FLOATING SECONDARY METRICS */}
+                      <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+                        
+                        {/* DOMINANT HERO REVENUE CARD (7 COLS) */}
+                        <div className="lg:col-span-7 glass-card p-8 rounded-[28px] relative overflow-hidden flex flex-col justify-between group text-left shadow-2xl">
+                          <div className="flex items-center justify-between relative z-10">
+                            <div>
+                              <span className="text-[11px] font-black uppercase tracking-widest font-sans block" style={{ color: "var(--text-subtle)" }}>Dominant Revenue Pipeline</span>
+                              <span className="text-xs font-bold font-sans text-emerald-500 flex items-center gap-1.5 mt-0.5">
+                                <TrendingUp className="w-3.5 h-3.5" /> +20% vs last month
+                              </span>
                             </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                            <div className="px-3 py-1 rounded-full text-[10px] font-mono font-bold border border-white/10" style={{ background: "var(--brand-gradient)", color: "#FFF" }}>
+                              UPI & Cards Synced
+                            </div>
+                          </div>
 
-                    {/* Quick actions bar */}
-                    <div className="bg-neutral-950/40 border border-var(--border) rounded-3xl p-6 backdrop-blur-md">
-                      <div className="flex items-center gap-2.5 mb-4 text-left">
-                        <SlidersHorizontal className="w-4 h-4" style={{ color: "var(--brand)" }} />
-                        <h3 className="text-xs font-black text-white font-sans uppercase tracking-wider">Quick actions console</h3>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                        <button onClick={() => setActiveModal("service")} className="px-3.5 py-4 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) hover:border-neutral-800 border border-var(--border) rounded-2xl text-left text-xs font-bold font-sans flex flex-col justify-between gap-4 transition-all cursor-pointer text-white">
-                          <Plus className="w-5 h-5 text-blue-400" />
-                          <span>Add New Service</span>
-                        </button>
-                        <button onClick={() => setActiveModal("faq")} className="px-3.5 py-4 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) hover:border-neutral-800 border border-var(--border) rounded-2xl text-left text-xs font-bold font-sans flex flex-col justify-between gap-4 transition-all cursor-pointer text-white">
-                          <Plus className="w-5 h-5 text-purple-400" />
-                          <span>Add Custom FAQ</span>
-                        </button>
-                        <button onClick={() => setActiveModal("membership")} className="px-3.5 py-4 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) hover:border-neutral-800 border border-var(--border) rounded-2xl text-left text-xs font-bold font-sans flex flex-col justify-between gap-4 transition-all cursor-pointer text-white">
-                          <Plus className="w-5 h-5 text-indigo-400" />
-                          <span>Add Membership</span>
-                        </button>
-                        <button onClick={() => setActiveModal("whatsapp")} className="px-3.5 py-4 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) hover:border-neutral-800 border border-var(--border) rounded-2xl text-left text-xs font-bold font-sans flex flex-col justify-between gap-4 transition-all cursor-pointer text-white">
-                          <QrCode className="w-5 h-5 text-green-400" />
-                          <span>Connect WhatsApp</span>
-                        </button>
-                        <button onClick={() => setActiveModal("payment")} className="px-3.5 py-4 bg-var(--bg-elevated) hover:bg-var(--bg-elevated) hover:border-neutral-800 border border-var(--border) rounded-2xl text-left text-xs font-bold font-sans flex flex-col justify-between gap-4 transition-all cursor-pointer col-span-2 md:col-span-1 text-white">
-                          <DollarSign className="w-5 h-5 text-amber-400" />
-                          <span>Create Bill Link</span>
-                        </button>
+                          <div className="my-6 relative z-10 flex flex-col sm:flex-row sm:items-baseline justify-between gap-4">
+                            <div>
+                              <span className="text-4xl sm:text-5xl lg:text-6xl font-black font-display tracking-tight" style={{ color: "var(--text)" }}>
+                                ₹24,965
+                              </span>
+                              <p className="text-xs font-sans mt-1.5" style={{ color: "var(--text-muted)" }}>Total revenue collected by Autofy AI this month</p>
+                            </div>
+
+                            {/* Inline SVG Sparkline Graphic */}
+                            <div className="w-36 h-12 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+                              <svg viewBox="0 0 100 30" className="w-full h-full stroke-emerald-500 fill-none stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
+                                <path d="M0 25 Q15 18 30 22 T60 10 T90 4 T100 2" />
+                              </svg>
+                            </div>
+                          </div>
+
+                          <div className="pt-4 border-t flex items-center justify-between text-xs font-sans relative z-10" style={{ borderColor: "var(--border)" }}>
+                            <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>Instant Razorpay & UPI Settlements</span>
+                            <button
+                              onClick={() => handleTabChange("payments")}
+                              className="text-xs font-bold text-[var(--brand)] hover:underline flex items-center gap-1 cursor-pointer"
+                            >
+                              View Billing Hub <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* FLOATING SECONDARY METRICS (5 COLS GRID) */}
+                        <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                          {[
+                            { title: "Active Leads Secured", val: leads.length.toString(), trend: "+8% growth", icon: Users, sub: "CRM Auto-synced" },
+                            { title: "AI Resolution Speed", val: "99.8%", trend: "0.3s response time", icon: Activity, sub: "Zero human latency" },
+                            { title: "Total WhatsApp Chats", val: conversations.length.toString(), trend: "4 active threads", icon: MessageSquare, sub: "Meta Cloud API" },
+                          ].map((met, idx) => {
+                            const MetIcon = met.icon;
+                            return (
+                              <div
+                                key={idx}
+                                className="glass-card p-5 rounded-2xl flex items-center justify-between text-left transition-all duration-300 hover:-translate-y-0.5"
+                              >
+                                <div className="space-y-1">
+                                  <span className="text-[10px] font-extrabold uppercase tracking-wider font-sans block" style={{ color: "var(--text-subtle)" }}>{met.title}</span>
+                                  <p className="text-2xl font-black font-display tracking-tight" style={{ color: "var(--text)" }}>{met.val}</p>
+                                  <span className="text-[10.5px] font-medium font-sans block" style={{ color: "var(--text-muted)" }}>{met.sub}</span>
+                                </div>
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-white/10 shrink-0 shadow-sm" style={{ background: "var(--brand-subtle)", color: "var(--brand)" }}>
+                                  <MetIcon className="w-5 h-5" />
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
                       </div>
                     </div>
 
-                    {/* Split Grid for Conversations & AI activity logs */}
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      
-                      {/* Left: WhatsApp previews box */}
-                      <div className="lg:col-span-2 bg-[#080808]/90 border border-var(--border) rounded-3xl p-6 backdrop-blur-md space-y-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="text-left">
-                            <h3 className="text-xs font-black text-white font-sans uppercase tracking-wider">Recent Interactions (WhatsApp Feed)</h3>
-                            <p className="text-[10px] text-neutral-500 font-sans mt-0.5">Click Conversations in sidebar to play live chat</p>
+                    {/* 02. VISUAL AI COMMAND CENTER */}
+                    <div className="glass-card p-6 rounded-3xl text-left relative overflow-hidden space-y-6">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold shadow-md" style={{ background: "var(--brand-gradient)" }}>
+                            <Bot className="w-5 h-5" />
                           </div>
+                          <div>
+                            <h3 className="text-sm font-black font-display uppercase tracking-wider" style={{ color: "var(--text)" }}>AI Command Center</h3>
+                            <p className="text-xs font-sans" style={{ color: "var(--text-muted)" }}>Real-time execution stats of your automated AI employee</p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
+                          <span className="text-xs font-extrabold font-display uppercase tracking-wider text-emerald-500">Live Operating</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        {[
+                          { label: "Customers Answered", val: "47", color: "text-blue-500" },
+                          { label: "Leads Captured", val: leads.length.toString(), color: "text-purple-500" },
+                          { label: "Appointments Booked", val: appointments.length.toString(), color: "text-pink-500" },
+                          { label: "Payments Collected", val: "₹24,965", color: "text-emerald-500" },
+                          { label: "Escalations Needed", val: "0", color: "text-amber-500" }
+                        ].map((stat, i) => (
+                          <div key={i} className="p-4 rounded-2xl border backdrop-blur-md" style={{ background: "var(--bg-elevated)", borderColor: "var(--border)" }}>
+                            <span className="text-[10px] font-extrabold uppercase tracking-wider font-sans block" style={{ color: "var(--text-subtle)" }}>{stat.label}</span>
+                            <p className={`text-2xl font-black font-display mt-1 ${stat.color}`}>{stat.val}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 03. HERO WHATSAPP CONVERSATIONS MODULE + CHRONOLOGICAL AI TIMELINE */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                      
+                      {/* HERO WHATSAPP CONVERSATION INTERFACE (7 COLS) */}
+                      <div className="lg:col-span-7 glass-card p-6 rounded-3xl text-left space-y-5">
+                        <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: "var(--border)" }}>
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: "#25D366" }}>
+                              <Phone className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <h3 className="text-xs font-black font-display uppercase tracking-wider" style={{ color: "var(--text)" }}>WhatsApp Live Feed</h3>
+                              <p className="text-[11px] font-sans" style={{ color: "var(--text-muted)" }}>Recent active customer chats</p>
+                            </div>
+                          </div>
+
                           <button
                             onClick={() => handleTabChange("conversations")}
-                            className="text-[10px] text-blue-400 hover:underline font-bold font-sans flex items-center gap-1 cursor-pointer"
+                            className="text-xs font-bold text-[var(--brand)] hover:underline flex items-center gap-1 cursor-pointer font-sans"
                           >
-                            All chats <ChevronRight className="w-3.5 h-3.5" />
+                            Open Full Inbox <ChevronRight className="w-3.5 h-3.5" />
                           </button>
                         </div>
 
-                        <div className="divide-y divide-neutral-900/60 max-h-[300px] overflow-y-auto pr-1">
+                        <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
                           {conversations.map((chat) => (
                             <div
                               key={chat.id}
@@ -1190,68 +1307,68 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                 setSelectedChatId(chat.id);
                                 handleTabChange("conversations");
                               }}
-                              className="py-3 flex items-start gap-3.5 cursor-pointer hover:bg-white/5 px-2.5 rounded-2xl transition-colors text-left"
+                              className="p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex items-center justify-between gap-4 hover:border-[var(--brand)] hover:shadow-lg"
+                              style={{ background: "var(--bg-elevated)", borderColor: "var(--border)" }}
                             >
-                              <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-[11px] font-sans font-bold text-blue-400">
-                                {chat.name[0]}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between mb-0.5">
-                                  <h4 className="text-xs font-black text-white truncate font-sans">{chat.name}</h4>
-                                  <span className="text-[9px] text-neutral-500 font-mono font-medium">{chat.time}</span>
+                              <div className="flex items-center gap-3.5 min-w-0">
+                                <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-white shrink-0 shadow" style={{ background: "var(--brand-gradient)" }}>
+                                  {chat.name[0]}
                                 </div>
-                                <p className="text-[11px] text-neutral-400 truncate leading-snug">{chat.lastMessage}</p>
+                                <div className="min-w-0">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="text-xs font-bold font-sans truncate" style={{ color: "var(--text)" }}>{chat.name}</h4>
+                                    <span className="text-[10px] font-mono text-[var(--text-subtle)]">{chat.time}</span>
+                                  </div>
+                                  <p className="text-[11.5px] font-sans truncate mt-0.5" style={{ color: "var(--text-muted)" }}>"{chat.lastMessage}"</p>
+                                </div>
                               </div>
 
-                              <span className={`px-2 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider ${
-                                chat.status === "Replied" ? "bg-green-500/10 text-green-400" :
-                                chat.status === "Waiting" ? "bg-amber-500/10 text-amber-400 animate-pulse" :
-                                "bg-red-500/10 text-red-400"
-                              }`}>
-                                {chat.status}
+                              <span className="px-3 py-1 rounded-full text-[9.5px] font-black uppercase tracking-wider shrink-0 border" style={{
+                                background: chat.status === "Replied" ? "rgba(37,211,102,0.12)" : "rgba(245,158,11,0.12)",
+                                borderColor: chat.status === "Replied" ? "rgba(37,211,102,0.25)" : "rgba(245,158,11,0.25)",
+                                color: chat.status === "Replied" ? "#25D366" : "#F59E0B"
+                              }}>
+                                {chat.status === "Replied" ? "AI HANDLED" : "WAITING"}
                               </span>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      {/* Right: AI Activity Event feed ticker */}
-                      <div className="bg-var(--bg-card) border border-var(--border) rounded-3xl p-6 flex flex-col justify-between gap-4">
-                        <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h3 className="text-xs font-black text-white font-sans uppercase tracking-wider">AI Activity Feed</h3>
-                            <button
-                              onClick={handleRefreshData}
-                              disabled={isRefreshing}
-                              className="text-[10px] font-bold text-neutral-400 hover:text-white flex items-center gap-1 cursor-pointer bg-transparent border-none"
-                            >
-                              <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} /> Sync
-                            </button>
-                          </div>
-
-                          <div className="space-y-4 max-h-[220px] overflow-y-auto scrollbar-none pr-1">
-                            {activityFeed.map((feed) => (
-                              <div key={feed.id} className="flex items-start gap-3 text-left">
-                                <div className="mt-1 shrink-0">
-                                  <span className="w-2 h-2 rounded-full block" style={{
-                                    background: feed.type === "payment" ? "var(--success)" : feed.type === "lead" ? "var(--info)" : "var(--brand)"
-                                  }} />
-                                </div>
-                                <div className="space-y-0.5">
-                                  <p className="text-[11.5px] text-neutral-300 font-sans leading-relaxed">{feed.text}</p>
-                                  <span className="text-[9px] text-neutral-600 font-semibold font-sans">{feed.time}</span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
+                      {/* CHRONOLOGICAL AI ACTIVITY TIMELINE (5 COLS) */}
+                      <div className="lg:col-span-5 glass-card p-6 rounded-3xl text-left space-y-5">
+                        <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: "var(--border)" }}>
+                          <h3 className="text-xs font-black font-display uppercase tracking-wider" style={{ color: "var(--text)" }}>AI Chronological Timeline</h3>
+                          <button onClick={handleRefreshData} className="text-xs font-bold text-[var(--brand)] flex items-center gap-1 cursor-pointer">
+                            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} /> Sync
+                          </button>
                         </div>
 
-                        <div className="p-3 bg-var(--bg-elevated)/60 border border-var(--border) rounded-2xl text-[10px] text-neutral-400 font-sans flex items-center gap-2 text-left">
-                          <Activity className="w-4 h-4 text-cyan-400 flex-shrink-0" />
-                          <span>Autofy background scheduler is actively running. Keep browser tab open.</span>
+                        <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[var(--border)]">
+                          {activityFeed.map((feed) => (
+                            <div key={feed.id} className="relative flex items-start gap-3 text-left">
+                              <span className="absolute -left-6 top-1 w-3 h-3 rounded-full border-2 border-white shadow-sm" style={{ background: feed.type === "payment" ? "var(--success)" : "var(--brand)" }} />
+                              <div>
+                                <span className="text-[10px] font-mono font-bold block" style={{ color: "var(--text-subtle)" }}>{feed.time}</span>
+                                <p className="text-xs font-sans font-medium mt-0.5 leading-snug" style={{ color: "var(--text)" }}>{feed.text}</p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
+
                     </div>
+
+                    {/* 04. COMPACT COMMAND LAUNCHER TRIGGER PALETTE */}
+                    <div className="flex justify-center pt-4">
+                      <button
+                        onClick={() => setActiveModal("service")}
+                        className="btn-primary px-8 py-3.5 text-xs font-black tracking-wider uppercase rounded-full shadow-2xl cursor-pointer flex items-center gap-2"
+                      >
+                        <Plus className="w-4 h-4" /> Launch Command Palette
+                      </button>
+                    </div>
+
                   </div>
                   } />
                   
@@ -1388,13 +1505,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.94, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="bg-[#0a0a10] border border-var(--border) rounded-[20px] p-8 max-w-md w-full space-y-4 shadow-2xl relative"
+              className="bg-[var(--modal-bg)] border rounded-[20px] p-8 max-w-md w-full space-y-4 shadow-2xl relative"
+              style={{ borderColor: "var(--border)" }}
             >
               {/* Close Button top-right */}
               <button
                 onClick={() => setActiveModal(null)}
-                className="absolute right-5 top-5 p-1 text-neutral-500 hover:text-white rounded-lg transition"
-                style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--border)", background: "var(--input-bg)" }}
+                className="absolute right-5 top-5 p-1 rounded-lg transition"
+                style={{ width: 32, height: 32, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid var(--border)", background: "var(--input-bg)", color: "var(--text-muted)" }}
               >
                 <X className="w-4.5 h-4.5" />
               </button>
@@ -1404,7 +1522,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="space-y-4">
                   <h3 className="font-extrabold text-sm font-sans text-left" style={{ color: "var(--text)" }}>Add a service</h3>
                   <div className="space-y-1.5 text-left">
-                    <label className="text-[10px] uppercase font-bold font-sans tracking-wider text-neutral-500">Service Name / Title</label>
+                    <label className="text-[10px] uppercase font-bold font-sans tracking-wider block" style={{ color: "var(--text-muted)" }}>Service Name / Title</label>
                     <input
                       type="text"
                       placeholder="E.g. VIP Consultation, Premium Session Class"
@@ -1421,10 +1539,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <div className="flex gap-2">
                     <button
                       onClick={() => setActiveModal(null)}
-                      className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all border text-neutral-400"
+                      className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all border"
                       style={{
                         background: "var(--bg-card)",
                         borderColor: "var(--border)",
+                        color: "var(--text-muted)",
                       }}
                     >
                       Cancel
@@ -1446,7 +1565,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <h3 className="font-bold text-sm" style={{ color: "var(--text)" }}>Add an FAQ</h3>
                   <div className="space-y-3">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-500">Customer question</label>
+                      <label className="text-[10px] uppercase font-bold font-sans tracking-wider block" style={{ color: "var(--text-muted)" }}>Customer question</label>
                       <input
                         type="text"
                         placeholder="E.g. timing, parking, coupon code"
@@ -1462,7 +1581,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                     
                     <div className="space-y-1.5">
-                      <label className="text-[10px] uppercase tracking-wider font-bold text-neutral-500">AI answer</label>
+                      <label className="text-[10px] uppercase font-bold font-sans tracking-wider block" style={{ color: "var(--text-muted)" }}>AI answer</label>
                       <textarea
                         rows={3}
                         placeholder="Write direct informative answers..."
@@ -1480,10 +1599,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <div className="flex gap-2">
                     <button
                       onClick={() => setActiveModal(null)}
-                      className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all border text-neutral-400"
+                      className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all border"
                       style={{
                         background: "var(--bg-card)",
                         borderColor: "var(--border)",
+                        color: "var(--text-muted)",
                       }}
                     >
                       Cancel
@@ -1505,7 +1625,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <h3 className="font-bold text-sm font-sans text-left" style={{ color: "var(--text)" }}>Add membership plan</h3>
                   <div className="space-y-3 font-sans text-left">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-500">Plan Title</label>
+                      <label className="text-[10px] uppercase font-bold font-sans tracking-wider block" style={{ color: "var(--text-muted)" }}>Plan Title</label>
                       <input
                         type="text"
                         placeholder="E.g. VIP Quarterly Membership"
@@ -1520,7 +1640,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-500">Price</label>
+                      <label className="text-[10px] uppercase font-bold font-sans tracking-wider block" style={{ color: "var(--text-muted)" }}>Price</label>
                       <input
                         type="text"
                         placeholder="E.g. ₹4,999/quarterly"
@@ -1538,10 +1658,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <div className="flex gap-2">
                     <button
                       onClick={() => setActiveModal(null)}
-                      className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all border text-neutral-400"
+                      className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all border"
                       style={{
                         background: "var(--bg-card)",
                         borderColor: "var(--border)",
+                        color: "var(--text-muted)",
                       }}
                     >
                       Cancel
@@ -1576,10 +1697,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <div className="flex gap-2">
                     <button
                       onClick={() => setActiveModal(null)}
-                      className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all border text-neutral-400"
+                      className="flex-1 py-2 text-xs font-bold rounded-xl cursor-pointer transition-all border"
                       style={{
                         background: "var(--bg-card)",
                         borderColor: "var(--border)",
+                        color: "var(--text-muted)",
                       }}
                     >
                       Cancel
@@ -1609,7 +1731,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   
                   <div className="space-y-3">
                     <div className="space-y-1.5">
-                      <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-500">Description</label>
+                      <label className="text-[10px] uppercase font-bold font-sans tracking-wider block" style={{ color: "var(--text-muted)" }}>Description</label>
                       <input
                         type="text"
                         placeholder="E.g. VIP Consultation Fee, Premium Service Package"
@@ -1625,7 +1747,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                     
                     <div className="space-y-1.5">
-                      <label className="text-[10px] uppercase font-bold tracking-wider text-neutral-500">Amount in ₹</label>
+                      <label className="text-[10px] uppercase font-bold font-sans tracking-wider block" style={{ color: "var(--text-muted)" }}>Amount in ₹</label>
                       <input
                         type="text"
                         placeholder="E.g. 4999 (Do not insert currency symbol)"

@@ -22,6 +22,18 @@ export async function syncStatusBar(theme: 'light' | 'dark') {
   } catch { /* plugin unavailable — ignore */ }
 }
 
+// Global registry for custom back-button handlers (e.g. closing modals, going back in tab history)
+type BackHandler = () => boolean; // Returns true if handled, false to pass down
+const backHandlers: Set<BackHandler> = new Set();
+
+/** Register a custom back-button action (e.g., closing a modal or popping a tab). Returns unregister function. */
+export function registerBackHandler(handler: BackHandler): () => void {
+  backHandlers.add(handler);
+  return () => {
+    backHandlers.delete(handler);
+  };
+}
+
 /** Called once at startup from main.tsx. */
 export async function initNative() {
   if (!isNative()) return;
@@ -41,11 +53,19 @@ export async function initNative() {
     }
   } catch { /* ignore */ }
 
-  // Android hardware back button: go back in history, or exit at the root.
+  // Android hardware back button: run registered handlers first, then history, then exit.
   try {
     const { App } = await import('@capacitor/app');
     App.addListener('backButton', ({ canGoBack }) => {
-      if (canGoBack) {
+      // Run custom registered back handlers in reverse insertion order
+      const handlersArray = Array.from(backHandlers).reverse();
+      for (const handler of handlersArray) {
+        if (handler()) {
+          return; // Handled by a component (e.g., modal closed or tab popped)
+        }
+      }
+
+      if (canGoBack && window.history.length > 1) {
         window.history.back();
       } else {
         App.exitApp();
@@ -57,3 +77,4 @@ export async function initNative() {
   const saved = (() => { try { return localStorage.getItem('autofy-theme'); } catch { return null; } })();
   syncStatusBar(saved === 'dark' ? 'dark' : 'light');
 }
+
