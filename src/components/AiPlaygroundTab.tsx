@@ -344,7 +344,7 @@ export const AiPlaygroundTab: React.FC = () => {
         <div className="xl:col-span-2 space-y-6">
           
           {/* Chat Simulator */}
-          <div className="bg-[#090a0f]/90 border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md flex flex-col h-[520px]">
+          <div className="surface-a border border-[var(--border)] rounded-3xl p-5 flex flex-col h-[520px] shadow-sm">
             <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 mb-4 shrink-0">
               <div className="flex items-center gap-2">
                 <Terminal className="w-4 h-4 text-blue-500" />
@@ -353,7 +353,7 @@ export const AiPlaygroundTab: React.FC = () => {
               <button
                 onClick={handleResetSandbox}
                 title="Flush chat database"
-                className="p-1 px-2.5 bg-[var(--bg-elevated)] border border-[var(--border)] hover:bg-[var(--bg-elevated)] rounded-xl text-[var(--text-muted)] hover:text-[var(--text)] text-[10px] uppercase font-bold flex items-center gap-1 cursor-pointer transition"
+                className="p-1 px-2.5 bg-[var(--input-bg)] border border-[var(--border)] hover:bg-[var(--bg-elevated)] rounded-xl text-[var(--text-muted)] hover:text-[var(--text)] text-[10px] uppercase font-bold flex items-center gap-1 cursor-pointer transition"
               >
                 <RotateCcw className="w-3 h-3" />
                 Flush Sandbox
@@ -369,14 +369,14 @@ export const AiPlaygroundTab: React.FC = () => {
                 >
                   {msg.role !== "user" && (
                     <div className="w-7 h-7 rounded-full bg-blue-600/10 border border-blue-500/30 flex items-center justify-center shrink-0">
-                      <Cpu className="w-3.5 h-3.5 text-blue-400" />
+                      <Cpu className="w-3.5 h-3.5 text-blue-500" />
                     </div>
                   )}
 
                   <div className={`max-w-[80%] rounded-2xl p-3.5 border ${
                     msg.role === "user"
-                      ? "bg-blue-600 text-[var(--text)] border-blue-500/20"
-                      : "bg-[var(--bg-elevated)]/40 text-neutral-250 text-[var(--text)] border-[var(--border)]"
+                      ? "bg-blue-600 text-white border-blue-500/20 font-medium"
+                      : "bg-[var(--input-bg)] text-[var(--text)] border-[var(--border)] font-medium"
                   }`}>
                     <p className="font-medium whitespace-pre-line">{msg.text}</p>
                     
@@ -386,7 +386,7 @@ export const AiPlaygroundTab: React.FC = () => {
                         <span>•</span>
                         <span>Time: <strong className="text-[var(--text)]">{msg.diagnostics.timeMs}ms</strong></span>
                         <span>•</span>
-                        <span>Source: <strong className="text-blue-400">{msg.diagnostics.source}</strong></span>
+                        <span>Source: <strong className="text-blue-500 font-bold">{msg.diagnostics.source}</strong></span>
                       </div>
                     )}
                   </div>
@@ -414,7 +414,7 @@ export const AiPlaygroundTab: React.FC = () => {
                   <button
                     key={b.type}
                     onClick={() => triggerEscalationTest(b.type as any)}
-                    className="px-2 py-1 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] text-[9.5px] font-bold text-[var(--text-muted)] hover:text-blue-400 rounded-lg cursor-pointer transition border border-[var(--border)]"
+                    className="px-2 py-1 bg-[var(--input-bg)] hover:bg-[var(--bg-elevated)] text-[9.5px] font-bold text-[var(--text-muted)] hover:text-blue-500 rounded-lg cursor-pointer transition border border-[var(--border)]"
                   >
                     {b.label}
                   </button>
@@ -429,11 +429,11 @@ export const AiPlaygroundTab: React.FC = () => {
                   value={chatInput}
                   onChange={(e) => setChatInput(e.target.value)}
                   placeholder="Ask a question as a simulator lead (e.g. 'Can I refund my membership plan?')..."
-                  className="flex-1 bg-[var(--bg)] border border-[var(--border)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)]"
+                  className="flex-1 bg-[var(--input-bg)] border border-[var(--border)] px-3.5 py-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-400 focus:outline-none focus:border-[var(--brand)] font-medium"
                 />
                 <button
                   type="submit"
-                  className="px-4 bg-blue-600 hover:bg-blue-550 text-[var(--text)] rounded-xl transition flex items-center justify-center cursor-pointer"
+                  className="px-4 bg-blue-600 hover:bg-blue-550 text-white rounded-xl transition flex items-center justify-center cursor-pointer shadow-sm"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -442,15 +442,15 @@ export const AiPlaygroundTab: React.FC = () => {
           </div>
 
           {/* Compiled Prompt Sent to Gemini */}
-          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-2.5">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-2.5 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-black uppercase text-[var(--text)] tracking-widest flex items-center gap-1.5">
-                <Code2 className="w-4 h-4 text-cyan-400" />
+                <Code2 className="w-4 h-4 text-cyan-500" />
                 Gemini SDK Prompt Construction
               </span>
               <button
                 onClick={() => copyToClipboard(compiledPrompt)}
-                className="text-[9.5px] font-black uppercase text-[var(--text-muted)] hover:text-[var(--text)] flex items-center gap-1 bg-[var(--bg-elevated)] px-2 py-1 rounded-lg border border-[var(--border)]"
+                className="text-[9.5px] font-black uppercase text-[var(--text-muted)] hover:text-[var(--text)] flex items-center gap-1 bg-[var(--input-bg)] px-2 py-1 rounded-lg border border-[var(--border)] cursor-pointer"
               >
                 Copy Prompt
               </button>
@@ -460,7 +460,7 @@ export const AiPlaygroundTab: React.FC = () => {
               Below is the structured context compiled automatically from CRM settings and database schemas, which is passed to `@google/genai` on every dialogue handshake:
             </p>
 
-            <pre className="p-3 bg-[#040406]/90 border border-[var(--border)] rounded-2xl text-[10px] font-mono text-cyan-300/80 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-52">
+            <pre className="p-3 bg-[var(--input-bg)] border border-[var(--border)] rounded-2xl text-[10px] font-mono text-[var(--text)] overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-52 font-semibold">
               {compiledPrompt}
             </pre>
           </div>
@@ -577,7 +577,7 @@ export const AiPlaygroundTab: React.FC = () => {
               <p className="text-xs text-[var(--text-muted)] mt-1">Simulate parallel dialogue triggers concurrently to analyze Autofy scale benchmarks.</p>
             </div>
 
-            <div className="p-4 bg-[#07080c] border border-[var(--border)] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="p-4 bg-[var(--input-bg)] border border-[var(--border)] rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
               
               <div className="space-y-2">
                 <span className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider block">Query volume scale</span>
@@ -750,7 +750,7 @@ export const AiPlaygroundTab: React.FC = () => {
                 Copy File
               </button>
 
-              <pre className="p-4 pt-12 bg-[#040406]/95 border border-[var(--border)] rounded-2xl text-[10px] font-mono text-emerald-400/90 overflow-x-auto whitespace-pre leading-relaxed max-h-[460px] scrollbar-thin">
+              <pre className="p-4 pt-12 bg-[var(--input-bg)] border border-[var(--border)] rounded-2xl text-[10px] font-mono text-[var(--text)] overflow-x-auto whitespace-pre leading-relaxed max-h-[460px] scrollbar-thin font-semibold">
                 {fastApiCodeblocks[activeCodeFile]}
               </pre>
             </div>

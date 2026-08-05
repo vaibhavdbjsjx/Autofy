@@ -45,6 +45,10 @@ export function clearAuthToken(): void {
   }
 }
 
+export function isAuthenticated(): boolean {
+  return !!getAuthToken();
+}
+
 // Typed error so callers can branch on status (e.g. 401 → re-login).
 export class ApiError extends Error {
   readonly status: number;
@@ -148,6 +152,8 @@ export const api = {
     request<T>(path, { ...options, method: "PATCH", body }),
   del: <T>(path: string, options?: RequestOptions) =>
     request<T>(path, { ...options, method: "DELETE" }),
+  delete: <T>(path: string, body?: Json, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: "DELETE", body }),
 };
 
 export default api;

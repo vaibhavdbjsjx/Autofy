@@ -32,26 +32,26 @@
   --accent-amber: #D97706; /* Amber — warnings, ratings */
   --accent-red: #DC2626;   /* Red — errors, danger */
 
-  /* LIGHT MODE — default (this app launches in light mode) */
-  --bg: #FFFFFF;
-  --bg-2: #FAFAFE;
+  /* LIGHT MODE — default (exact match to master reference image) */
+  --bg: #FAF7FF;
+  --bg-2: #F3E8FF;
   --bg-card: #FFFFFF;
-  --bg-elevated: #F5F3FF;
-  --border: rgba(139,92,246,0.10);
-  --border-strong: rgba(139,92,246,0.22);
-  --text: #14101F;
-  --text-muted: rgba(20,16,31,0.55);
-  --text-subtle: rgba(20,16,31,0.32);
-  --sidebar: #FFFFFF;
-  --header-bg: rgba(255,255,255,0.90);
-  --input-bg: rgba(139,92,246,0.04);
+  --bg-elevated: #F3E8FF;
+  --border: rgba(139,92,246,0.12);
+  --border-strong: rgba(139,92,246,0.25);
+  --text: #1E1B2E;
+  --text-muted: #6B7280;
+  --text-subtle: #9CA3AF;
+  --sidebar: #FAF7FF;
+  --header-bg: rgba(250,247,255,0.85);
+  --input-bg: #F5F0FF;
   --modal-bg: #FFFFFF;
-  --shadow: rgba(139,92,246,0.12);
+  --shadow: rgba(139,92,246,0.08);
   --scrollbar: #E5E1F0;
-  --success: #16A34A;
-  --warning: #D97706;
-  --danger: #DC2626;
-  --info: #2563EB;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --info: #3B82F6;
 }
 
 html.dark {
@@ -80,16 +80,24 @@ html.dark {
   --font-mono: "JetBrains Mono", monospace;
 }
 
-/* ───── RESET & BASE ───── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+/* ───── RESET & BASE ─────
+   CRITICAL (Tailwind v4): these globals MUST stay inside `@layer base`.
+   Unlayered CSS beats layered CSS in the cascade, so an unlayered
+   `* { margin:0; padding:0 }` silently kills every p-*/px-*/py-*/m-*/gap-*
+   utility app-wide. Do not un-wrap these blocks. */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
 }
 
 /* Global theme transition */
-* {
-  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease;
+@layer base {
+  * {
+    transition: background-color 0.25s ease, border-color 0.25s ease, color 0.15s ease;
+  }
 }
 
 html {
@@ -677,6 +685,150 @@ select.input-field {
   border-color: var(--border-strong);
   box-shadow: 0 8px 32px var(--shadow);
 }
+
+/* ═══════════════════════════════════════════════════
+   AUTHENTICATED ENVIRONMENT — GLOBAL BACKGROUND (PASS 4)
+   One continuous fixed layer behind all authenticated
+   pages (dashboard + onboarding). Covers entire page.
+   The PAGE owns the atmosphere — 4 large diffuse glows.
+   ═══════════════════════════════════════════════════ */
+.autofy-env {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+/* Layer 1: Continuous grid — exact landing page grid-line + 58px size */
+.autofy-env-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 58px 58px;
+  -webkit-mask-image: radial-gradient(ellipse 95% 85% at 50% 30%, #000 35%, transparent 100%);
+          mask-image: radial-gradient(ellipse 95% 85% at 50% 30%, #000 35%, transparent 100%);
+  opacity: 0.85;
+}
+
+/* Layer 2: 4 Large Atmospheric Radial Glows (Pink, Lavender, Blue, Violet) */
+.autofy-env-glow-pink {
+  position: absolute;
+  width: 900px; height: 900px;
+  top: -280px; left: -220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(236,72,153,0.12) 0%, rgba(236,72,153,0.03) 45%, transparent 70%);
+  filter: blur(100px);
+  animation: aurora-1 22s ease-in-out infinite;
+}
+
+.autofy-env-glow-lavender {
+  position: absolute;
+  width: 850px; height: 850px;
+  top: 25%; left: -150px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(167,139,250,0.10) 0%, rgba(139,92,246,0.02) 50%, transparent 70%);
+  filter: blur(110px);
+  animation: aurora-3 25s ease-in-out infinite;
+}
+
+.autofy-env-glow-blue {
+  position: absolute;
+  width: 950px; height: 950px;
+  top: -180px; right: -260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,130,246,0.10) 0%, rgba(59,130,246,0.02) 50%, transparent 70%);
+  filter: blur(100px);
+  animation: aurora-2 20s ease-in-out infinite;
+}
+
+.autofy-env-glow-violet {
+  position: absolute;
+  width: 800px; height: 800px;
+  bottom: -150px; right: 20%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124,58,237,0.08) 0%, transparent 68%);
+  filter: blur(100px);
+  animation: aurora-1 24s ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════
+   3-TIER SURFACE ARCHITECTURE (PASS 4)
+   LEVEL 1 — Page Canvas (.autofy-env)
+   LEVEL 2 — Major Surfaces (.surface-a) for primary modules
+   LEVEL 3 — Inline Content (.surface-inline) no cards!
+   ═══════════════════════════════════════════════════ */
+
+/* LEVEL 2: MAJOR SURFACES — Solid opaque card surfaces that cover the background grid */
+.surface-a {
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  box-shadow: 0 12px 36px -8px rgba(139,92,246,0.08), 0 2px 6px rgba(0,0,0,0.02);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  z-index: 10;
+}
+html.dark .surface-a {
+  background: #111017;
+  border: 1px solid rgba(255,255,255,0.09);
+  box-shadow: 0 12px 36px -8px rgba(0,0,0,0.6);
+}
+.surface-a:hover {
+  border-color: var(--border-strong);
+  box-shadow: 0 20px 48px -10px rgba(139,92,246,0.14);
+}
+
+/* LEVEL 3: INLINE CONTENT — Rendered directly on canvas with zero card border */
+.surface-inline {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+/* ═══════════════════════════════════════════════════
+   LIGHT MODE DARK-BOX OVERRIDES
+   Guarantees 100% replacement of all hardcoded black/dark
+   containers, input boxes, textareas, code blocks,
+   tab capsules, and calendar cells in light mode!
+   ═══════════════════════════════════════════════════ */
+html:not(.dark) input,
+html:not(.dark) textarea,
+html:not(.dark) select {
+  background-color: var(--input-bg) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+html:not(.dark) input::placeholder,
+html:not(.dark) textarea::placeholder {
+  color: var(--text-subtle) !important;
+}
+
+html:not(.dark) pre,
+html:not(.dark) code {
+  background-color: #F5F0FF !important;
+  color: #1E1B2E !important;
+  border-color: rgba(139,92,246,0.15) !important;
+}
+
+html:not(.dark) [class*="bg-[#0"],
+html:not(.dark) [class*="bg-[#1"],
+html:not(.dark) [class*="bg-[#2"],
+html:not(.dark) [class*="bg-black"],
+html:not(.dark) [class*="bg-neutral-8"],
+html:not(.dark) [class*="bg-neutral-9"],
+html:not(.dark) [class*="bg-zinc-8"],
+html:not(.dark) [class*="bg-zinc-9"],
+html:not(.dark) [class*="bg-slate-8"],
+html:not(.dark) [class*="bg-slate-9"] {
+  background-color: #F5F0FF !important;
+  color: #1E1B2E !important;
+  border-color: rgba(139,92,246,0.15) !important;
+}
+
 
 /* ═══════════════════════════════════════════════════
    CUSTOM TOGGLE SWITCH

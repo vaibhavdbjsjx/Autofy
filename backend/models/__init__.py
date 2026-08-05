@@ -17,6 +17,7 @@ from models.ai_training import AILog, AIKnowledgeGap, AITrainedAnswer
 from models.customer_profile import CustomerProfile
 from models.marketing import Campaign, BroadcastMessage
 from models.support_ticket import SupportTicket, TicketHistory
+from models.subscription import Subscription
 
 __all__ = [
     "Base", 
@@ -41,6 +42,7 @@ __all__ = [
     "Campaign",
     "BroadcastMessage",
     "SupportTicket",
-    "TicketHistory"
+    "TicketHistory",
+    "Subscription"
 ]
 

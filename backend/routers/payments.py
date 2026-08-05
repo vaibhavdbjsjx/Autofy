@@ -98,14 +98,44 @@ async def razorpay_async_webhook_listener(
 ):
     """
     Publicly reachable webhook endpoint accepting background paid alerts from Razorpay servers.
-    Validates capture events, updates ledgers, and raises conversions.
+    Verifies X-Razorpay-Signature HMAC SHA256 header against RAZORPAY_WEBHOOK_SECRET before parsing or state mutation.
     """
+    import os
+    import hmac
+    import hashlib
+    import json
+    from config import settings
+
+    signature = request.headers.get("X-Razorpay-Signature") or request.headers.get("x-razorpay-signature")
+    webhook_secret = os.environ.get("RAZORPAY_WEBHOOK_SECRET") or settings.RAZORPAY_WEBHOOK_SECRET
+    raw_body = await request.body()
+
+    is_prod = settings.ENVIRONMENT.lower() in ["production", "prod"]
+
+    if is_prod and (not signature or not webhook_secret):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Webhook verification failed: Secret or signature header missing."
+        )
+
+    if signature and webhook_secret:
+        expected_sig = hmac.new(
+            key=webhook_secret.encode("utf-8"),
+            msg=raw_body,
+            digestmod=hashlib.sha256
+        ).hexdigest()
+
+        if not hmac.compare_digest(expected_sig, signature):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid Razorpay webhook signature verification."
+            )
+
     try:
-        payload = await request.json()
+        payload = json.loads(raw_body.decode("utf-8") or "{}")
         result = await RazorpayService.process_webhook_callback(db, payload)
         return result
     except Exception as err:
-        # Keep webhook response always accepting code 200/202 so webhook logs are clean
         import logging
         logging.getLogger("autofy_pay_webhook").error(f"Razorpay Webhook parsing error: {err}")
         return {"status": "error_captured", "detail": str(err)}

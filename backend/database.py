@@ -8,15 +8,19 @@ from config import settings
 #   - SQLite (default for local dev): needs check_same_thread=False for FastAPI's
 #     threaded request handling, and does NOT accept Postgres pool sizing args.
 #   - PostgreSQL (production): use connection pooling + health checks.
-if settings.DATABASE_URL.startswith("sqlite"):
+db_url = settings.DATABASE_URL
+if db_url.startswith("postgres://"):
+    db_url = db_url.replace("postgres://", "postgresql://", 1)
+
+if db_url.startswith("sqlite"):
     engine = create_engine(
-        settings.DATABASE_URL,
+        db_url,
         connect_args={"check_same_thread": False},
         pool_pre_ping=True,
     )
 else:
     engine = create_engine(
-        settings.DATABASE_URL,
+        db_url,
         pool_pre_ping=True,   # checks connection health before executing commands
         pool_size=10,
         max_overflow=20,
@@ -40,5 +44,8 @@ def get_db() -> Generator:
     db = SessionLocal()
     try:
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()

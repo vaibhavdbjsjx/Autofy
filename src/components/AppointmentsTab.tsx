@@ -354,14 +354,14 @@ export const AppointmentsTab: React.FC = () => {
               </div>
 
               {/* Day, Week, Month, Agenda selectors */}
-              <div className="bg-[#050507] p-1 border border-[var(--border)] rounded-xl flex items-center gap-1">
+              <div className="bg-[var(--input-bg)] p-1 border border-[var(--border)] rounded-xl flex items-center gap-1">
                 {(["Day", "Week", "Month", "Agenda"] as const).map(v => (
                   <button
                     key={v}
                     onClick={() => setCalendarView(v)}
                     className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer ${
                       calendarView === v 
-                        ? "bg-[var(--bg-elevated)] text-[var(--text)] shadow shadow-neutral-950/10 border border-[var(--border-strong)]/60" 
+                        ? "bg-purple-600 text-white shadow-sm font-black" 
                         : "text-[var(--text-subtle)] hover:text-[var(--text)]"
                     }`}
                   >
@@ -396,10 +396,10 @@ export const AppointmentsTab: React.FC = () => {
                         }}
                         className={`h-14 p-2 border rounded-2xl flex flex-col justify-between hover:bg-[var(--bg-elevated)]/60 transition cursor-pointer select-none ${
                           isToday 
-                            ? "bg-[#1a1a1a] border-[var(--border-strong)]" 
+                            ? "bg-[#F3E8FF] border-purple-500/40 text-purple-700 font-black shadow-sm" 
                             : dateStr === activeDate 
-                            ? "bg-[var(--bg-elevated)] border-[var(--border-strong)]" 
-                            : "bg-[var(--bg-elevated)]/20 border-[var(--border)]"
+                            ? "bg-[var(--bg-elevated)] border-[var(--border-strong)] text-[var(--text)]" 
+                            : "bg-[var(--bg-card)] border-[var(--border)] text-[var(--text)]"
                         }`}
                       >
                         <span className={`text-[10px] font-bold ${isToday ? "text-[var(--text)] font-black" : "text-[var(--text-muted)]"}`}>

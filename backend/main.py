@@ -1,11 +1,15 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from config import settings
 from database import engine, Base
 import models # Forces the registry of SQLAlchemy entities
 from middleware.logging_middleware import StructuredLoggingMiddleware
 from middleware.error_handler import register_error_handlers
-from routers import auth, business, team_member, knowledge, leads, conversations, whatsapp, payments, product, orders, ai_training, crm, marketing, tickets, email
+from middleware.rate_limit_middleware import RateLimiterMiddleware
+from routers import auth, business, team_member, knowledge, leads, conversations, whatsapp, payments, product, orders, ai_training, crm, marketing, tickets, email, subscriptions
+from sqlalchemy import text
+from sqlalchemy.orm import Session
+from database import get_db
 
 # 1. Initialize core FastAPI framework
 app = FastAPI(
@@ -25,14 +29,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 3. Mount custom trace-request logger middleware
+# 3. Mount custom trace-request logger & rate limiter middleware
 app.add_middleware(StructuredLoggingMiddleware)
+app.add_middleware(RateLimiterMiddleware)
 
 # 4. Integrate central global exception parser
 register_error_handlers(app)
 
 # 5. Programmatic table instantiation on application startup
-# Ideal for rapid MVPs. Ensures tables exist immediately.
 @app.on_event("startup")
 def on_startup():
     try:
@@ -56,7 +60,7 @@ app.include_router(crm.router, prefix=settings.API_V1_STR)
 app.include_router(marketing.router, prefix=settings.API_V1_STR)
 app.include_router(tickets.router, prefix=settings.API_V1_STR)
 app.include_router(email.router, prefix=settings.API_V1_STR)
-
+app.include_router(subscriptions.router, prefix=settings.API_V1_STR)
 
 @app.get("/", tags=["System Index"])
 def system_root():
@@ -69,14 +73,50 @@ def system_root():
         "version": "1.0.0"
     }
 
+@app.get("/health/live", tags=["System Index"])
+@app.get("/api/health/live", tags=["System Index"])
+def liveness_probe():
+    """
+    Production liveness probe for orchestrators (Render, K8s).
+    Fast check verifying the application container process is responsive.
+    """
+    return {"status": "alive", "version": "1.0.0"}
+
+@app.get("/health/ready", tags=["System Index"])
+@app.get("/api/health/ready", tags=["System Index"])
+def readiness_probe(db: Session = Depends(get_db)):
+    """
+    Production readiness probe checking database connectivity.
+    Returns HTTP 200 if ready to serve traffic, 503 if database unavailable.
+    """
+    from fastapi.responses import JSONResponse
+    try:
+        db.execute(text("SELECT 1"))
+        return {"status": "ready", "database_connected": True}
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "not_ready", "database_connected": False}
+        )
+
+@app.get("/health", tags=["System Index"])
 @app.get("/api/health", tags=["System Index"])
-def system_health():
+def system_health(db: Session = Depends(get_db)):
     """
-    Health check monitoring validation endpoint.
+    Comprehensive system health check.
     """
+    db_ok = False
+    try:
+        db.execute(text("SELECT 1"))
+        db_ok = True
+    except Exception:
+        db_ok = False
+
     return {
-        "status": "healthy",
-        "database_connected": True
+        "status": "healthy" if db_ok else "degraded",
+        "database_connected": db_ok,
+        "environment": settings.ENVIRONMENT,
+        "features": settings.get_feature_health()
     }
 
 

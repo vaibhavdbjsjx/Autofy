@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Optional
 from urllib.parse import urlencode
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import RedirectResponse
@@ -10,6 +11,7 @@ from models.user import User
 from models.business import Business
 from auth.security import get_password_hash, verify_password, create_access_token
 from auth.google_oauth import GoogleOAuthService
+from auth.dependencies import get_current_active_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -209,3 +211,97 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
             "name": user.name or "",
         }
     )
+
+class AccountDeletionRequest(BaseModel):
+    confirmation_text: str
+    password: Optional[str] = None
+
+class ProfileUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    business_name: Optional[str] = None
+    phone: Optional[str] = None
+
+@router.get("/me")
+def get_current_user_profile(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns current authenticated user profile and business account info.
+    """
+    biz = db.query(Business).filter(Business.id == current_user.business_id).first()
+    return {
+        "user_id": current_user.id,
+        "name": current_user.name,
+        "email": current_user.email,
+        "role": current_user.role,
+        "status": current_user.status,
+        "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
+        "business": {
+            "id": current_user.business_id,
+            "name": biz.name if biz else "",
+            "phone": biz.phone if biz else "",
+            "email": biz.email if biz else "",
+            "timezone": biz.timezone if biz else "IST - Kolkata (GMT+5:30)",
+        } if biz else None
+    }
+
+@router.put("/profile")
+def update_current_user_profile(
+    payload: ProfileUpdateRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Updates non-sensitive profile parameters (Name, Business Name, Phone).
+    Email modifications are restricted to prevent identity takeover.
+    """
+    if payload.name:
+        current_user.name = payload.name.strip()
+    
+    biz = db.query(Business).filter(Business.id == current_user.business_id).first()
+    if biz:
+        if payload.business_name:
+            biz.name = payload.business_name.strip()
+        if payload.phone:
+            biz.phone = payload.phone.strip()
+
+    db.commit()
+    return {
+        "status": "success",
+        "message": "Profile updated successfully.",
+        "name": current_user.name,
+        "business_name": biz.name if biz else ""
+    }
+
+@router.delete("/delete-account")
+def delete_account(
+    payload: AccountDeletionRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Permanently deletes user account, business profile, and operational data.
+    Requires explicit confirmation_text == 'DELETE' and password verification for password-authenticated accounts.
+    """
+    if payload.confirmation_text.strip() != "DELETE":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Account deletion requires explicit confirmation text 'DELETE'."
+        )
+
+    # Verify password if user has password set
+    if current_user.password_hash and current_user.password_hash != "google_oauth_user":
+        if not payload.password or not verify_password(payload.password, current_user.password_hash):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Password verification failed. Incorrect password."
+            )
+
+    from services.account_deletion_service import AccountDeletionService
+    result = AccountDeletionService.execute_business_account_deletion(
+        db=db,
+        business_id=current_user.business_id,
+        user_id=current_user.id
+    )
+    return result

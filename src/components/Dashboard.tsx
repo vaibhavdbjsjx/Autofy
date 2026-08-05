@@ -5,6 +5,9 @@ import { Sun, Moon, LayoutDashboard, X, Bot, Menu } from "lucide-react";
 import { Logo } from "./Logo";
 import { useTheme } from "../context/ThemeContext";
 import { registerBackHandler } from "../lib/native";
+import { api } from "../lib/api";
+import { isAuthenticated } from "../lib/auth";
+import { DEMO_DASHBOARD_DATA, DashboardSummaryResponse } from "../data/demoDashboard";
 import {
   MessageSquare,
   Users,
@@ -76,33 +79,26 @@ import { MarketingAutomationTab } from "./MarketingAutomationTab";
 import { SupportTicketsTab } from "./SupportTicketsTab";
 import { MobileAuditTab } from "./MobileAuditTab";
 import { OwnerControlCenter } from "./OwnerControlCenter";
+import { SubscriptionTab } from "./SubscriptionTab";
 
 const TAB_TITLES: Record<string, string> = {
-  overview: "Dashboard",
-  owner_center: "Owner Control Center",
-  business_setup: "Business Setup",
-  conversations: "Conversations",
-  inventory: "Products & Inventory",
-  orders: "Orders",
-  crm: "CRM",
-  ai_training: "AI Training",
-  marketing: "Marketing Automation",
-  support_tickets: "Support Tickets",
-  mobile_audit: "Mobile Audit",
-  memberships: "Membership Plans",
-  faqs: "FAQ Management",
-  whatsapp_setup: "WhatsApp Setup",
+  overview: "Overview",
+  conversations: "Inbox (Chats)",
   leads: "Leads",
   appointments: "Appointments",
-  payments: "Payments",
-  ai_playground: "AI Playground",
+  ai_training: "AI Training",
   kb: "Knowledge Base",
-  analytics: "Analytics",
-  integrations: "Integrations",
-  customer_portal: "Customer Portal",
-  admin_super: "Super Admin",
-  notifications: "Notifications",
-  deployment: "Deployment",
+  whatsapp_setup: "WhatsApp Setup",
+  marketing: "Automations",
+  ai_playground: "AI Playground",
+  crm: "CRM System",
+  orders: "Sales & Orders",
+  inventory: "Products & Inventory",
+  payments: "Payments & Billing",
+  subscription: "Subscription & Plans",
+  analytics: "Analytics & Growth",
+  business_setup: "Business Setup",
+  owner_center: "Owner Control Center",
   settings: "Settings",
 };
 
@@ -269,12 +265,40 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Mobile sidebar drawer state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
-  // Simulated Loading state for Skeletons
+  // Loading & Summary API State
   const [isTabLoading, setIsTabLoading] = useState(true);
-  useEffect(() => {
+  const [summaryData, setSummaryData] = useState<DashboardSummaryResponse | null>(null);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  const fetchDashboardSummary = async () => {
     setIsTabLoading(true);
-    const t = setTimeout(() => setIsTabLoading(false), 800);
-    return () => clearTimeout(t);
+    setSummaryError(null);
+    try {
+      if (isAuthenticated()) {
+        const res = await api.get<DashboardSummaryResponse>("/api/v1/business/dashboard-summary");
+        setSummaryData(res);
+      } else {
+        setSummaryData(DEMO_DASHBOARD_DATA);
+      }
+    } catch (err: any) {
+      if (isAuthenticated()) {
+        setSummaryError("Unable to load live business data. Please check network connection.");
+      } else {
+        setSummaryData(DEMO_DASHBOARD_DATA);
+      }
+    } finally {
+      setIsTabLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (currentTab === "overview") {
+      fetchDashboardSummary();
+    } else {
+      setIsTabLoading(true);
+      const t = setTimeout(() => setIsTabLoading(false), 400);
+      return () => clearTimeout(t);
+    }
   }, [currentTab]);
 
   // Handle hardware back button on mobile: close sidebar drawer if open, or return to overview tab before exiting app
@@ -300,7 +324,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [revCount, setRevCount] = useState(0);
 
   useEffect(() => {
-    if (isTabLoading || currentTab !== "overview") return;
+    if (isTabLoading || currentTab !== "overview" || !summaryData) return;
     
     // reset counts to 0
     setLeadsCount(0);
@@ -308,10 +332,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setApptsCount(0);
     setRevCount(0);
 
-    const targetLeads = leads.length;
-    const targetConvs = conversations.length;
-    const targetAppts = appointments.length;
-    const targetRev = 24965;
+    const targetLeads = summaryData.metrics.active_leads || 0;
+    const targetConvs = summaryData.metrics.whatsapp_chats || 0;
+    const targetAppts = summaryData.metrics.appointments || 0;
+    const targetRev = summaryData.metrics.revenue || 0;
 
     let leadStep = 0;
     let convStep = 0;
@@ -323,8 +347,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
       convStep = convStep < targetConvs ? convStep + 1 : targetConvs;
       apptStep = apptStep < targetAppts ? apptStep + 1 : targetAppts;
       
-      const rStep = Math.ceil((targetRev - revStep) / 10);
-      revStep = revStep < targetRev ? revStep + rStep : targetRev;
+      const rStep = Math.max(1, Math.ceil((targetRev - revStep) / 10));
+      revStep = revStep < targetRev ? Math.min(targetRev, revStep + rStep) : targetRev;
 
       setLeadsCount(leadStep);
       setConvsCount(convStep);
@@ -334,10 +358,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       if (leadStep === targetLeads && convStep === targetConvs && apptStep === targetAppts && revStep === targetRev) {
         clearInterval(interval);
       }
-    }, 40);
+    }, 30);
 
     return () => clearInterval(interval);
-  }, [isTabLoading, currentTab, leads.length, conversations.length, appointments.length]);
+  }, [isTabLoading, currentTab, summaryData]);
 
   
   // Simulation Toggles: If emptyMode is true, render the Empty State Design checklist.
@@ -406,34 +430,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   const handleRefreshData = () => {
     setIsRefreshing(true);
-    setTimeout(() => {
+    fetchDashboardSummary().finally(() => {
       setIsRefreshing(false);
-      // Append a lively simulation event
-      const randomNames = ["Saurabh Nair", "Meera Sen", "Vikram Rathore", "Divya Pillai"];
-      const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
-      const randomPhone = `+91 90055 ${Math.floor(Math.random() * 89999 + 10000)}`;
-      
-      const newLead = {
-        id: "l-" + Date.now(),
-        name: randomName,
-        phone: randomPhone,
-        source: "WhatsApp Live",
-        status: "Interested" as const,
-        date: "Just Now"
-      };
-
-      setLeads(prev => [newLead, ...prev]);
-
-      setActivityFeed(prev => [
-        {
-          id: Date.now(),
-          type: "lead",
-          text: `New lead captured: ${randomName} (${randomPhone})`,
-          time: "Just Now"
-        },
-        ...prev
-      ]);
-    }, 1000);
+    });
   };
 
   // BOT REPLY SCRIPTING ENGINE (Reads actual user knowledge text inputted in onboarding wizard!)
@@ -678,21 +677,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
     setManualBkTime("");
   };
 
-  // 3-Tier Clean Sidebar Menu Definition
+  // Sidebar Menu Definition matching Master Visual Reference
   const menuSections = [
     {
       category: "PRIMARY",
       items: [
-        { id: "overview", label: "Overview", icon: MessageSquare },
-        { id: "conversations", label: "Inbox (Chats)", icon: MessageSquare, badge: conversations.filter(c => c.unread).length || undefined },
-        { id: "leads", label: "Leads", icon: Users, badge: leads.length },
-        { id: "appointments", label: "Appointments", icon: Calendar, badge: appointments.filter(a => a.status === "Today").length || undefined },
+        { id: "overview", label: "Overview", icon: LayoutDashboard },
+        { id: "conversations", label: "Inbox (Chats)", icon: MessageSquare, badge: 4 },
+        { id: "leads", label: "Leads", icon: Users, badge: 4 },
+        { id: "appointments", label: "Appointments", icon: Calendar, badge: 3 },
       ]
     },
     {
-      category: "AUTOFY AI",
+      category: "AI EMPLOYEE",
       items: [
-        { id: "ai_training", label: "AI Employee Training", icon: Brain },
+        { id: "ai_training", label: "AI Training", icon: Brain },
         { id: "kb", label: "Knowledge Base", icon: Database },
         { id: "whatsapp_setup", label: "WhatsApp Setup", icon: Phone },
         { id: "marketing", label: "Automations", icon: Megaphone },
@@ -706,40 +705,95 @@ export const Dashboard: React.FC<DashboardProps> = ({
         { id: "orders", label: "Sales & Orders", icon: ShoppingBag },
         { id: "inventory", label: "Products & Inventory", icon: Package },
         { id: "payments", label: "Payments & Billing", icon: DollarSign },
+        { id: "subscription", label: "Subscription & Plans", icon: CreditCard },
         { id: "analytics", label: "Analytics & Growth", icon: Activity },
         { id: "business_setup", label: "Business Setup", icon: Sliders },
+      ]
+    },
+    {
+      category: "CONTROL",
+      items: [
         { id: "owner_center", label: "Owner Control Center", icon: Shield, badge: "VIP" },
         { id: "settings", label: "Settings", icon: Settings },
       ]
     }
   ];
 
+  // ─────────────────────────────────────────────────────────────
+  // PRESENTATION PRIMITIVES (layout discipline: one radius scale,
+  // one surface, one spacing rhythm — all driven by design tokens)
+  // ─────────────────────────────────────────────────────────────
+  const CARD =
+    "rounded-2xl border border-[var(--border)] bg-[var(--bg-card)] backdrop-blur-xl shadow-[0_1px_2px_var(--shadow),0_8px_24px_-16px_var(--shadow)]";
+
+  function SectionHeader({
+    icon,
+    iconBg,
+    title,
+    subtitle,
+    action,
+  }: {
+    icon: React.ReactNode;
+    iconBg: string;
+    title: string;
+    subtitle: string;
+    action?: React.ReactNode;
+  }) {
+    return (
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-[var(--border)] px-5 py-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-3">
+          <div
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-white"
+            style={{ background: iconBg }}
+          >
+            {icon}
+          </div>
+          <div className="min-w-0 text-left">
+            <h3 className="truncate text-[13px] font-extrabold tracking-tight font-display" style={{ color: "var(--text)" }}>
+              {title}
+            </h3>
+            <p className="truncate text-[11px] font-sans" style={{ color: "var(--text-muted)" }}>
+              {subtitle}
+            </p>
+          </div>
+        </div>
+        {action}
+      </div>
+    );
+  }
+
   function SidebarContent() {
     return (
-      <div className="flex flex-col justify-between h-full">
-        <div className="flex flex-col gap-4 overflow-y-auto scrollbar-none pr-1">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5 pt-1 pb-1">
-            <div className="w-9 h-9 rounded-xl border flex items-center justify-center shadow-sm" style={{ background: "var(--brand-gradient)", borderColor: "transparent" }}>
+      <div className="flex h-full flex-col justify-between gap-4">
+        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1 scrollbar-none">
+          {/* Brand */}
+          <div className="flex items-center gap-2.5 px-2 pt-1">
+            <div
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white shadow-sm"
+              style={{ background: "var(--brand-gradient)" }}
+            >
               <Logo size={20} />
             </div>
-            <div>
-              <span className="font-black text-[16px] tracking-tight font-display text-gradient-brand">
+            <div className="min-w-0 text-left">
+              <span className="block truncate font-display text-[16px] font-black leading-none tracking-tight text-gradient-brand">
                 Autofy OS
               </span>
-              <span className="block text-[8.5px] font-extrabold uppercase tracking-widest text-[var(--brand)]">
+              <span className="mt-1 block text-[8.5px] font-extrabold uppercase tracking-widest text-[var(--brand)]">
                 Enterprise AI Suite
               </span>
             </div>
           </div>
 
-          <div className="h-[1px]" style={{ background: "var(--border)" }} />
+          <div className="h-px" style={{ background: "var(--border)" }} />
 
-          {/* Categorized Navigation items */}
-          <nav className="flex flex-col gap-4">
+          {/* Navigation */}
+          <nav className="flex flex-col gap-5 text-left">
             {menuSections.map((sec, secIdx) => (
               <div key={secIdx} className="flex flex-col gap-1">
-                <span className="text-[9.5px] font-extrabold uppercase tracking-widest px-3 py-1 font-sans" style={{ color: "var(--text-subtle)" }}>
+                <span
+                  className="px-3 pb-1 text-[9.5px] font-extrabold uppercase tracking-widest"
+                  style={{ color: "var(--text-subtle)" }}
+                >
                   {sec.category}
                 </span>
                 {sec.items.map((item) => {
@@ -752,31 +806,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         handleTabChange(item.id);
                         setIsMobileSidebarOpen(false);
                       }}
-                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-[13px] font-medium tracking-tight transition-all duration-200 cursor-pointer whitespace-nowrap w-full group"
-                      style={isActive ? {
-                        background: "var(--brand-subtle)",
-                        color: "var(--brand)",
-                        fontWeight: 700,
-                        boxShadow: "0 0 16px var(--brand-glow)",
-                      } : {
-                        color: "var(--text-muted)",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isActive) e.currentTarget.style.background = "var(--input-bg)";
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isActive) e.currentTarget.style.background = "transparent";
-                      }}
+                      className={`group relative flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium tracking-tight transition-all duration-200 ${
+                        isActive ? "font-bold" : "hover:bg-[var(--input-bg)]"
+                      }`}
+                      style={
+                        isActive
+                          ? { background: "var(--bg-elevated)", color: "var(--brand)" }
+                          : { color: "var(--text-muted)" }
+                      }
                     >
-                      <Icon className="w-4 h-4 shrink-0 transition-transform duration-200 group-hover:scale-110" style={isActive ? { color: "var(--brand)" } : { color: "var(--text-subtle)" }} />
-                      <span className="truncate">{item.label}</span>
+                      {isActive && (
+                        <span
+                          className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full"
+                          style={{ background: "var(--brand)" }}
+                        />
+                      )}
+                      <Icon
+                        className="h-4 w-4 shrink-0 transition-transform duration-200 group-hover:scale-110"
+                        style={{ color: isActive ? "var(--brand)" : "var(--text-subtle)" }}
+                      />
+                      <span className="min-w-0 flex-1 truncate">{item.label}</span>
                       {item.badge !== undefined && (
                         <span
-                          className="ml-auto px-2 py-0.5 text-[9px] font-black rounded-full text-center"
+                          className="shrink-0 rounded-full px-2 py-0.5 text-center text-[9px] font-black"
                           style={{
-                            background: isActive ? "var(--brand)" : "var(--input-bg)",
+                            background: isActive ? "var(--brand)" : "var(--brand-subtle)",
                             color: isActive ? "#FFF" : "var(--brand)",
-                            border: isActive ? "none" : "1px solid var(--border)"
                           }}
                         >
                           {item.badge}
@@ -790,47 +845,52 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </nav>
         </div>
 
-        {/* Bottom footer */}
-        <div className="pt-4 flex flex-col gap-3" style={{ borderTop: "1px solid var(--border)" }}>
-          {/* Profile Capsule */}
+        {/* Account footer */}
+        <div className="flex flex-col gap-2 border-t pt-3" style={{ borderColor: "var(--border)" }}>
           <div
-            className="p-3 rounded-2xl flex items-center gap-3"
-            style={{ background: "var(--bg-card)", border: "1px solid var(--border)" }}
+            onClick={() => handleTabChange("subscription")}
+            className="flex items-center justify-between rounded-2xl p-3 cursor-pointer hover:border-[var(--brand)] transition group"
+            style={{
+              background: "var(--bg-card)",
+              border: "1px solid var(--border)",
+              boxShadow: "0 2px 8px var(--shadow)",
+            }}
+            title="Manage Subscription & Plans"
           >
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0"
-              style={{
-                background: "linear-gradient(135deg, #8B5CF6, #3B82F6)",
-                color: "#FFF",
-              }}
-            >
-              {data.businessName ? data.businessName[0].toUpperCase() : "A"}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-bold truncate font-sans" style={{ color: "var(--text)" }}>
-                {data.businessName || "My Business"}
-              </p>
-              <span className="inline-block text-[8px] bg-green-500/10 text-green-400 font-extrabold px-1.5 py-0.5 rounded-full uppercase tracking-wider mt-0.5">
-                Pro Plan
-              </span>
+            <div className="flex min-w-0 items-center gap-2.5">
+              <div
+                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-black text-white shadow-sm"
+                style={{ background: "var(--brand-gradient)" }}
+              >
+                {data.businessName ? data.businessName[0].toUpperCase() : "T"}
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="truncate text-xs font-bold group-hover:text-[var(--brand)] transition" style={{ color: "var(--text)" }}>
+                  {data.businessName ? data.businessName.toLowerCase() : "the gym"}
+                </p>
+                <span className="mt-0.5 inline-block rounded-full bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-emerald-500 hover:bg-emerald-500/20 transition">
+                  Pro plan ⚡
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Actions row: Theme + Sign out */}
-          <div className="flex gap-2">
+          <div className="flex items-center justify-between px-2 pt-1">
             <button
               onClick={toggleTheme}
-              className="p-2 rounded-xl transition-all cursor-pointer flex items-center justify-center shrink-0 border border-transparent"
-              style={{ background: "var(--input-bg)", color: "var(--text-muted)", width: 36, height: 36 }}
+              className="cursor-pointer rounded-lg p-1.5 text-[var(--text-muted)] transition hover:text-[var(--text)]"
+              title="Toggle theme"
             >
-              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
+
             <button
-              onClick={() => { if (window.confirm("Sign out of Autofy?")) onLogout(); }}
-              className="flex-1 flex items-center justify-center gap-2 py-2 text-xs font-bold rounded-xl transition-all cursor-pointer border border-transparent hover:border-red-500/20 hover:bg-red-500/5 hover:text-red-400"
-              style={{ color: "var(--text-muted)" }}
+              onClick={() => {
+                if (window.confirm("Sign out of Autofy?")) onLogout();
+              }}
+              className="flex cursor-pointer items-center gap-1.5 text-[11px] font-bold text-[var(--text-muted)] transition hover:text-red-500"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="h-3.5 w-3.5" />
               <span>Sign out</span>
             </button>
           </div>
@@ -842,39 +902,40 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div
       id="autofy-main-dashboard"
-      className="w-full min-h-screen flex flex-col md:flex-row font-sans overflow-x-hidden relative"
+      className="relative flex w-full min-h-screen flex-col overflow-x-hidden font-sans md:flex-row"
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
-      {/* Floating Aurora background blobs */}
-      <div className="aurora">
-        <i className="a1" />
-        <i className="a2" />
-        <i className="a3" />
+      {/* Ambient Autofy atmosphere (pink → violet → blue) */}
+      <div className="autofy-env">
+        <div className="autofy-env-grid" />
+        <div className="autofy-env-glow-pink" />
+        <div className="autofy-env-glow-lavender" />
+        <div className="autofy-env-glow-blue" />
+        <div className="autofy-env-glow-violet" />
       </div>
 
-      {/* Tech grid pattern */}
-      <div className="hero-grid" />
-      
-      {/* MOBILE DRAWER BACKDROP & SIDEBAR */}
+      {/* MOBILE DRAWER */}
       <AnimatePresence>
         {isMobileSidebarOpen && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-md md:hidden"
+              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-md md:hidden"
             />
-            {/* Sidebar drawer */}
             <motion.aside
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
-              transition={{ duration: 0.3 }}
-              className="fixed top-0 bottom-0 left-0 z-50 w-[240px] flex flex-col justify-between p-5 md:hidden"
-              style={{ background: "var(--header-bg)", backdropFilter: "blur(24px)", borderRight: "1px solid var(--border)" }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+              className="fixed inset-y-0 left-0 z-50 flex w-[268px] max-w-[85vw] flex-col p-5 md:hidden"
+              style={{
+                background: "var(--sidebar)",
+                backdropFilter: "blur(24px)",
+                borderRight: "1px solid var(--border)",
+              }}
             >
               <SidebarContent />
             </motion.aside>
@@ -882,12 +943,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
         )}
       </AnimatePresence>
 
-      {/* DESKTOP PERMANENT SIDEBAR */}
+      {/* DESKTOP FIXED SIDEBAR */}
       <aside
-        className="hidden md:flex flex-col justify-between p-5 flex-shrink-0 relative z-40"
+        className="sticky top-0 z-40 hidden h-screen w-[248px] shrink-0 flex-col p-5 md:flex lg:w-[268px]"
         style={{
-          width: "240px",
-          background: "var(--header-bg)",
+          background: "var(--sidebar)",
           backdropFilter: "blur(24px)",
           borderRight: "1px solid var(--border)",
         }}
@@ -895,126 +955,166 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <SidebarContent />
       </aside>
 
-      {/* MAIN VIEWPORT BODY */}
-      <main className="flex-1 flex flex-col min-w-0 max-h-screen overflow-y-auto relative z-10 pb-20 md:pb-0">
-        
-        {/* Glow ambient background orbs */}
-        <div className="hidden md:block absolute top-0 right-1/4 w-[500px] h-[300px] rounded-full blur-[100px] pointer-events-none" style={{ background: "var(--brand-subtle)" }} />
-
-        {/* TOP STATUS HEADER BAR */}
+      {/* MAIN COLUMN */}
+      <main className="relative z-10 flex min-h-screen min-w-0 flex-1 flex-col pb-20 md:pb-0">
+        {/* TOP NAVIGATION */}
         <header
-          className="px-6 flex items-center justify-between sticky top-0 z-30 glass-nav"
-          style={{
-            height: "60px",
-          }}
+          className="sticky top-0 z-30 grid h-[64px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 sm:px-6 glass-nav"
+          style={{ borderColor: "var(--border)" }}
         >
-          {/* Left Title & Status */}
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <button
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="md:hidden p-1.5 rounded-xl border cursor-pointer transition"
+              className="shrink-0 cursor-pointer rounded-xl border p-2 transition md:hidden"
               style={{ borderColor: "var(--border)", color: "var(--text)", background: "var(--input-bg)" }}
+              aria-label="Open navigation"
             >
-              <Menu className="w-4 h-4" />
+              <Menu className="h-4 w-4" />
             </button>
-            <div className="flex items-center gap-3">
-              <h1
-                className="text-[18px] font-extrabold font-display tracking-tight"
-                style={{ color: "var(--text)" }}
-              >
-                {TAB_TITLES[currentTab] ?? currentTab}
-              </h1>
-              
-              {/* Live status badge */}
-              <div className="badge-glow px-3 py-1 hidden sm:flex items-center gap-2 text-[11px] font-bold border border-[var(--border)] shadow-sm">
-                <span className="pulse-dot" />
-                <span className="text-gradient-brand font-display">AIconcierge 24/7 Live</span>
-              </div>
+
+            <h1
+              className="truncate font-display text-[17px] font-extrabold tracking-tight sm:text-[19px]"
+              style={{ color: "var(--text)" }}
+            >
+              {TAB_TITLES[currentTab] ?? currentTab}
+            </h1>
+
+            <div className="badge-glow hidden shrink-0 items-center gap-2 border border-[var(--border)] px-3 py-1 text-[11px] font-bold shadow-sm lg:flex">
+              <span className="pulse-dot" />
+              <span className="font-display text-gradient-brand">AI Concierge 24/7 Live</span>
             </div>
           </div>
 
-          {/* Right actions */}
-          <div className="flex items-center gap-3">
-            {/* Search Input bar */}
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
             <div className="relative hidden sm:block">
-              <Search className="w-3.5 h-3.5 absolute left-3.5 top-1/2 -translate-y-1/2" style={{ color: "var(--text-subtle)" }} />
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[var(--text-subtle)]" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search queries..."
-                className="w-40 focus:w-56 rounded-full py-1.5 pl-9 pr-3 text-xs focus:outline-none transition-all duration-300 font-sans"
+                placeholder="Search anything..."
+                className="w-44 rounded-full py-2 pl-9 pr-3 text-xs transition-all duration-300 focus:w-64 focus:outline-none lg:w-56"
                 style={{
                   background: "var(--input-bg)",
                   border: "1px solid var(--border)",
-                  color: "var(--text)"
+                  color: "var(--text)",
                 }}
               />
+              <AnimatePresence>
+                {searchQuery.trim() !== "" && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    className="absolute left-0 mt-2 w-72 rounded-2xl p-3 shadow-2xl z-50 space-y-2 text-left"
+                    style={{
+                      background: "var(--modal-bg)",
+                      border: "1px solid var(--border)",
+                      boxShadow: "0 20px 40px rgba(0,0,0,0.15)",
+                    }}
+                  >
+                    <p className="text-[10px] font-black uppercase tracking-wider text-[var(--text-subtle)] px-2 pt-1">
+                      Quick Jump & Matching Modules
+                    </p>
+                    <div className="space-y-1 max-h-56 overflow-y-auto">
+                      {Object.entries(TAB_TITLES)
+                        .filter(([key, title]) =>
+                          title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          key.toLowerCase().includes(searchQuery.toLowerCase())
+                        )
+                        .slice(0, 6)
+                        .map(([key, title]) => (
+                          <button
+                            key={key}
+                            onClick={() => {
+                              handleTabChange(key);
+                              setSearchQuery("");
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-xl text-xs font-bold text-[var(--text)] hover:bg-[#F5F0FF] hover:text-[#8B5CF6] transition flex items-center justify-between cursor-pointer"
+                          >
+                            <span>{title}</span>
+                            <span className="text-[9.5px] font-mono text-[var(--text-subtle)]">Open →</span>
+                          </button>
+                        ))}
+                      {Object.entries(TAB_TITLES).filter(([key, title]) =>
+                        title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        key.toLowerCase().includes(searchQuery.toLowerCase())
+                      ).length === 0 && (
+                        <p className="text-[11px] text-[var(--text-subtle)] italic px-3 py-2 text-center">
+                          No matching modules found for "{searchQuery}"
+                        </p>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
-            {/* Preview switch */}
-            <div
-              className="flex items-center gap-2 rounded-xl px-2.5 py-1 text-xs font-sans border"
-              style={{ background: "var(--bg-card)", borderColor: "var(--border)", color: "var(--text-muted)" }}
+            <button
+              onClick={toggleTheme}
+              className="grid h-9 w-9 shrink-0 cursor-pointer place-items-center rounded-full border shadow-sm transition hover:scale-105"
+              style={{
+                background: "var(--input-bg)",
+                borderColor: "var(--border)",
+                color: "var(--brand)",
+              }}
+              title="Toggle theme"
             >
-              <span className="text-[9.5px] font-semibold">Preview Mode</span>
-              <button
-                onClick={() => setEmptyMode(!emptyMode)}
-                className={`w-7 h-4 rounded-full p-0.5 transition-all outline-none ${
-                  emptyMode ? "bg-[#8B5CF6]" : "bg-neutral-800"
-                }`}
-              >
-                <div className={`w-3 h-3 rounded-full bg-white transition-all ${
-                  emptyMode ? "translate-x-3" : "translate-x-0"
-                }`} />
-              </button>
-            </div>
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
 
-            {/* Notifications */}
             <div className="relative">
               <button
                 onClick={() => setNotificationOpen(!notificationOpen)}
-                className="p-1.5 rounded-xl cursor-pointer hover:bg-white/5 transition flex items-center justify-center"
+                className="grid h-9 w-9 cursor-pointer place-items-center rounded-full border shadow-sm transition hover:text-[var(--text)]"
                 style={{
-                  background: "var(--input-bg)",
-                  border: "1px solid var(--border)",
+                  background: "var(--bg-card)",
+                  borderColor: "var(--border)",
                   color: "var(--text-muted)",
-                  width: 34, height: 34
                 }}
+                aria-label="Notifications"
               >
-                <Bell className="w-4 h-4" />
-                {notifications.some(n => n.unread) && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#8B5CF6] absolute top-1.5 right-1.5" />
+                <Bell className="h-4 w-4" />
+                {notifications.some((n) => n.unread) && (
+                  <span
+                    className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full"
+                    style={{ background: "var(--brand)" }}
+                  />
                 )}
               </button>
 
               <AnimatePresence>
                 {notificationOpen && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute right-0 mt-2 w-72 rounded-2xl p-4 shadow-xl z-50 space-y-3"
+                    exit={{ opacity: 0, y: 8 }}
+                    className="absolute right-0 z-50 mt-2 w-[min(18rem,calc(100vw-2rem))] space-y-3 rounded-2xl p-4 shadow-xl"
                     style={{
                       background: "var(--modal-bg)",
                       border: "1px solid var(--border)",
-                      boxShadow: "0 20px 40px rgba(0,0,0,0.3)"
+                      boxShadow: "0 20px 40px var(--shadow)",
                     }}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold font-sans" style={{ color: "var(--text)" }}>Notifications</span>
-                      <button 
-                        onClick={() => setNotifications(prev => prev.map(n => ({ ...n, unread: false })))}
-                        className="text-[9.5px] text-[var(--text-muted)] hover:underline font-sans cursor-pointer"
+                      <span className="text-xs font-bold" style={{ color: "var(--text)" }}>
+                        Notifications
+                      </span>
+                      <button
+                        onClick={() => setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })))}
+                        className="cursor-pointer text-[9.5px] text-[var(--text-muted)] hover:underline"
                       >
                         Mark all read
                       </button>
                     </div>
-                    <div className="h-[1px]" style={{ background: "var(--border)" }} />
-                    <div className="space-y-2.5 max-h-[220px] overflow-y-auto">
+                    <div className="h-px" style={{ background: "var(--border)" }} />
+                    <div className="max-h-[220px] space-y-2.5 overflow-y-auto">
                       {notifications.map((n) => (
                         <div key={n.id} className="flex gap-2 text-[11px] leading-snug">
-                          <div className={`w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0 ${n.unread ? "bg-[#8B5CF6]" : ""}`} style={!n.unread ? { background: "var(--border-strong)" } : {}} />
+                          <div
+                            className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full"
+                            style={{ background: n.unread ? "var(--brand)" : "var(--border-strong)" }}
+                          />
                           <span style={{ color: n.unread ? "var(--text)" : "var(--text-muted)" }}>{n.text}</span>
                         </div>
                       ))}
@@ -1024,17 +1124,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </AnimatePresence>
             </div>
 
-            {/* Profile Avatar circle */}
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white shadow"
-              style={{ background: "linear-gradient(135deg, #8B5CF6, #3B82F6)" }}>
-              {data.businessName ? data.businessName[0].toUpperCase() : "A"}
+            <div
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-black text-white shadow-sm"
+              style={{ background: "var(--brand-gradient)" }}
+            >
+              {data.businessName ? data.businessName[0].toUpperCase() : "T"}
             </div>
           </div>
         </header>
 
-        {/* MAIN BODY LAYOUT */}
-        <div className="p-6 max-w-7xl w-full mx-auto space-y-8 relative z-10 flex-1">
-          
+        {/* PAGE BODY — single spacing rhythm, single max width */}
+        <div className="relative z-10 mx-auto w-full max-w-[1480px] flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+
           {/* Toast alert */}
           <AnimatePresence>
             {dashboardAlert && (
@@ -1042,21 +1143,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 initial={{ opacity: 0, y: -20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                className="fixed top-24 right-5 md:right-10 px-5 py-4 rounded-2xl shadow-2xl z-[100] max-w-sm flex items-center gap-3.5 backdrop-blur-md"
-                style={{ background: "var(--modal-bg)", border: "1px solid var(--border-strong)", color: "var(--text)", boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}
+                className="fixed right-4 top-20 z-[100] flex max-w-[calc(100vw-2rem)] items-center gap-3.5 rounded-2xl px-5 py-4 shadow-2xl backdrop-blur-md sm:max-w-sm md:right-8"
+                style={{
+                  background: "var(--modal-bg)",
+                  border: "1px solid var(--border-strong)",
+                  color: "var(--text)",
+                  boxShadow: "0 20px 60px var(--shadow)",
+                }}
               >
                 <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold"
                   style={{ background: "rgba(34,197,94,0.12)", color: "var(--success)" }}
-                ><Check size={14} /></div>
-                <div>
-                  <h4 className="text-[9px] font-black uppercase tracking-widest leading-none mb-1" style={{ color: "var(--text-muted)" }}>AUTOFY INSTANT</h4>
-                  <p className="text-[11px] leading-normal font-semibold" style={{ color: "var(--text)" }}>{dashboardAlert}</p>
+                >
+                  <Check size={14} />
+                </div>
+                <div className="min-w-0">
+                  <h4
+                    className="mb-1 text-[9px] font-black uppercase leading-none tracking-widest"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    Autofy Instant
+                  </h4>
+                  <p className="text-[11px] font-semibold leading-normal" style={{ color: "var(--text)" }}>
+                    {dashboardAlert}
+                  </p>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
-          
           {/* EMPTY MODE PREVIEW */}
           {emptyMode ? (
             <div className="space-y-6">
@@ -1144,232 +1258,534 @@ export const Dashboard: React.FC<DashboardProps> = ({
               >
                 <Routes>
                   <Route path="/" element={
-                    <div className="space-y-12">
-                    
-                    {/* 01. STUNNING ASYMMETRIC OPEN-CANVAS HERO */}
-                    <div className="relative pt-4 pb-2 text-left">
-                      {/* Atmospheric background glows */}
-                      <div className="absolute top-0 right-10 w-96 h-96 rounded-full blur-[120px] pointer-events-none" style={{ background: "var(--brand-glow)" }} />
-                      <div className="absolute top-10 left-10 w-72 h-72 rounded-full blur-[100px] pointer-events-none opacity-40" style={{ background: "rgba(236,72,153,0.15)" }} />
-                      
-                      <div className="space-y-3 max-w-3xl relative z-10">
-                        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full badge-glow text-xs font-bold font-sans shadow-lg">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          <span className="text-gradient-brand font-display font-extrabold uppercase tracking-wider text-[10px]">AI Concierge • LIVE</span>
-                          <Sparkles className="w-3.5 h-3.5 text-pink-500 animate-pulse" />
+                    <div className="space-y-5 pb-10 text-left sm:space-y-6">
+
+                    {/* Preview Mode / Demo Mode Badge Banner */}
+                    {summaryData?.mode === "demo" && (
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3.5 px-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 font-sans text-xs">
+                        <div className="flex items-center gap-2.5 text-amber-600 dark:text-amber-400 font-semibold">
+                          <Sparkles className="w-4 h-4 shrink-0 text-amber-500" />
+                          <span><strong>Preview Mode</strong> — You're viewing sample data. Connect your business to see live insights.</span>
                         </div>
-                        
-                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black font-display tracking-tight leading-tight" style={{ color: "var(--text)" }}>
-                          Good morning, {data.businessName || "The Gym"}.
-                        </h1>
-                        <p className="text-sm sm:text-base font-sans font-medium leading-relaxed max-w-xl" style={{ color: "var(--text-muted)" }}>
-                          Your AI employee handled <span className="font-extrabold text-[var(--brand)] font-display">47 customer interactions</span> while you were away.
+                        <button
+                          onClick={() => navigate("/dashboard/business_setup")}
+                          className="px-3.5 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl font-bold text-[11px] uppercase tracking-wider shrink-0 cursor-pointer transition shadow-sm"
+                        >
+                          Connect Business
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Error Banner */}
+                    {summaryError && (
+                      <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-xs flex items-center justify-between gap-3 font-sans">
+                        <div className="flex items-center gap-2 text-red-500 font-semibold">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <span>{summaryError}</span>
+                        </div>
+                        <button
+                          onClick={fetchDashboardSummary}
+                          className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-[11px] font-bold uppercase cursor-pointer transition"
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    )}
+
+                    {/* ══ 01 — GREETING + AI EMPLOYEE LIVE STATUS ══ */}
+                    <section className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:items-stretch">
+                      <div className={`lg:col-span-8 ${CARD} flex flex-col justify-center gap-3 p-6 sm:p-8`}>
+                        <div className="badge-glow inline-flex w-fit items-center gap-2 rounded-full px-3.5 py-1 text-xs font-bold">
+                          <span className="pulse-dot" />
+                          <span className="font-display text-[10.5px] font-extrabold uppercase tracking-wider text-gradient-brand">
+                            Autofy AI — {summaryData?.mode === "demo" ? "Preview Mode" : "Live"}
+                          </span>
+                          <Sparkles className="h-3.5 w-3.5" style={{ color: "var(--brand-pink)" }} />
+                        </div>
+
+                        <h2
+                          className="font-display font-black leading-[1.1] tracking-tight"
+                          style={{ fontSize: "clamp(26px, 3.4vw, 44px)", color: "var(--text)" }}
+                        >
+                          Good morning,{" "}
+                          <span className="text-gradient-brand">
+                            {data.businessName ? data.businessName.toLowerCase() : "your business"}.
+                          </span>
+                        </h2>
+
+                        <p
+                          className="max-w-2xl text-sm font-medium leading-relaxed sm:text-base"
+                          style={{ color: "var(--text-muted)" }}
+                        >
+                          Your AI employee handled{" "}
+                          <span className="font-display font-black text-gradient-brand">
+                            {summaryData?.metrics.customer_interactions ?? 0} customer interactions
+                          </span>{" "}
+                          while you were away.
                         </p>
                       </div>
 
-                      {/* ASYMMETRIC HERO METRICS: DOMINANT REVENUE + FLOATING SECONDARY METRICS */}
-                      <div className="mt-8 grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-                        
-                        {/* DOMINANT HERO REVENUE CARD (7 COLS) */}
-                        <div className="lg:col-span-7 glass-card p-8 rounded-[28px] relative overflow-hidden flex flex-col justify-between group text-left shadow-2xl">
-                          <div className="flex items-center justify-between relative z-10">
-                            <div>
-                              <span className="text-[11px] font-black uppercase tracking-widest font-sans block" style={{ color: "var(--text-subtle)" }}>Dominant Revenue Pipeline</span>
-                              <span className="text-xs font-bold font-sans text-emerald-500 flex items-center gap-1.5 mt-0.5">
-                                <TrendingUp className="w-3.5 h-3.5" /> +20% vs last month
-                              </span>
+                      <div className={`lg:col-span-4 ${CARD} flex flex-col gap-4 p-5 sm:p-6`}>
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex min-w-0 items-center gap-2.5">
+                            <div
+                              className="grid h-8 w-8 shrink-0 place-items-center rounded-xl text-white shadow-sm"
+                              style={{ background: "var(--brand-gradient)" }}
+                            >
+                              <Bot className="h-4 w-4" />
                             </div>
-                            <div className="px-3 py-1 rounded-full text-[10px] font-mono font-bold border border-white/10" style={{ background: "var(--brand-gradient)", color: "#FFF" }}>
-                              UPI & Cards Synced
-                            </div>
+                            <span
+                              className="whitespace-nowrap text-xs font-black uppercase tracking-wider"
+                              style={{ color: "var(--text)" }}
+                            >
+                              AI Employee
+                            </span>
                           </div>
+                          <div className="flex shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 text-[10px] font-bold text-emerald-500">
+                            <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+                            Active 24/7
+                          </div>
+                        </div>
 
-                          <div className="my-6 relative z-10 flex flex-col sm:flex-row sm:items-baseline justify-between gap-4">
-                            <div>
-                              <span className="text-4xl sm:text-5xl lg:text-6xl font-black font-display tracking-tight" style={{ color: "var(--text)" }}>
-                                ₹24,965
+                        <div className="flex flex-1 flex-col justify-center divide-y" style={{ borderColor: "var(--border)" }}>
+                          {[
+                            { label: "Conversations handled", value: String(summaryData?.metrics.customer_interactions ?? 0) },
+                            { label: "Appointments booked", value: String(apptsCount) },
+                            { label: "Revenue assisted", value: `₹${revCount.toLocaleString("en-IN")}` },
+                          ].map((row) => (
+                            <div
+                              key={row.label}
+                              className="flex items-center justify-between gap-3 py-2.5 text-xs first:pt-0 last:pb-0"
+                              style={{ borderColor: "var(--border)" }}
+                            >
+                              <span className="min-w-0 truncate" style={{ color: "var(--text-muted)" }}>
+                                {row.label}
                               </span>
-                              <p className="text-xs font-sans mt-1.5" style={{ color: "var(--text-muted)" }}>Total revenue collected by Autofy AI this month</p>
+                              <span className="shrink-0 font-display text-sm font-black" style={{ color: "var(--text)" }}>
+                                {row.value}
+                              </span>
                             </div>
+                          ))}
+                        </div>
+                      </div>
+                    </section>
 
-                            {/* Inline SVG Sparkline Graphic */}
-                            <div className="w-36 h-12 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
-                              <svg viewBox="0 0 100 30" className="w-full h-full stroke-emerald-500 fill-none stroke-[2.5] stroke-linecap-round stroke-linejoin-round">
-                                <path d="M0 25 Q15 18 30 22 T60 10 T90 4 T100 2" />
+                    {/* ══ 02 — REVENUE ANALYTICS + KPI GRID ══ */}
+                    <section className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:items-stretch">
+                      {/* Revenue */}
+                      <div className={`lg:col-span-7 ${CARD} flex flex-col gap-5 p-5 sm:p-6`}>
+                        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+                          <span className="truncate text-xs font-bold" style={{ color: "var(--text-muted)" }}>
+                            Revenue This Month
+                          </span>
+                          <button
+                            className="flex shrink-0 cursor-pointer items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-semibold text-[var(--text-muted)] transition hover:text-[var(--text)]"
+                            style={{ borderColor: "var(--border)", background: "var(--input-bg)" }}
+                          >
+                            This Month <ChevronRight className="h-3 w-3 rotate-90" />
+                          </button>
+                        </div>
+
+                        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                          <span
+                            className="font-display text-3xl font-black tracking-tight sm:text-4xl"
+                            style={{ color: "var(--text)" }}
+                          >
+                            ₹{revCount.toLocaleString("en-IN")}
+                          </span>
+                          {summaryData?.metrics.revenue_change_percent != null ? (
+                            <>
+                              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-500">
+                                <TrendingUp className="h-3 w-3" /> {summaryData.metrics.revenue_change_percent}%
+                              </span>
+                              <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>
+                                vs last month
+                              </span>
+                            </>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-zinc-500/10 px-2 py-0.5 text-xs font-bold text-zinc-400">
+                              No prior period baseline
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Chart */}
+                        <div className="relative mt-auto w-full">
+                          <div className="flex gap-3">
+                            <div className="flex h-[168px] w-9 shrink-0 flex-col justify-between text-[9px] font-mono text-[var(--text-subtle)] select-none">
+                              <span>₹30K</span>
+                              <span>₹20K</span>
+                              <span>₹10K</span>
+                              <span>₹0</span>
+                            </div>
+                            <div className="relative h-[168px] min-w-0 flex-1">
+                              <svg viewBox="0 0 500 160" className="h-full w-full overflow-visible" preserveAspectRatio="none">
+                                <path d="M0 130 Q125 120 250 85 T500 20 L500 160 L0 160Z" fill="url(#revMasterGrad)" opacity="0.25" />
+                                <path d="M0 130 Q125 120 250 85 T500 20" fill="none" stroke="var(--brand)" strokeWidth="3.5" strokeLinecap="round" />
+                                <circle cx="500" cy="20" r="5" fill="var(--brand)" />
+                                <circle cx="500" cy="20" r="9" fill="var(--brand)" opacity="0.3" className="animate-ping" />
+                                <defs>
+                                  <linearGradient id="revMasterGrad" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stopColor="var(--brand)" />
+                                    <stop offset="100%" stopColor="transparent" />
+                                  </linearGradient>
+                                </defs>
                               </svg>
                             </div>
                           </div>
-
-                          <div className="pt-4 border-t flex items-center justify-between text-xs font-sans relative z-10" style={{ borderColor: "var(--border)" }}>
-                            <span className="text-[11px]" style={{ color: "var(--text-muted)" }}>Instant Razorpay & UPI Settlements</span>
-                            <button
-                              onClick={() => handleTabChange("payments")}
-                              className="text-xs font-bold text-[var(--brand)] hover:underline flex items-center gap-1 cursor-pointer"
-                            >
-                              View Billing Hub <ChevronRight className="w-3.5 h-3.5" />
-                            </button>
+                          <div className="ml-12 mt-2 flex justify-between text-[10px] font-mono text-[var(--text-subtle)]">
+                            <span>1 Jul</span>
+                            <span className="hidden sm:inline">8 Jul</span>
+                            <span>15 Jul</span>
+                            <span className="hidden sm:inline">22 Jul</span>
+                            <span>29 Jul</span>
                           </div>
-                        </div>
-
-                        {/* FLOATING SECONDARY METRICS (5 COLS GRID) */}
-                        <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-                          {[
-                            { title: "Active Leads Secured", val: leads.length.toString(), trend: "+8% growth", icon: Users, sub: "CRM Auto-synced" },
-                            { title: "AI Resolution Speed", val: "99.8%", trend: "0.3s response time", icon: Activity, sub: "Zero human latency" },
-                            { title: "Total WhatsApp Chats", val: conversations.length.toString(), trend: "4 active threads", icon: MessageSquare, sub: "Meta Cloud API" },
-                          ].map((met, idx) => {
-                            const MetIcon = met.icon;
-                            return (
-                              <div
-                                key={idx}
-                                className="glass-card p-5 rounded-2xl flex items-center justify-between text-left transition-all duration-300 hover:-translate-y-0.5"
-                              >
-                                <div className="space-y-1">
-                                  <span className="text-[10px] font-extrabold uppercase tracking-wider font-sans block" style={{ color: "var(--text-subtle)" }}>{met.title}</span>
-                                  <p className="text-2xl font-black font-display tracking-tight" style={{ color: "var(--text)" }}>{met.val}</p>
-                                  <span className="text-[10.5px] font-medium font-sans block" style={{ color: "var(--text-muted)" }}>{met.sub}</span>
-                                </div>
-                                <div className="w-10 h-10 rounded-xl flex items-center justify-center border border-white/10 shrink-0 shadow-sm" style={{ background: "var(--brand-subtle)", color: "var(--brand)" }}>
-                                  <MetIcon className="w-5 h-5" />
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                      </div>
-                    </div>
-
-                    {/* 02. VISUAL AI COMMAND CENTER */}
-                    <div className="glass-card p-6 rounded-3xl text-left relative overflow-hidden space-y-6">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold shadow-md" style={{ background: "var(--brand-gradient)" }}>
-                            <Bot className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <h3 className="text-sm font-black font-display uppercase tracking-wider" style={{ color: "var(--text)" }}>AI Command Center</h3>
-                            <p className="text-xs font-sans" style={{ color: "var(--text-muted)" }}>Real-time execution stats of your automated AI employee</p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />
-                          <span className="text-xs font-extrabold font-display uppercase tracking-wider text-emerald-500">Live Operating</span>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                      {/* KPI 2x2 */}
+                      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:col-span-5 lg:auto-rows-fr">
                         {[
-                          { label: "Customers Answered", val: "47", color: "text-blue-500" },
-                          { label: "Leads Captured", val: leads.length.toString(), color: "text-purple-500" },
-                          { label: "Appointments Booked", val: appointments.length.toString(), color: "text-pink-500" },
-                          { label: "Payments Collected", val: "₹24,965", color: "text-emerald-500" },
-                          { label: "Escalations Needed", val: "0", color: "text-amber-500" }
-                        ].map((stat, i) => (
-                          <div key={i} className="p-4 rounded-2xl border backdrop-blur-md" style={{ background: "var(--bg-elevated)", borderColor: "var(--border)" }}>
-                            <span className="text-[10px] font-extrabold uppercase tracking-wider font-sans block" style={{ color: "var(--text-subtle)" }}>{stat.label}</span>
-                            <p className={`text-2xl font-black font-display mt-1 ${stat.color}`}>{stat.val}</p>
-                          </div>
-                        ))}
+                          {
+                            label: "Active Leads",
+                            value: String(leadsCount),
+                            hint: summaryData?.metrics.revenue_change_percent != null ? "Active pipeline" : "Live leads",
+                            hintTone: "text-emerald-500",
+                            icon: Users,
+                            fg: "var(--brand)",
+                            bg: "var(--brand-subtle)",
+                          },
+                          {
+                            label: "AI Resolution Rate",
+                            value: summaryData?.metrics.ai_resolution_rate != null ? `${summaryData.metrics.ai_resolution_rate}%` : "—",
+                            hint: summaryData?.metrics.ai_resolution_rate != null ? "Automated response rate" : "Not measured yet",
+                            hintTone: summaryData?.metrics.ai_resolution_rate != null ? "text-emerald-500" : "",
+                            icon: Activity,
+                            fg: "var(--accent-green)",
+                            bg: "var(--accent-green-subtle)",
+                          },
+                          {
+                            label: "WhatsApp Chats",
+                            value: String(convsCount),
+                            hint: "Meta Cloud API",
+                            hintTone: "",
+                            icon: Phone,
+                            fg: "var(--whatsapp-green)",
+                            bg: "rgba(37,211,102,0.10)",
+                          },
+                          {
+                            label: "Appointments",
+                            value: String(apptsCount),
+                            hint: "Scheduled / booked",
+                            hintTone: "",
+                            icon: Calendar,
+                            fg: "var(--accent-amber)",
+                            bg: "rgba(217,119,6,0.10)",
+                          },
+                        ].map((kpi) => {
+                          const KIcon = kpi.icon;
+                          return (
+                            <div key={kpi.label} className={`${CARD} flex flex-col justify-between gap-4 p-5`}>
+                              <div
+                                className="grid h-9 w-9 place-items-center rounded-xl"
+                                style={{ background: kpi.bg, color: kpi.fg }}
+                              >
+                                <KIcon className="h-4 w-4" />
+                              </div>
+                              <div className="min-w-0 space-y-1">
+                                <span className="block text-xs font-semibold leading-snug" style={{ color: "var(--text-muted)" }}>
+                                  {kpi.label}
+                                </span>
+                                <span className="block font-display text-2xl font-black" style={{ color: "var(--text)" }}>
+                                  {kpi.value}
+                                </span>
+                                <span
+                                  className={`block text-[11px] font-semibold leading-snug ${kpi.hintTone}`}
+                                  style={kpi.hintTone ? undefined : { color: "var(--text-muted)" }}
+                                >
+                                  {kpi.hint}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                    </div>
+                    </section>
 
-                    {/* 03. HERO WHATSAPP CONVERSATIONS MODULE + CHRONOLOGICAL AI TIMELINE */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                      
-                      {/* HERO WHATSAPP CONVERSATION INTERFACE (7 COLS) */}
-                      <div className="lg:col-span-7 glass-card p-6 rounded-3xl text-left space-y-5">
-                        <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: "var(--border)" }}>
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white" style={{ background: "#25D366" }}>
-                              <Phone className="w-4 h-4" />
+                    {/* ══ 03 — AI EMPLOYEE PERFORMANCE / PIPELINE ══ */}
+                    <section className={`${CARD} p-5 sm:p-6 lg:p-7`}>
+                      <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 lg:items-center">
+                        {/* Identity */}
+                        <div className="flex min-w-0 items-start gap-4 lg:col-span-4">
+                          <div
+                            className="relative grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-2xl shadow-lg"
+                            style={{ background: "var(--brand-gradient)" }}
+                          >
+                            <Bot className="h-7 w-7 text-white" />
+                          </div>
+                          <div className="min-w-0 space-y-1.5">
+                            <h3 className="font-display text-base font-black tracking-tight" style={{ color: "var(--text)" }}>
+                              Your AI employee is working
+                            </h3>
+                            <p className="text-xs" style={{ color: "var(--text-muted)" }}>
+                              Here's what Autofy handled automatically today.
+                            </p>
+                            <div className="flex items-baseline gap-2 pt-1">
+                              <span className="font-display text-4xl font-black text-gradient-brand">47</span>
+                              <span className="text-xs font-bold" style={{ color: "var(--text-muted)" }}>
+                                Customer Interactions
+                              </span>
                             </div>
-                            <div>
-                              <h3 className="text-xs font-black font-display uppercase tracking-wider" style={{ color: "var(--text)" }}>WhatsApp Live Feed</h3>
-                              <p className="text-[11px] font-sans" style={{ color: "var(--text-muted)" }}>Recent active customer chats</p>
+                            <div className="flex flex-wrap items-center gap-2 pt-1">
+                              <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2 py-0.5 text-[10px] font-bold text-emerald-500">
+                                ● 24/7 Active
+                              </span>
+                              <span
+                                className="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                                style={{
+                                  background: "var(--brand-subtle)",
+                                  color: "var(--brand)",
+                                  border: "1px solid var(--border-strong)",
+                                }}
+                              >
+                                ● 99.8% Autonomous
+                              </span>
                             </div>
                           </div>
-
-                          <button
-                            onClick={() => handleTabChange("conversations")}
-                            className="text-xs font-bold text-[var(--brand)] hover:underline flex items-center gap-1 cursor-pointer font-sans"
-                          >
-                            Open Full Inbox <ChevronRight className="w-3.5 h-3.5" />
-                          </button>
                         </div>
 
-                        <div className="space-y-3 max-h-[380px] overflow-y-auto pr-1">
-                          {conversations.map((chat) => (
-                            <div
-                              key={chat.id}
-                              onClick={() => {
-                                setSelectedChatId(chat.id);
-                                handleTabChange("conversations");
-                              }}
-                              className="p-4 rounded-2xl border transition-all duration-200 cursor-pointer flex items-center justify-between gap-4 hover:border-[var(--brand)] hover:shadow-lg"
-                              style={{ background: "var(--bg-elevated)", borderColor: "var(--border)" }}
-                            >
-                              <div className="flex items-center gap-3.5 min-w-0">
-                                <div className="w-10 h-10 rounded-full flex items-center justify-center font-black text-white shrink-0 shadow" style={{ background: "var(--brand-gradient)" }}>
-                                  {chat.name[0]}
-                                </div>
-                                <div className="min-w-0">
-                                  <div className="flex items-center gap-2">
-                                    <h4 className="text-xs font-bold font-sans truncate" style={{ color: "var(--text)" }}>{chat.name}</h4>
-                                    <span className="text-[10px] font-mono text-[var(--text-subtle)]">{chat.time}</span>
+                        {/* Pipeline */}
+                        <div className="lg:col-span-5">
+                          <div className="grid grid-cols-4 gap-2 sm:gap-3">
+                            {[
+                              { label: "Answered", sub: "Customer", icon: MessageSquare, bg: "var(--brand)" },
+                              { label: "Qualified", sub: "Lead", icon: Users, bg: "var(--accent-amber)" },
+                              { label: "Booked", sub: "Appointment", icon: Calendar, bg: "var(--brand-pink)" },
+                              { label: "Collected", sub: "Payment", icon: DollarSign, bg: "var(--accent-green)" },
+                            ].map((st, i) => {
+                              const StIcon = st.icon;
+                              return (
+                                <div key={st.label} className="relative flex flex-col items-center gap-1.5 text-center">
+                                  {i > 0 && (
+                                    <span
+                                      className="absolute left-[-50%] top-5 hidden h-px w-full sm:block"
+                                      style={{ background: "var(--border-strong)" }}
+                                    />
+                                  )}
+                                  <div
+                                    className="relative z-10 grid h-10 w-10 place-items-center rounded-2xl text-white shadow-md"
+                                    style={{ background: st.bg }}
+                                  >
+                                    <StIcon className="h-4 w-4" />
                                   </div>
-                                  <p className="text-[11.5px] font-sans truncate mt-0.5" style={{ color: "var(--text-muted)" }}>"{chat.lastMessage}"</p>
+                                  <span className="block text-[11px] font-bold sm:text-xs" style={{ color: "var(--text)" }}>
+                                    {st.label}
+                                  </span>
+                                  <span className="block text-[10px]" style={{ color: "var(--text-muted)" }}>
+                                    {st.sub}
+                                  </span>
                                 </div>
-                              </div>
+                              );
+                            })}
+                          </div>
+                        </div>
 
-                              <span className="px-3 py-1 rounded-full text-[9.5px] font-black uppercase tracking-wider shrink-0 border" style={{
-                                background: chat.status === "Replied" ? "rgba(37,211,102,0.12)" : "rgba(245,158,11,0.12)",
-                                borderColor: chat.status === "Replied" ? "rgba(37,211,102,0.25)" : "rgba(245,158,11,0.25)",
-                                color: chat.status === "Replied" ? "#25D366" : "#F59E0B"
-                              }}>
-                                {chat.status === "Replied" ? "AI HANDLED" : "WAITING"}
+                        {/* Summary */}
+                        <div
+                          className="space-y-2.5 border-t pt-4 text-xs lg:col-span-3 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0"
+                          style={{ borderColor: "var(--border)" }}
+                        >
+                          {[
+                            { dot: "var(--brand)", label: "Leads Captured", value: String(summaryData?.metrics.active_leads ?? 0), tone: "var(--text)" },
+                            { dot: "var(--brand-pink)", label: "Appointments Booked", value: String(summaryData?.metrics.appointments ?? 0), tone: "var(--text)" },
+                            { dot: "var(--accent-green)", label: "Payments Collected", value: `₹${revCount.toLocaleString("en-IN")}`, tone: "var(--accent-green)" },
+                            { dot: "var(--accent-red)", label: "Escalations Needed", value: summaryData?.metrics.escalations != null ? String(summaryData.metrics.escalations) : "0", tone: summaryData?.metrics.escalations ? "var(--accent-red)" : "var(--text)" },
+                          ].map((row) => (
+                            <div key={row.label} className="flex items-center justify-between gap-3">
+                              <span className="flex min-w-0 items-center gap-2" style={{ color: "var(--text-muted)" }}>
+                                <span className="h-2 w-2 shrink-0 rounded-full" style={{ background: row.dot }} />
+                                <span className="leading-snug">{row.label}</span>
+                              </span>
+                              <span className="shrink-0 font-display text-sm font-black" style={{ color: row.tone }}>
+                                {row.value}
                               </span>
                             </div>
                           ))}
                         </div>
                       </div>
+                    </section>
 
-                      {/* CHRONOLOGICAL AI ACTIVITY TIMELINE (5 COLS) */}
-                      <div className="lg:col-span-5 glass-card p-6 rounded-3xl text-left space-y-5">
-                        <div className="flex items-center justify-between border-b pb-4" style={{ borderColor: "var(--border)" }}>
-                          <h3 className="text-xs font-black font-display uppercase tracking-wider" style={{ color: "var(--text)" }}>AI Chronological Timeline</h3>
-                          <button onClick={handleRefreshData} className="text-xs font-bold text-[var(--brand)] flex items-center gap-1 cursor-pointer">
-                            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} /> Sync
+                    {/* ══ 04 — QUICK ACTIONS ══ */}
+                    <section className="grid grid-cols-2 gap-4 sm:grid-cols-3 xl:grid-cols-5">
+                      {[
+                        { label: "Add service", hint: "Knowledge base", icon: Plus, fg: "var(--brand)", bg: "var(--brand-subtle)", onClick: () => setActiveModal("service") },
+                        { label: "Add FAQ", hint: "Train the AI", icon: HelpCircle, fg: "var(--accent-blue)", bg: "rgba(37,99,235,0.10)", onClick: () => setActiveModal("faq") },
+                        { label: "Payment link", hint: "Collect instantly", icon: CreditCard, fg: "var(--accent-green)", bg: "var(--accent-green-subtle)", onClick: () => setActiveModal("payment") },
+                        { label: "Connect WhatsApp", hint: data.whatsappConnected === "connected" ? "Connected" : "Pair number", icon: Phone, fg: "var(--whatsapp-green)", bg: "rgba(37,211,102,0.10)", onClick: () => setActiveModal("whatsapp") },
+                        { label: "Test simulator", hint: "Preview AI chat", icon: Zap, fg: "var(--accent-amber)", bg: "rgba(217,119,6,0.10)", onClick: onOpenTestSimulator },
+                      ].map((qa) => {
+                        const QIcon = qa.icon;
+                        return (
+                          <button
+                            key={qa.label}
+                            onClick={qa.onClick}
+                            className={`${CARD} flex cursor-pointer items-center gap-3 p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--border-strong)]`}
+                          >
+                            <span
+                              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl"
+                              style={{ background: qa.bg, color: qa.fg }}
+                            >
+                              <QIcon className="h-4 w-4" />
+                            </span>
+                            <span className="min-w-0">
+                              <span className="block truncate text-xs font-bold" style={{ color: "var(--text)" }}>
+                                {qa.label}
+                              </span>
+                              <span className="block truncate text-[10.5px]" style={{ color: "var(--text-muted)" }}>
+                                {qa.hint}
+                              </span>
+                            </span>
                           </button>
-                        </div>
+                        );
+                      })}
+                    </section>
 
-                        <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-[var(--border)]">
-                          {activityFeed.map((feed) => (
-                            <div key={feed.id} className="relative flex items-start gap-3 text-left">
-                              <span className="absolute -left-6 top-1 w-3 h-3 rounded-full border-2 border-white shadow-sm" style={{ background: feed.type === "payment" ? "var(--success)" : "var(--brand)" }} />
-                              <div>
-                                <span className="text-[10px] font-mono font-bold block" style={{ color: "var(--text-subtle)" }}>{feed.time}</span>
-                                <p className="text-xs font-sans font-medium mt-0.5 leading-snug" style={{ color: "var(--text)" }}>{feed.text}</p>
-                              </div>
+                    {/* ══ 05 — CONVERSATIONS + LIVE AI ACTIVITY ══ */}
+                    <section className="grid grid-cols-1 gap-5 lg:grid-cols-2 lg:items-stretch">
+                      {/* Recent conversations */}
+                      <div className={`${CARD} flex flex-col`}>
+                        <SectionHeader
+                          icon={<Phone className="h-3.5 w-3.5" />}
+                          iconBg="var(--whatsapp-green)"
+                          title="Recent Conversations"
+                          subtitle="Live customer conversations"
+                          action={
+                            <button
+                              onClick={() => handleTabChange("conversations")}
+                              className="flex shrink-0 cursor-pointer items-center gap-1 text-[11px] font-bold text-[var(--brand)] hover:underline"
+                            >
+                              Open Inbox <ArrowRight className="h-3 w-3" />
+                            </button>
+                          }
+                        />
+                        <div className="flex-1 space-y-1 p-3 sm:p-4">
+                          {(summaryData?.recent_conversations && summaryData.recent_conversations.length > 0) ? (
+                            summaryData.recent_conversations.slice(0, 4).map((chat) => {
+                              const tone =
+                                chat.status === "Replied"
+                                  ? { label: "AI HANDLED", color: "var(--success)" }
+                                  : chat.status === "Waiting"
+                                  ? { label: "WAITING", color: "var(--warning)" }
+                                  : { label: "ESCALATED", color: "var(--danger)" };
+                              return (
+                                <div
+                                  key={chat.id}
+                                  onClick={() => handleTabChange("conversations")}
+                                  className="grid cursor-pointer grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl p-3 text-left transition hover:bg-[var(--input-bg)]"
+                                >
+                                  <div className="flex min-w-0 items-center gap-3">
+                                    <div
+                                      className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-black text-white shadow-sm"
+                                      style={{ background: "var(--brand-gradient)" }}
+                                    >
+                                      {chat.name[0] || "C"}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <div className="flex items-center gap-2">
+                                        <h4 className="truncate text-xs font-bold" style={{ color: "var(--text)" }}>
+                                          {chat.name}
+                                        </h4>
+                                        <span className="shrink-0 font-mono text-[10px] text-[var(--text-subtle)]">
+                                          {chat.time}
+                                        </span>
+                                      </div>
+                                      <p className="mt-0.5 truncate text-[11.5px]" style={{ color: "var(--text-muted)" }}>
+                                        "{chat.lastMessage}"
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <span
+                                    className="shrink-0 rounded-full px-2 py-0.5 text-[8.5px] font-black uppercase tracking-wider"
+                                    style={{
+                                      background: `color-mix(in srgb, ${tone.color} 12%, transparent)`,
+                                      color: tone.color,
+                                      border: `1px solid color-mix(in srgb, ${tone.color} 28%, transparent)`,
+                                    }}
+                                  >
+                                    {tone.label}
+                                  </span>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className="p-6 text-center text-xs space-y-2 text-[var(--text-muted)] font-sans">
+                              <MessageSquare className="w-8 h-8 mx-auto text-[var(--text-subtle)] opacity-40" />
+                              <p className="font-bold text-[var(--text)]">No conversations yet</p>
+                              <p>Your WhatsApp conversations will appear here once customers start messaging.</p>
                             </div>
-                          ))}
+                          )}
                         </div>
                       </div>
 
-                    </div>
+                      {/* Live AI activity */}
+                      <div className={`${CARD} flex flex-col`}>
+                        <SectionHeader
+                          icon={<Sparkles className="h-3.5 w-3.5" />}
+                          iconBg="var(--brand)"
+                          title="Live AI Activity"
+                          subtitle="Real-time updates from your AI employee"
+                          action={
+                            <button
+                              onClick={handleRefreshData}
+                              className="flex shrink-0 cursor-pointer items-center gap-1 text-[11px] font-bold text-[var(--brand)] hover:underline"
+                            >
+                              <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin" : ""}`} /> Refresh
+                            </button>
+                          }
+                        />
+                        <div className="flex-1 space-y-3.5 p-4 sm:p-5">
+                          {(summaryData?.recent_activity && summaryData.recent_activity.length > 0) ? (
+                            summaryData.recent_activity.slice(0, 6).map((ev) => {
+                              const map: Record<string, { color: string; icon: any }> = {
+                                chat: { color: "var(--brand)", icon: MessageSquare },
+                                ai: { color: "var(--brand-pink)", icon: Sparkles },
+                                payment: { color: "var(--accent-green)", icon: DollarSign },
+                                lead: { color: "var(--accent-blue)", icon: Users },
+                                appointment: { color: "var(--accent-amber)", icon: Calendar },
+                              };
+                              const meta = map[ev.type] ?? { color: "var(--brand)", icon: Sparkles };
+                              const EvIcon = meta.icon;
+                              return (
+                                <div key={ev.id} className="flex items-start gap-3 text-left font-sans">
+                                  <div
+                                    className="mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full text-white shadow-sm"
+                                    style={{ background: meta.color }}
+                                  >
+                                    <EvIcon className="h-3 w-3" />
+                                  </div>
+                                  <div className="min-w-0 flex-1 space-y-0.5">
+                                    <p className="text-xs font-semibold leading-snug" style={{ color: "var(--text)" }}>
+                                      {ev.title}: {ev.subtitle}
+                                    </p>
+                                    <span className="font-mono text-[10px] font-bold text-[var(--text-subtle)]">
+                                      {ev.time}
+                                    </span>
+                                  </div>
+                                </div>
+                              );
+                            })
+                          ) : (
+                            <div className="p-6 text-center text-xs space-y-2 text-[var(--text-muted)] font-sans">
+                              <Activity className="w-8 h-8 mx-auto text-[var(--text-subtle)] opacity-40" />
+                              <p className="font-bold text-[var(--text)]">No live activity recorded yet</p>
+                              <p>AI agent events and automated actions will be tracked here in real-time.</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </section>
 
-                    {/* 04. COMPACT COMMAND LAUNCHER TRIGGER PALETTE */}
-                    <div className="flex justify-center pt-4">
-                      <button
-                        onClick={() => setActiveModal("service")}
-                        className="btn-primary px-8 py-3.5 text-xs font-black tracking-wider uppercase rounded-full shadow-2xl cursor-pointer flex items-center gap-2"
-                      >
-                        <Plus className="w-4 h-4" /> Launch Command Palette
-                      </button>
                     </div>
-
-                  </div>
                   } />
                   
                   <Route path="conversations" element={
@@ -1479,6 +1895,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   } />
                   <Route path="whatsapp_setup" element={
                     <WhatsAppSetupTab />
+                  } />
+                  <Route path="subscription" element={
+                    <SubscriptionTab triggerNotification={triggerDashboardNotification} />
                   } />
                   <Route path="settings" element={
                     <SettingsTab

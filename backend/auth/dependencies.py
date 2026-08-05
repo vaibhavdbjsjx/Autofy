@@ -73,3 +73,20 @@ class RoleChecker:
                 detail=f"Access denied. Required permission roles: {self.allowed_roles}"
             )
         return current_user
+
+def require_live_entitlement(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+) -> User:
+    """
+    Server-side entitlement dependency.
+    Validates that caller's business has an active subscription or active 7-day free trial.
+    """
+    from services.entitlement_services import EntitlementService
+    sub_state = EntitlementService.evaluate_subscription_state(db, current_user.business_id)
+    if not sub_state.get("is_live_accessible", False):
+        raise HTTPException(
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+            detail="Live operation requires an active subscription or active 7-day free trial. Please start a trial or upgrade your plan."
+        )
+    return current_user

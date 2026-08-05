@@ -16,10 +16,28 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            if (project.hasProperty('AUTOFY_KEYSTORE_FILE') && file(project.property('AUTOFY_KEYSTORE_FILE')).exists()) {
+                storeFile file(project.property('AUTOFY_KEYSTORE_FILE'))
+                storePassword project.property('AUTOFY_KEYSTORE_PASSWORD')
+                keyAlias project.property('AUTOFY_KEY_ALIAS')
+                keyPassword project.property('AUTOFY_KEY_PASSWORD')
+            } else if (System.getenv('AUTOFY_KEYSTORE_FILE') != null && file(System.getenv('AUTOFY_KEYSTORE_FILE')).exists()) {
+                storeFile file(System.getenv('AUTOFY_KEYSTORE_FILE'))
+                storePassword System.getenv('AUTOFY_KEYSTORE_PASSWORD')
+                keyAlias System.getenv('AUTOFY_KEY_ALIAS')
+                keyPassword System.getenv('AUTOFY_KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if ((project.hasProperty('AUTOFY_KEYSTORE_FILE') && file(project.property('AUTOFY_KEYSTORE_FILE')).exists()) || (System.getenv('AUTOFY_KEYSTORE_FILE') != null && file(System.getenv('AUTOFY_KEYSTORE_FILE')).exists())) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }

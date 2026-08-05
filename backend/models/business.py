@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import Column, String, Text, Float, DateTime, Numeric
 from sqlalchemy.orm import relationship
 from database import Base
@@ -18,11 +18,18 @@ class Business(Base):
     business_hours = Column(String(100), nullable=True)
     timezone = Column(String(100), default="IST - Kolkata (GMT+5:30)")
 
+    # Meta WhatsApp Configurations
+    whatsapp_phone_id = Column(String(100), nullable=True, index=True)
+
     # AI Configurations
     config_agent_name = Column(String(100), default="AutoBot Elite")
     config_welcome_message = Column(Text, nullable=True)
     config_fallback_message = Column(Text, nullable=True)
     config_confidence_threshold = Column(Float, default=0.78)
+
+    # 15-Day Account Promotional Tracking
+    promo_started_at = Column(DateTime, default=datetime.utcnow)
+    promo_expires_at = Column(DateTime, default=lambda: datetime.utcnow() + timedelta(days=15))
 
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

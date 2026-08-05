@@ -44,7 +44,7 @@ class GoogleOAuthService:
             "grant_type": "authorization_code"
         }
 
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=10.0) as client:
             try:
                 # Exchange validation code for token parameters map
                 token_response = await client.post(token_url, data=data, headers=headers)

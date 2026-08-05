@@ -246,47 +246,76 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
     setTypedMessage("");
     setIsResponding(true);
 
-    // AI Logic Simulator matching business text
-    setTimeout(() => {
+    // Call backend AI reply endpoint in Live mode; use keyword simulator ONLY in explicit Demo mode
+    const generateAiReply = async () => {
       let botAnswer = "";
       let matchedSource = "General Knowledge Base";
       let matchedFAQ = "Default Fallback Handler";
-      let confidenceNum = 90 + Math.floor(Math.random() * 9);
-      let responseSec = (0.6 + Math.random() * 0.9).toFixed(1);
+      let confidenceNum = 90;
+      let responseSec = "0.0";
 
-      const cleanedInput = userMsgText.toLowerCase();
+      const replyStart = Date.now();
+      const { api, isAuthenticated } = await import("../lib/api");
+      const isLiveUser = isAuthenticated();
 
-      // Look up inside interactive servicesList
-      const matchedService = servicesList.find((s) => cleanedInput.includes(s.name.toLowerCase()));
-      // Look up inside productsList
-      const matchedProduct = productsList.find((p) => cleanedInput.includes(p.name.toLowerCase()));
-      // Look up inside faqsList
-      const matchedFaqItem = faqsList.find((f) => cleanedInput.includes(f.q.toLowerCase()) || cleanedInput.includes("timing") || cleanedInput.includes("pricing") || cleanedInput.includes("hour"));
-
-      if (matchedService) {
-        botAnswer = `Hi! Yes, our service of ${matchedService.name} is available for ${matchedService.price}. The active duration is ${matchedService.duration}. Would you like me to book this for you?`;
-        matchedSource = "Services Catalog";
-        matchedFAQ = matchedService.name;
-      } else if (matchedProduct) {
-        botAnswer = `We have the ${matchedProduct.name} available in our Catalog. Price is ${matchedProduct.price}, with around ${matchedProduct.stockQuantity || 10} units in stock. Let me generate a payment link dynamically.`;
-        matchedSource = "Products Inventory";
-        matchedFAQ = matchedProduct.name;
-      } else if (cleanedInput.includes("membership") || cleanedInput.includes("plan") || cleanedInput.includes("duration")) {
-        botAnswer = `Autofy offers a premium 3-Month Membership plan for ₹5,000, including full AC layout benefits and daily trainer guidance! Let me know if you would like automated quick checkout.`;
-        matchedSource = "Membership Information";
-        matchedFAQ = "Gym/Store Membership Slots";
-      } else if (cleanedInput.includes("refund") || cleanedInput.includes("cancel") || cleanedInput.includes("policy")) {
-        botAnswer = policies.refund || `Our refund policy states: Returns/Refunds are accepted within 7 days. Can I trigger a refund processing review link for you?`;
-        matchedSource = "Business Policies Guidelines";
-        matchedFAQ = "Refund / Cancellation Policy";
-      } else if (cleanedInput.includes("timing") || cleanedInput.includes("hours") || cleanedInput.includes("open")) {
-        botAnswer = `We are open 6:00 AM - 10:00 PM Monday through Saturday. Closed on Sundays. Let me know if you need any slot booked!`;
-        matchedSource = "Working Hours Sheet";
-        matchedFAQ = "Hours of Operation";
+      if (isLiveUser) {
+        // LIVE MODE — Must call real AI backend and handle errors explicitly
+        try {
+          if (!activeId) throw new Error("No active conversation thread");
+          const aiRes: any = await api.post(
+            `/api/v1/conversations/${activeId}/reply-ai`,
+            { message: userMsgText }
+          );
+          botAnswer = aiRes.content || aiRes.reply || "I'll look into that for you right away.";
+          matchedSource = aiRes.source || "AI Knowledge Engine";
+          matchedFAQ = aiRes.faq_matched || "Intelligent Match";
+          confidenceNum = Math.round((aiRes.confidence_score || aiRes.confidence || 0.9) * 100);
+          responseSec = ((Date.now() - replyStart) / 1000).toFixed(1);
+        } catch (err: any) {
+          setIsResponding(false);
+          triggerNotification(`[AI Error] Provider request failed: ${err.message || "Service unavailable"}. Retry or take over manually.`);
+          // Do NOT generate a fake keyword response in Live Mode!
+          const errorMsg: Message = {
+            id: `msg-err-${Date.now()}`,
+            sender: "ai",
+            text: `⚠️ [AI Assistant Unavailable]: ${err.message || "Failed to generate AI response"}. Tap 'Takeover Chat' to respond manually.`,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          };
+          setConversations((prev) =>
+            prev.map((c) => {
+              if (c.id === activeId) {
+                return {
+                  ...c,
+                  status: "Escalated",
+                  history: [...c.history, errorMsg]
+                };
+              }
+              return c;
+            })
+          );
+          return;
+        }
       } else {
-        botAnswer = `That is an excellent query. Based on ${onboardingData.businessName || "Autofy AI"}, we provide customized packages. Let me look up options or prepare a secure scheduling session for you.`;
-        matchedSource = "Business Pitch / Description File";
-        matchedFAQ = "General Information FAQ";
+        // DEMO MODE — Explicitly labelled client simulation
+        responseSec = ((Date.now() - replyStart) / 1000 + 0.4).toFixed(1);
+        const cleanedInput = userMsgText.toLowerCase();
+
+        const matchedService = servicesList.find((s) => cleanedInput.includes(s.name.toLowerCase()));
+        const matchedProduct = productsList.find((p) => cleanedInput.includes(p.name.toLowerCase()));
+
+        if (matchedService) {
+          botAnswer = `[Demo Simulated] Hi! Yes, our service of ${matchedService.name} is available for ${matchedService.price}.`;
+          matchedSource = "Demo Services Catalog";
+          matchedFAQ = matchedService.name;
+        } else if (matchedProduct) {
+          botAnswer = `[Demo Simulated] We have ${matchedProduct.name} available for ${matchedProduct.price}.`;
+          matchedSource = "Demo Products Inventory";
+          matchedFAQ = matchedProduct.name;
+        } else {
+          botAnswer = `[Demo Simulated] Thank you for your inquiry to ${onboardingData.businessName || "Autofy AI"}. Connect live API for production responses.`;
+          matchedSource = "Demo Simulator";
+          matchedFAQ = "Sample FAQ";
+        }
       }
 
       const botMsg: Message = {
@@ -324,12 +353,14 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
       setAlerts((prev) => [
         {
           id: `alt-${Date.now()}`,
-          text: ` AI answered Priya Patel: "${botAnswer.substring(0, 42)}..."`,
+          text: ` AI answered ${activeChat.name}: "${botAnswer.substring(0, 42)}..."`,
           time: "Just Now"
         },
         ...prev
       ]);
-    }, 1500);
+    };
+
+    generateAiReply();
   };
 
   // Human intervention override

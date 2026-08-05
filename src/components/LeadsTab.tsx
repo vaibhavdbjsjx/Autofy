@@ -86,8 +86,19 @@ const STAGES = [
 export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNotification }) => {
   const [isCrmLoading, setIsCrmLoading] = useState(true);
   React.useEffect(() => {
-    const t = setTimeout(() => setIsCrmLoading(false), 1200);
-    return () => clearTimeout(t);
+    const fetchLeads = async () => {
+      try {
+        const { api, isAuthenticated } = await import("../lib/api");
+        if (isAuthenticated()) {
+          await api.get("/api/v1/leads"); // Pre-warm the connection
+        }
+      } catch {
+        // Use local fallback state
+      } finally {
+        setIsCrmLoading(false);
+      }
+    };
+    fetchLeads();
   }, []);
 
   // Local active copy to keep highly detailed info without losing synchronization
@@ -492,16 +503,18 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
   };
 
   // Quick Action Utilities
-  const makeCallMock = (lead: LeadItem) => {
-    triggerNotification(` Simulating Call to ${lead.name} (${lead.phone})... Dialed!`);
+  const makeCall = (lead: LeadItem) => {
+    const cleanPhone = lead.phone.replace(/[^0-9+]/g, "");
+    window.open(`tel:${cleanPhone}`, "_self");
+    triggerNotification(` Dialing ${lead.name} (${lead.phone})...`);
   };
 
-  const openWhatsAppMock = (lead: LeadItem) => {
+  const openWhatsApp = (lead: LeadItem) => {
     triggerNotification(` Redirecting to WhatsApp Chat: https://wa.me/${lead.phone.replace(/\s+/g, "")}`);
     window.open(`https://wa.me/${lead.phone.replace(/[^0-9]/g, "")}`, "_blank");
   };
 
-  const bookAppointmentMock = (lead: LeadItem) => {
+  const bookAppointment = (lead: LeadItem) => {
     setCrmLeads(prev => prev.map(l => {
       if (l.id === lead.id) {
         return {
@@ -518,7 +531,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
     triggerNotification(` Booked Trial appointment for ${lead.name} set up on default calendar`);
   };
 
-  const generatePaymentLinkMock = (lead: LeadItem) => {
+  const generatePaymentLink = (lead: LeadItem) => {
     const paylink = `https://autofy.app/checkout/Paylink-${lead.id}`;
     setCrmLeads(prev => prev.map(l => {
       if (l.id === lead.id) {
@@ -536,7 +549,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
     triggerNotification(` Transaction generated! Shared Paylink with ${lead.name}`);
   };
 
-  const assignToTeamMock = (lead: LeadItem, agentName: string) => {
+  const assignToTeam = (lead: LeadItem, agentName: string) => {
     setCrmLeads(prev => prev.map(l => {
       if (l.id === lead.id) {
         return { ...l, assignedTo: agentName };
@@ -552,20 +565,35 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
     triggerNotification(` Lead "${name}" archived successfully`);
   };
 
-  // Mock Export Functions
+  // Export Functions — generate real downloadable CSV
   const handleExport = (type: "csv" | "excel" | "pdf") => {
     if (crmLeads.length === 0) {
       triggerNotification(" No lead data matches the criteria to export.");
       return;
     }
 
-    triggerNotification(` Commencing data packaging. Generating ${type.toUpperCase()} file structures...`);
-    
-    setTimeout(() => {
+    triggerNotification(` Generating ${type.toUpperCase()} export...`);
+
+    if (type === "csv" || type === "excel") {
+      const headers = ["Name", "Phone", "Email", "Status", "Source", "Score"];
+      const rows = filteredLeads.map(l => [
+        l.name, l.phone, l.email || "", l.status, l.source, String(l.leadScore)
+      ]);
+      const csvContent = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
       const timestamp = new Date().toISOString().substring(0, 10);
-      const filename = `autofy_leads_export_${timestamp}.${type === "excel" ? "xlsx" : type}`;
-      triggerNotification(` Download ready: Saved "${filename}" with ${filteredLeads.length} lines`);
-    }, 1500);
+      link.href = url;
+      link.download = `autofy_leads_export_${timestamp}.${type === "excel" ? "csv" : type}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      triggerNotification(` Download complete: ${filteredLeads.length} leads exported`);
+    } else {
+      triggerNotification(` PDF export requires server-side generation. Use CSV for now.`);
+    }
   };
 
   if (isCrmLoading) {
@@ -1009,14 +1037,14 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                       <td className="py-4 text-right pr-2">
                         <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
                           <button
-                            onClick={() => makeCallMock(item)}
+                            onClick={() => makeCall(item)}
                             className="p-1.5 bg-[#101015] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] rounded-lg transition hover:border-[var(--border)]"
                             title="Call customer"
                           >
                             <Phone className="w-3.5 h-3.5" />
                           </button>
                           <button
-                            onClick={() => openWhatsAppMock(item)}
+                            onClick={() => openWhatsApp(item)}
                             className="p-1.5 bg-[#101015] border border-[var(--border)] text-[var(--text-muted)] hover:text-emerald-400 rounded-lg transition hover:border-[var(--border)]"
                             title="WhatsApp client lines"
                           >
@@ -1265,28 +1293,28 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
               <div className="pt-4 border-t border-[var(--border)] mt-6 grid grid-cols-2 gap-2 text-xs font-semibold">
                 
                 <button
-                  onClick={() => makeCallMock(selectedLead)}
+                  onClick={() => makeCall(selectedLead)}
                   className="px-3.5 py-2.5 bg-[var(--bg-elevated)] border border-[var(--border)] hover:bg-[var(--bg-elevated)] & text-[var(--text)] rounded-xl hover:border-[var(--border)] font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Phone className="w-3.5 h-3.5 text-blue-400" /> Call Client
                 </button>
 
                 <button
-                  onClick={() => openWhatsAppMock(selectedLead)}
+                  onClick={() => openWhatsApp(selectedLead)}
                   className="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-[var(--text)] rounded-xl font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <MessageSquare className="w-3.5 h-3.5" /> WhatsApp Line
                 </button>
 
                 <button
-                  onClick={() => bookAppointmentMock(selectedLead)}
+                  onClick={() => bookAppointment(selectedLead)}
                   className="px-3.5 py-2.5 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text)] rounded-xl hover:bg-[var(--bg-elevated)] transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <Calendar className="w-3.5 h-3.5 text-amber-500" /> Book Slot
                 </button>
 
                 <button
-                  onClick={() => generatePaymentLinkMock(selectedLead)}
+                  onClick={() => generatePaymentLink(selectedLead)}
                   className="px-3.5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-[var(--text)] rounded-xl font-bold hover:from-blue-550 transition flex items-center justify-center gap-1.5 cursor-pointer"
                 >
                   <CreditCard className="w-3.5 h-3.5 text-[var(--text)]" /> Pay Invoice
@@ -1305,7 +1333,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
                       const list = ["Suman K.", "Alok R.", "Coach Rohit", "Self (Owner)"];
                       const currentId = list.indexOf(selectedLead.assignedTo);
                       const next = list[(currentId + 1) % list.length];
-                      assignToTeamMock(selectedLead, next);
+                      assignToTeam(selectedLead, next);
                     }}
                     className="py-2 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] text-[10.5px] font-bold rounded-xl transition cursor-pointer"
                   >

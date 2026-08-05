@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
@@ -56,6 +57,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   onOpenDashboard,
   onTestAssistant
 }) => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [data, setData] = useState<OnboardingData>(initialData);
   const [autoSavePulse, setAutoSavePulse] = useState(false);
@@ -237,17 +239,15 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   ];
 
   return (
-    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col lg:grid lg:grid-cols-[280px_1fr] relative transition-colors duration-300 overflow-hidden">
+    <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col lg:grid lg:grid-cols-[320px_1fr] relative transition-colors duration-300 overflow-hidden">
       
-      {/* Floating Aurora background blobs */}
-      <div className="aurora">
-        <i className="a1" />
-        <i className="a2" />
-        <i className="a3" />
+      {/* ONE GLOBAL FIXED BACKGROUND — continuous across entire onboarding */}
+      <div className="autofy-env">
+        <div className="autofy-env-grid" />
+        <div className="autofy-env-glow-pink" />
+        <div className="autofy-env-glow-blue" />
+        <div className="autofy-env-glow-purple" />
       </div>
-
-      {/* Tech grid pattern */}
-      <div className="hero-grid" />
 
       {/* Top thin progress bar */}
       <div style={{ position: "fixed", top: 0, left: 0, right: 0, height: "3px", background: "var(--border)", zIndex: 100 }}>
@@ -255,71 +255,86 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
       </div>
 
       {/* LEFT PANEL: Fixed Step Sidebar */}
-      <aside className="hidden lg:flex flex-col border-r border-[var(--border)] p-8 w-[280px] min-h-screen shrink-0 text-left select-none justify-between relative z-10" style={{ background: "var(--header-bg)", backdropFilter: "blur(20px)" }}>
+      <aside className="hidden lg:flex flex-col border-r border-[var(--border)] p-8 w-[320px] min-h-screen shrink-0 text-left select-none justify-between relative z-10" style={{ background: "var(--header-bg)", backdropFilter: "blur(20px)" }}>
         <div>
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="w-8 h-8 rounded-lg bg-[var(--brand-subtle)] border border-[var(--brand)] flex items-center justify-center">
-              <MessageSquare className="w-4 h-4 text-[var(--brand)]" />
+          <div className="flex items-center gap-2.5 mb-2">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "var(--brand-gradient)" }}>
+              <MessageSquare className="w-4.5 h-4.5 text-white" />
             </div>
-            <span className="text-[18px] font-black tracking-tight text-[var(--text)] font-display">Autofy</span>
+            <div>
+              <span className="text-lg font-black tracking-tight text-[var(--text)] font-display">Autofy</span>
+              <span className="block text-[9px] font-extrabold uppercase tracking-widest text-[var(--brand)]">Setup Wizard</span>
+            </div>
           </div>
-          <p className="text-[12px] text-[var(--text-muted)] font-sans">Setting up your AI employee</p>
+
+          {/* Progress percentage */}
+          <div className="mt-8 mb-10">
+            <div className="flex items-baseline justify-between mb-2">
+              <span className="text-xs font-bold text-[var(--text-muted)] font-sans">Setup Progress</span>
+              <span className="text-lg font-black font-display text-[var(--brand)]">{Math.round(((currentStep - 1) / 5) * 100)}%</span>
+            </div>
+            <div style={{ height: 4, borderRadius: 4, background: "var(--border)", overflow: "hidden" }}>
+              <div style={{ width: `${((currentStep - 1) / 5) * 100}%`, height: "100%", background: "var(--brand-gradient)", borderRadius: 4, transition: "width 0.4s ease" }} />
+            </div>
+          </div>
  
           {/* Steps List */}
-          <nav className="mt-12 space-y-8 relative">
+          <nav className="space-y-2 relative">
             {stepsList.map((step, idx) => {
               const isCompleted = step.num < currentStep;
               const isActive = step.num === currentStep;
  
               return (
-                <div key={step.num} className="flex items-center gap-4 relative z-10">
-                  {/* Number Circle */}
-                  <div
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: "50%",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      transition: "all 0.3s ease",
-                      background: isCompleted ? "var(--brand)" : "transparent",
-                      border: isActive ? "2px solid var(--brand)" : isCompleted ? "none" : "2px solid var(--border-strong)",
-                      color: isCompleted ? "#ffffff" : isActive ? "var(--brand)" : "var(--text-subtle)",
-                    }}
+                <div key={step.num} className="relative z-10">
+                  <div className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-200 ${isActive ? '' : ''}`}
+                    style={isActive ? { background: "var(--brand-subtle)", border: "1px solid rgba(139,92,246,0.15)" } : { border: "1px solid transparent" }}
                   >
-                    {isCompleted ? <Check className="w-4 h-4 stroke-[3] text-[var(--text)]" /> : step.num}
+                    {/* Number Circle */}
+                    <div
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        transition: "all 0.3s ease",
+                        flexShrink: 0,
+                        background: isCompleted ? "var(--brand)" : "transparent",
+                        border: isActive ? "2px solid var(--brand)" : isCompleted ? "none" : "2px solid var(--border-strong)",
+                        color: isCompleted ? "#ffffff" : isActive ? "var(--brand)" : "var(--text-subtle)",
+                      }}
+                    >
+                      {isCompleted ? <Check className="w-4 h-4 stroke-[3] text-[var(--text)]" /> : step.num}
+                    </div>
+ 
+                    {/* Step Label */}
+                    <span
+                      style={{
+                        fontSize: 14,
+                        fontWeight: isActive ? 700 : 500,
+                        color: isActive ? "var(--text)" : "var(--text-muted)",
+                        textDecoration: isCompleted ? "line-through" : "none",
+                        opacity: isCompleted ? 0.6 : 1,
+                      }}
+                    >
+                      {step.name}
+                    </span>
                   </div>
- 
-                  {/* Step Label */}
-                  <span
-                    style={{
-                      fontSize: 14,
-                      fontWeight: isActive ? 700 : 500,
-                      color: isActive ? "var(--text)" : "var(--text-muted)",
-                      textDecoration: isCompleted ? "line-through" : "none",
-                      opacity: isCompleted ? 0.6 : 1,
-                    }}
-                  >
-                    {step.name}
-                  </span>
- 
+
                   {/* Vertical Connector Line */}
                   {idx < stepsList.length - 1 && (
                     <div
                       style={{
-                        position: "absolute",
-                        top: 32,
-                        left: 16,
-                        width: 1,
-                        height: 32,
+                        marginLeft: 31,
+                        height: 8,
                         borderLeft: isCompleted
                           ? "2px solid var(--brand)"
                           : "2px dashed var(--border-strong)",
-                        opacity: 0.5,
+                        opacity: 0.4,
                       }}
                     />
                   )}
@@ -368,9 +383,9 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
           </AnimatePresence>
         </div>
 
-        {/* Centered Step Form Container wrapped in glass card */}
-        <div className="flex-grow flex items-center justify-center px-4 sm:px-8 lg:px-12 py-6">
-          <div className="w-full max-w-[620px] text-left p-6 sm:p-10 rounded-3xl glass-strong border border-[var(--border-strong)] shadow-2xl relative">
+        {/* Centered Step Form Container (Form Starts ~80-120px below top nav) */}
+        <div className="flex-grow flex items-start justify-center px-4 sm:px-8 lg:px-12 py-4 lg:py-8">
+          <div className="w-full max-w-[800px] text-left p-6 sm:p-10 lg:p-12 rounded-3xl surface-a relative">
             
             {/* Error notifications */}
             {stepError && (
@@ -393,10 +408,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                 {currentStep === 1 && (
                   <div className="space-y-8">
                     <div>
-                      <h2 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: 32, fontWeight: 800, color: "var(--text)", lineHeight: 1.15 }}>
+                      <span className="text-[11px] font-extrabold uppercase tracking-widest font-sans block mb-3" style={{ color: "var(--brand)" }}>STEP 1 OF 5</span>
+                      <h2 className="font-display" style={{ fontSize: "clamp(26px, 3vw, 36px)", fontWeight: 800, color: "var(--text)", lineHeight: 1.15 }}>
                         Tell us about your business
                       </h2>
-                      <p style={{ fontSize: 15, color: "var(--text-muted)", marginTop: 6 }}>
+                      <p style={{ fontSize: 15, color: "var(--text-muted)", marginTop: 8 }}>
                         This helps Autofy understand who you are and how to represent you.
                       </p>
                     </div>
@@ -1039,18 +1055,14 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         </button>
                         <button
                           onClick={() => {
-                            const num = data.whatsappNumber.replace(/[^\d]/g, "");
-                            if (num) {
-                              window.open(`https://wa.me/${num}?text=Hi`, "_blank");
-                            } else {
-                              onTestAssistant(data);
-                            }
+                            onOpenDashboard(data);
+                            navigate("/dashboard/whatsapp_setup");
                           }}
-                          className="btn-ghost w-full justify-center h-12 rounded-[14px] text-[13px] font-bold cursor-pointer"
+                          className="btn-secondary w-full justify-center h-12 rounded-[14px] text-[13px] font-bold cursor-pointer flex items-center gap-2 hover:border-blue-500 hover:text-blue-500"
                         >
-                          <Sparkles className="w-4 h-4 text-[#7C3AED]" />
-                          <span>Test AI on WhatsApp first</span>
-                          <ExternalLink className="w-3.5 h-3.5 text-[var(--text-subtle)]" />
+                          <Phone className="w-4 h-4 text-blue-500" />
+                          <span>Configure WhatsApp Cloud Setup in Dashboard</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -1058,38 +1070,34 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                 )}
               </motion.div>
             </AnimatePresence>
-          </div>
-        </div>
+            {/* ACTION BUTTONS (Form-Bound, NOT viewport-wide!) */}
+            <div className="pt-8 mt-8 border-t border-[var(--border)] flex items-center justify-between select-none">
+              {/* Back btn */}
+              <button
+                type="button"
+                onClick={handleBack}
+                disabled={currentStep === 1}
+                className="btn-ghost flex items-center gap-2 text-[14px] font-semibold cursor-pointer px-4 py-2 rounded-full text-[var(--text-muted)] hover:text-[var(--text)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Back</span>
+              </button>
 
-        {/* Sticky bottom bar (Desktop & Mobile back/next helper) */}
-        <div className="bg-[var(--bg-elevated)] border-t border-[var(--border)] px-6 sm:px-10 lg:px-16 py-5 flex items-center justify-between shrink-0 select-none">
-          {/* Back btn */}
-          <div>
-            <button
-              type="button"
-              onClick={handleBack}
-              className="btn-ghost flex items-center gap-1.5 text-[var(--text-muted)] hover:text-[var(--text)] cursor-pointer py-2 px-3 text-[13px]"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span>Back</span>
-            </button>
-          </div>
+              {/* Step indicator mobile */}
+              <span className="lg:hidden text-xs font-mono text-[var(--text-subtle)] font-bold">
+                Step {currentStep} of 5
+              </span>
 
-          {/* Center Indicator (Mobile Only) */}
-          <div className="lg:hidden text-[12px] text-[var(--text-subtle)] font-bold font-sans">
-            {currentStep} / 5
-          </div>
-
-          {/* Next btn */}
-          <div>
-            <button
-              type="button"
-              onClick={handleNext}
-              className="btn-primary flex items-center gap-1.5 cursor-pointer py-2 px-5 text-[13px]"
-            >
-              <span>{currentStep === 5 ? "Complete Setup" : "Continue"}</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
+              {/* Next/Continue btn — Landing Page CTA styling */}
+              <button
+                type="button"
+                onClick={handleNext}
+                className="btn-primary px-8 py-3.5 rounded-full text-xs sm:text-sm font-extrabold font-display uppercase tracking-wider cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+              >
+                <span>{currentStep === 5 ? "Complete Setup" : "Continue"}</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
       </main>

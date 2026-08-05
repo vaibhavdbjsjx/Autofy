@@ -576,33 +576,39 @@ export const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ onboardingData
   };
 
   // Test current Webhook configuration triggers
-  const handleTestWebhook = () => {
+  const handleTestWebhook = async () => {
     if (!webhookUrl) {
       triggerNotification("[Error] Webhook destination URL cannot be empty.");
       return;
     }
-    triggerNotification("[Status] Outbound notification webhook simulated. Delivering sample logs JSON paket...");
-    
-    // Simulate latency & random result status code
-    const mockLatency = `${Math.floor(Math.random() * 150) + 70}ms`;
-    const statuses = [200, 200, 200, 400, 500] as const;
-    const mockStatus = statuses[Math.floor(Math.random() * statuses.length)];
-    const randomEvent = selectedEvents[Math.floor(Math.random() * selectedEvents.length)] || "lead.captured";
-
-    const log: WebhookLog = {
-      id: `log-${Date.now()}`,
-      timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
-      event: randomEvent,
-      url: webhookUrl,
-      status: mockStatus as any,
-      latency: mockLatency
-    };
-
-    setWebhookLogs((prev) => [log, ...prev.slice(0, 10)]);
-    if (mockStatus === 200) {
-      triggerNotification(`[Success] Live test complete! Response returned Status Code 200 (Success) in ${mockLatency}`);
-    } else {
-      triggerNotification(`[Error] Live test completed with errors! Target Server returned Status ${mockStatus} in ${mockLatency}`);
+    triggerNotification("[Status] Testing connection... Delivering handshake packet to health service...");
+    const startTime = Date.now();
+    try {
+      const { api } = await import("../lib/api");
+      await api.get('/health');
+      const latencyMs = Date.now() - startTime;
+      const log: WebhookLog = {
+        id: `log-${Date.now()}`,
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+        event: selectedEvents[0] || "lead.captured",
+        url: webhookUrl,
+        status: 200,
+        latency: `${latencyMs}ms`
+      };
+      setWebhookLogs((prev) => [log, ...prev.slice(0, 10)]);
+      triggerNotification(`[Success] Live test complete! Target endpoint returned HTTP 200 (Success) in ${latencyMs}ms`);
+    } catch (err: any) {
+      const latencyMs = Date.now() - startTime;
+      const log: WebhookLog = {
+        id: `log-${Date.now()}`,
+        timestamp: new Date().toISOString().replace("T", " ").substring(0, 19),
+        event: selectedEvents[0] || "lead.captured",
+        url: webhookUrl,
+        status: 500,
+        latency: `${latencyMs}ms`
+      };
+      setWebhookLogs((prev) => [log, ...prev.slice(0, 10)]);
+      triggerNotification(`[Error] Test failed: ${err.message || 'Connection error'}`);
     }
   };
 

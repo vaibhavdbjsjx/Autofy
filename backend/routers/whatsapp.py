@@ -29,17 +29,18 @@ def whatsapp_webhook_handshake(
 @router.post("/webhook")
 async def whatsapp_webhook_inbound_listener(
     request: Request,
-    business_id: str = Query(..., description="The Business profile ID registering this WhatsApp line"),
+    business_id: Optional[str] = Query(None, description="Optional Business ID override (otherwise resolved via phone_number_id)"),
     db: Session = Depends(get_db)
 ):
     """
     Public post webhook endpoint listening to incoming WhatsApp.
-    Captures customer questions, processes Gemini replies, logs status updates, and handles media attachments.
+    Dynamically resolves tenant using phone_number_id metadata, captures customer questions,
+    processes Gemini replies, logs status updates, and handles media attachments safely.
     """
     try:
         payload = await request.json()
-        logger = r = await WhatsAppService.process_incoming_webhook(db, business_id, payload)
-        return r
+        result = await WhatsAppService.process_incoming_webhook(db, business_id, payload)
+        return result
     except Exception as err:
         # Webhook receivers must always quickly return 200/202 to avoid Meta retrying loop
         import logging

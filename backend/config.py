@@ -1,5 +1,6 @@
 import os
 from typing import List
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
@@ -20,7 +21,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = "sqlite:///./autofy.db"
 
     # Cryptographic JWT Secret Keys
-    JWT_SECRET_KEY: str = "74cf0ee752be30a1bf8408f61548e6900f684824d5ea34c89ee425b0cb59f0f6"
+    # Must be set via environment variable JWT_SECRET_KEY in production.
+    JWT_SECRET_KEY: str = ""
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 2880  # 48 Hours duration
 
@@ -47,6 +49,16 @@ class Settings(BaseSettings):
     RAZORPAY_KEY_ID: str = ""
     RAZORPAY_KEY_SECRET: str = ""
     RAZORPAY_WEBHOOK_SECRET: str = ""
+
+    # Razorpay Recurring Plan IDs (Normal Prices)
+    RAZORPAY_STARTER_PLAN_ID: str = ""
+    RAZORPAY_PRO_PLAN_ID: str = ""
+    RAZORPAY_ENTERPRISE_PLAN_ID: str = ""
+
+    # Razorpay Promotional First-Cycle Offer IDs
+    RAZORPAY_STARTER_OFFER_ID: str = ""
+    RAZORPAY_PRO_OFFER_ID: str = ""
+    RAZORPAY_ENTERPRISE_OFFER_ID: str = ""
 
     # SMTP Settings for Email Notifications
     # For Gmail: go to Google Account > Security > 2-Step Verification > App Passwords
@@ -82,5 +94,31 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore"
     )
+
+    @model_validator(mode="after")
+    def validate_security_credentials(self) -> "Settings":
+        import secrets
+        insecure_defaults = ["", "change_me", "74cf0ee752be30a1bf8408f61548e6900f684824d5ea34c89ee425b0cb59f0f6"]
+        is_prod = self.ENVIRONMENT.lower() in ["production", "prod"]
+        
+        if is_prod:
+            if not self.JWT_SECRET_KEY or self.JWT_SECRET_KEY in insecure_defaults or len(self.JWT_SECRET_KEY) < 32:
+                raise ValueError("FATAL SECURITY ERROR: JWT_SECRET_KEY environment variable must be set to a strong secret (at least 32 characters) in production! Startup aborted.")
+        else:
+            if not self.JWT_SECRET_KEY or self.JWT_SECRET_KEY in insecure_defaults:
+                self.JWT_SECRET_KEY = secrets.token_hex(32)
+        return self
+
+    def get_feature_health(self) -> dict:
+        """
+        Returns safe configuration status for external subsystems without exposing secrets.
+        """
+        return {
+            "ai_provider": "CONFIGURED" if bool(self.GEMINI_API_KEY) else "NOT CONFIGURED",
+            "whatsapp": "CONFIGURED" if bool(self.WHATSAPP_TOKEN and self.WHATSAPP_PHONE_ID) else "NOT CONFIGURED",
+            "google_oauth": "CONFIGURED" if bool(self.GOOGLE_CLIENT_ID and self.GOOGLE_CLIENT_SECRET) else "NOT CONFIGURED",
+            "smtp": "CONFIGURED" if bool(self.SMTP_USERNAME and self.SMTP_PASSWORD) else "NOT CONFIGURED",
+            "razorpay": "CONFIGURED" if bool(self.RAZORPAY_KEY_ID and self.RAZORPAY_KEY_SECRET) else "NOT CONFIGURED",
+        }
 
 settings = Settings()

@@ -40,7 +40,7 @@ def get_all_leads(
         max_score=max_score
     )
     return {
-        "items": results,
+        "items": [LeadResponse.model_validate(r) for r in results],
         "total": total,
         "skip": skip,
         "limit": limit

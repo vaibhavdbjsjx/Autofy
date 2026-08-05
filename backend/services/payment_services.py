@@ -6,7 +6,7 @@ from typing import Dict, Any, Optional
 from decimal import Decimal
 import httpx
 from sqlalchemy.orm import Session
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from models.payment import Payment
 from models.lead import Lead
@@ -217,11 +217,11 @@ class RazorpayService:
         """
         Utilizes cryptographic HMAC SHA256 matches to verify that callbacks originated from authentic servers.
         """
-        secret = os.environ.get("RAZORPAY_KEY_SECRET")
-        if not secret:
-            # Under development scenario without credentials, approve the capture
-            logger.warning("RAZORPAY_KEY_SECRET unconfigured. Accepting payment verification as valid (dev mock approval).")
-            return True
+        from config import settings
+        secret = os.environ.get("RAZORPAY_KEY_SECRET") or settings.RAZORPAY_KEY_SECRET
+        if not secret or not razorpay_signature:
+            logger.warning("RAZORPAY_KEY_SECRET or signature missing. Verification failed (failing closed).")
+            return False
 
         if razorpay_order_id:
             payload = f"{razorpay_order_id}|{razorpay_payment_id}"
@@ -343,11 +343,73 @@ class RazorpayService:
                     db.commit()
                 return {"status": "success", "processed_record": payment.id, "action": "paid_link"}
 
+        elif event in ["subscription.authenticated"]:
+            # Customer authorized recurring mandate for 7-day trial
+            sub_entities = payload.get("payload", {}).get("subscription", {}).get("entity", {})
+            sub_id = sub_entities.get("id")
+            notes = sub_entities.get("notes", {})
+            biz_id = notes.get("business_id")
+
+            from models.subscription import Subscription
+            query = db.query(Subscription)
+            sub_record = query.filter((Subscription.provider_subscription_id == sub_id) | (Subscription.business_id == biz_id)).first() if (sub_id or biz_id) else None
+
+            if sub_record:
+                sub_record.status = "TRIAL_ACTIVE"
+                if sub_id:
+                    sub_record.provider_subscription_id = sub_id
+                sub_record.trial_started_at = datetime.utcnow()
+                sub_record.trial_ends_at = datetime.utcnow() + timedelta(days=7)
+                sub_record.updated_at = datetime.utcnow()
+                db.commit()
+                return {"status": "success", "processed_subscription": sub_record.id, "action": "trial_authenticated"}
+
         elif event in ["subscription.charged", "subscription.activated"]:
             sub_entities = payload.get("payload", {}).get("subscription", {}).get("entity", {})
             sub_id = sub_entities.get("id")
             pay_entities = payload.get("payload", {}).get("payment", {}).get("entity", {})
             razorpay_payment_id = pay_entities.get("id")
+
+            notes = sub_entities.get("notes", {}) or pay_entities.get("notes", {})
+            biz_id = notes.get("business_id")
+
+            from models.subscription import Subscription
+            query = db.query(Subscription)
+            sub_record = None
+            if sub_id:
+                sub_record = query.filter(Subscription.provider_subscription_id == sub_id).first()
+            if not sub_record and biz_id:
+                sub_record = query.filter(Subscription.business_id == biz_id).first()
+
+            if sub_record:
+                sub_record.status = "ACTIVE"
+                if sub_id:
+                    sub_record.provider_subscription_id = sub_id
+                sub_record.promo_first_cycle_used = True
+                sub_record.promo_first_cycle_locked = False
+                sub_record.current_period_start = datetime.utcnow()
+                sub_record.current_period_end = datetime.utcnow() + timedelta(days=30)
+                sub_record.updated_at = datetime.utcnow()
+                db.commit()
+
+                return {"status": "success", "processed_subscription": sub_record.id, "action": "activated"}
+
+        elif event in ["subscription.halted", "payment.failed"]:
+            sub_entities = payload.get("payload", {}).get("subscription", {}).get("entity", {})
+            sub_id = sub_entities.get("id")
+            notes = sub_entities.get("notes", {})
+            biz_id = notes.get("business_id")
+
+            from models.subscription import Subscription
+            query = db.query(Subscription)
+            sub_record = query.filter((Subscription.provider_subscription_id == sub_id) | (Subscription.business_id == biz_id)).first() if (sub_id or biz_id) else None
+
+            if sub_record:
+                # Transition to PAST_DUE without destroying customer data
+                sub_record.status = "PAST_DUE"
+                sub_record.updated_at = datetime.utcnow()
+                db.commit()
+                return {"status": "success", "processed_subscription": sub_record.id, "action": "past_due"}
 
             payment = db.query(Payment).filter(Payment.razorpay_subscription_id == sub_id).first()
             if payment:

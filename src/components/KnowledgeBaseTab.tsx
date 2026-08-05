@@ -540,8 +540,8 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                   onClick={() => setActiveSubTab(sub.id as any)}
                   className={`text-[11px] font-black uppercase tracking-wider px-4 py-2.5 rounded-xl border transition-all cursor-pointer ${
                     activeSubTab === sub.id
-                      ? "bg-blue-600/10 border-blue-500/30 text-blue-400 font-black shadow-[0_4px_15px_rgba(59,130,246,0.05)]"
-                      : "bg-[#09090c] border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)]"
+                      ? "bg-purple-600 text-white font-black border-purple-600 shadow-md"
+                      : "bg-[var(--input-bg)] border-[var(--border)] text-[var(--text)] hover:bg-[var(--bg-elevated)]"
                   }`}
                 >
                   {sub.label}
@@ -603,7 +603,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                           value={newSvcName}
                           onChange={(e) => setNewSvcName(e.target.value)}
                           placeholder="e.g. 1-to-1 Power Yoga" 
-                          className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)] placeholder-neutral-600 focus:outline-none focus:border-blue-500/40"
+                          className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)] placeholder-neutral-600 focus:outline-none focus:border-blue-500/40"
                         />
                       </div>
                       <div>
@@ -614,7 +614,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                           value={newSvcPrice}
                           onChange={(e) => setNewSvcPrice(e.target.value)}
                           placeholder="e.g. 2500" 
-                          className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)] placeholder-neutral-600 focus:outline-none focus:border-blue-500/40"
+                          className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)] placeholder-neutral-600 focus:outline-none focus:border-blue-500/40"
                         />
                       </div>
                       <div className="flex items-end gap-1.5">
@@ -623,7 +623,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                           <select 
                             value={newSvcDuration}
                             onChange={(e) => setNewSvcDuration(e.target.value)}
-                            className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)] focus:outline-none focus:border-blue-500/40"
+                            className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)] focus:outline-none focus:border-blue-500/40"
                           >
                             <option>Monthly</option>
                             <option>Quarterly</option>
@@ -717,7 +717,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                           <input 
                             type="text" required value={newProdName} onChange={(e) => setNewProdName(e.target.value)}
                             placeholder="e.g. AEW Interceptor Soundpipe" 
-                            className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)]"
+                            className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)]"
                           />
                         </div>
                         <div>
@@ -725,7 +725,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                           <input 
                             type="text" required value={newProdPrice} onChange={(e) => setNewProdPrice(e.target.value)}
                             placeholder="e.g. 6500" 
-                            className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)]"
+                            className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)]"
                           />
                         </div>
                         <div>
@@ -733,7 +733,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                           <input 
                             type="text" value={newProdCategory} onChange={(e) => setNewProdCategory(e.target.value)}
                             placeholder="e.g. Accessories" 
-                            className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)]"
+                            className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)]"
                           />
                         </div>
                       </div>
@@ -743,14 +743,14 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                           <label className="text-[10px] text-[var(--text-muted)] font-bold uppercase">Stock Quantity</label>
                           <input 
                             type="number" value={newProdStock} onChange={(e) => setNewProdStock(parseInt(e.target.value) || 0)}
-                            className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)]"
+                            className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)]"
                           />
                         </div>
                         <div>
                           <label className="text-[10px] text-[var(--text-muted)] font-bold uppercase">Simulated Images Attached</label>
                           <select 
                             value={newProdImages} onChange={(e) => setNewProdImages(parseInt(e.target.value))}
-                            className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)]"
+                            className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)]"
                           >
                             <option value={1}>1 High-res Photo</option>
                             <option value={2}>2 Swipes</option>
@@ -764,7 +764,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                         <textarea 
                           value={newProdDesc} onChange={(e) => setNewProdDesc(e.target.value)}
                           placeholder="Features, material specs, fits, and performance sound info..."
-                          className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)] h-20 placeholder-neutral-700"
+                          className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-xs text-[var(--text)] h-20 placeholder-neutral-700"
                         />
                       </div>
 
@@ -862,7 +862,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                         <input 
                           type="text" required value={newPlanName} onChange={(e) => setNewPlanName(e.target.value)}
                           placeholder="e.g. 3 Month AC Premium Combo" 
-                          className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
+                          className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
                         />
                       </div>
                       <div>
@@ -870,7 +870,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                         <input 
                           type="text" required value={newPlanPrice} onChange={(e) => setNewPlanPrice(e.target.value)}
                           placeholder="e.g. 5000" 
-                          className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
+                          className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
                         />
                       </div>
                       <div>
@@ -878,7 +878,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                         <input 
                           type="text" required value={newPlanDuration} onChange={(e) => setNewPlanDuration(e.target.value)}
                           placeholder="e.g. 3 Months" 
-                          className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
+                          className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
                         />
                       </div>
                       <div>
@@ -886,7 +886,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                         <input 
                           type="text" value={newPlanBenefits} onChange={(e) => setNewPlanBenefits(e.target.value)}
                           placeholder="Locker space, Hydro Station access, 3 Coach trials" 
-                          className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
+                          className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
                         />
                       </div>
 
@@ -977,7 +977,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                           <input 
                             type="text" required value={newFaqQ} onChange={(e) => setNewFaqQ(e.target.value)}
                             placeholder="e.g. Do you have a personal trainer?" 
-                            className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
+                            className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
                           />
                         </div>
                         <div>
@@ -985,7 +985,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                           <input 
                             type="text" value={newFaqCat} onChange={(e) => setNewFaqCat(e.target.value)}
                             placeholder="e.g. Coaching" 
-                            className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
+                            className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
                           />
                         </div>
                       </div>
@@ -996,14 +996,14 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                           <textarea 
                             required value={newFaqA} onChange={(e) => setNewFaqA(e.target.value)}
                             placeholder="e.g. Yes we host 8 professional fitness coaches specialized inside bodybuilding..."
-                            className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)] h-16 placeholder-neutral-700"
+                            className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)] h-16 placeholder-neutral-700"
                           />
                         </div>
                         <div>
                           <label className="text-[10px] text-[var(--text-muted)] font-bold uppercase font-sans">Priority Status</label>
                           <select 
                             value={newFaqPri} onChange={(e) => setNewFaqPri(e.target.value as any)}
-                            className="w-full mt-1 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
+                            className="w-full mt-1 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2 text-[var(--text)]"
                           >
                             <option value="High"> High Priority (Trained First)</option>
                             <option value="Medium"> Medium Priority</option>
@@ -1070,7 +1070,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                       <textarea 
                         value={policies.refundPolicy}
                         onChange={(e) => updatePolicy("refundPolicy", e.target.value)}
-                        className="w-full h-20 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--text)] placeholder-neutral-700 leading-relaxed focus:outline-none focus:border-blue-500/40"
+                        className="w-full h-20 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--text)] placeholder-neutral-700 leading-relaxed focus:outline-none focus:border-blue-500/40"
                       />
                     </div>
 
@@ -1079,7 +1079,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                       <textarea 
                         value={policies.cancellationPolicy}
                         onChange={(e) => updatePolicy("cancellationPolicy", e.target.value)}
-                        className="w-full h-20 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--text)] placeholder-neutral-700 leading-relaxed focus:outline-none focus:border-blue-500/40"
+                        className="w-full h-20 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--text)] placeholder-neutral-700 leading-relaxed focus:outline-none focus:border-blue-500/40"
                       />
                     </div>
 
@@ -1088,7 +1088,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                       <textarea 
                         value={policies.workingHours}
                         onChange={(e) => updatePolicy("workingHours", e.target.value)}
-                        className="w-full h-20 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--text)] placeholder-neutral-700 leading-relaxed focus:outline-none focus:border-blue-500/40"
+                        className="w-full h-20 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--text)] placeholder-neutral-700 leading-relaxed focus:outline-none focus:border-blue-500/40"
                       />
                     </div>
 
@@ -1097,7 +1097,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                       <textarea 
                         value={policies.deliveryPolicy}
                         onChange={(e) => updatePolicy("deliveryPolicy", e.target.value)}
-                        className="w-full h-20 bg-[#09090c] border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--text)] placeholder-neutral-700 leading-relaxed focus:outline-none focus:border-blue-500/40"
+                        className="w-full h-20 bg-[var(--input-bg)] text-[var(--text)] font-medium border border-[var(--border)] rounded-xl px-3 py-2.5 text-[var(--text)] placeholder-neutral-700 leading-relaxed focus:outline-none focus:border-blue-500/40"
                       />
                     </div>
 

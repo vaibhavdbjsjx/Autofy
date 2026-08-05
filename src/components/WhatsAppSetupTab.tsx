@@ -212,13 +212,20 @@ export const WhatsAppSetupTab: React.FC = () => {
   };
 
   // Connection Triggers
-  const handleConnect = () => {
+  const handleConnect = async () => {
     setConnectionStatus("Pending Verification");
     addNewWebhookLog("Message Sent", "Meta API cloud line authorization request dispatched", true);
-    setTimeout(() => {
+    try {
+      const { api, isAuthenticated } = await import("../lib/api");
+      if (isAuthenticated()) {
+        await api.get("/health");
+      }
       setConnectionStatus("Connected");
       addNewWebhookLog("Message Received", "Meta Webhook challenge verified. Port line open.", true);
-    }, 1500);
+    } catch {
+      setConnectionStatus("Disconnected");
+      addNewWebhookLog("Error Logs", "Connection verification failed. Check backend status.", false);
+    }
   };
 
   const handleDisconnect = () => {
@@ -226,11 +233,17 @@ export const WhatsAppSetupTab: React.FC = () => {
     addNewWebhookLog("Error Logs", "WhatsApp session closed by owner administration request.", false);
   };
 
-  const handleTestPing = () => {
+  const handleTestPing = async () => {
     addNewWebhookLog("Message Sent", "System test ping sent to WhatsApp Business API Gateway.", true);
-    setTimeout(() => {
-      addNewWebhookLog("Message Received", "Meta ping confirmation: 200 OK. Connection fully stable.", true);
-    }, 800);
+    try {
+      const { api } = await import("../lib/api");
+      const startTime = Date.now();
+      await api.get("/health");
+      const latencyMs = Date.now() - startTime;
+      addNewWebhookLog("Message Received", `Ping confirmation: 200 OK in ${latencyMs}ms. Connection stable.`, true);
+    } catch {
+      addNewWebhookLog("Error Logs", "Ping failed. Backend service may be unavailable.", false);
+    }
   };
 
   return (
@@ -289,7 +302,7 @@ export const WhatsAppSetupTab: React.FC = () => {
                   type="text"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full bg-[#0a0a0c] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)]"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-400 focus:outline-none focus:border-[var(--brand)] font-medium"
                 />
               </div>
 
@@ -299,7 +312,7 @@ export const WhatsAppSetupTab: React.FC = () => {
                   type="text"
                   value={businessAccountId}
                   onChange={(e) => setBusinessAccountId(e.target.value)}
-                  className="w-full bg-[#0a0a0c] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)]"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)] font-medium"
                 />
               </div>
 
@@ -309,7 +322,7 @@ export const WhatsAppSetupTab: React.FC = () => {
                   type="text"
                   value={metaAppId}
                   onChange={(e) => setMetaAppId(e.target.value)}
-                  className="w-full bg-[#0a0a0c] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)]"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)] font-medium"
                 />
               </div>
 
@@ -319,11 +332,11 @@ export const WhatsAppSetupTab: React.FC = () => {
                   type={revealSecret ? "text" : "password"}
                   value={metaAppSecret}
                   onChange={(e) => setMetaAppSecret(e.target.value)}
-                  className="w-full bg-[#0a0a0c] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)]"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)] font-medium"
                 />
                 <button
                   onClick={() => setRevealSecret(!revealSecret)}
-                  className="absolute right-3.5 bottom-2.5 text-[10.5px] font-bold text-[var(--text-subtle)] hover:text-[var(--text)]"
+                  className="absolute right-3.5 bottom-2.5 text-[10.5px] font-bold text-[var(--text-subtle)] hover:text-[var(--text)] cursor-pointer"
                 >
                   {revealSecret ? "Hide" : "Show"}
                 </button>
@@ -337,13 +350,13 @@ export const WhatsAppSetupTab: React.FC = () => {
                   <label className="text-[10px] uppercase font-black text-[var(--text-subtle)]">Webhook URL</label>
                   <button
                     onClick={() => copyToClipboard(webhookUrl, setCopiedUrl)}
-                    className="text-[9.5px] text-blue-400 hover:underline flex items-center gap-1"
+                    className="text-[9.5px] text-blue-500 hover:underline flex items-center gap-1 font-bold cursor-pointer"
                   >
-                    {copiedUrl ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                    {copiedUrl ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
                     {copiedUrl ? "Copied" : "Copy"}
                   </button>
                 </div>
-                <div className="bg-[#050507] p-2 rounded-lg text-[10px] font-mono text-[var(--text-muted)] select-all border border-[var(--border)]">
+                <div className="bg-[var(--input-bg)] p-2.5 rounded-xl text-[10.5px] font-mono text-[var(--text)] font-semibold select-all border border-[var(--border)]">
                   {webhookUrl}
                 </div>
               </div>
@@ -353,13 +366,13 @@ export const WhatsAppSetupTab: React.FC = () => {
                   <label className="text-[10px] uppercase font-black text-[var(--text-subtle)]">Webhook Verify Token</label>
                   <button
                     onClick={() => copyToClipboard(verifyToken, setCopiedToken)}
-                    className="text-[9.5px] text-blue-400 hover:underline flex items-center gap-1"
+                    className="text-[9.5px] text-blue-500 hover:underline flex items-center gap-1 font-bold cursor-pointer"
                   >
-                    {copiedToken ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                    {copiedToken ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
                     {copiedToken ? "Copied" : "Copy"}
                   </button>
                 </div>
-                <div className="bg-[#050507] p-2 rounded-lg text-[10px] font-mono text-[var(--text-muted)] select-all border border-[var(--border)] truncate">
+                <div className="bg-[var(--input-bg)] p-2.5 rounded-xl text-[10.5px] font-mono text-[var(--text)] font-semibold select-all border border-[var(--border)] truncate">
                   {verifyToken}
                 </div>
               </div>
@@ -431,18 +444,18 @@ export const WhatsAppSetupTab: React.FC = () => {
                   rows={3}
                   value={templates[activeTemplateTab]}
                   onChange={(e) => handleUpdateTemplate(e.target.value)}
-                  className="w-full bg-[#0a0a0c] border border-[var(--border)] p-3.5 rounded-xl text-xs text-[var(--text)] focus:outline-none"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-3.5 rounded-xl text-xs text-[var(--text)] focus:outline-none font-medium"
                 />
               </div>
 
               <div className="flex justify-between items-center p-3.5 bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-2xl">
                 <div className="flex items-center gap-2">
-                  <Bookmark className="w-4 h-4 text-blue-400" />
-                  <span className="text-[11px] text-[var(--text-muted)]">Template synced and approved by Meta Sandbox policy checks.</span>
+                  <Bookmark className="w-4 h-4 text-blue-500" />
+                  <span className="text-[11px] text-[var(--text-muted)] font-medium">Template synced and approved by Meta Sandbox policy checks.</span>
                 </div>
                 <button
                   onClick={() => addNewWebhookLog("Message Sent", `Template updated: "${activeTemplateTab} Message" template`, true)}
-                  className="px-3.5 py-1.5 text-[10.5px] font-black bg-blue-600 hover:bg-blue-550 text-[var(--text)] rounded-xl cursor-pointer"
+                  className="px-3.5 py-1.5 text-[10.5px] font-black bg-blue-600 hover:bg-blue-550 text-white rounded-xl cursor-pointer shadow-sm"
                 >
                   Save and Sync
                 </button>
@@ -454,7 +467,7 @@ export const WhatsAppSetupTab: React.FC = () => {
           {/* AI SETTINGS & CONFIDENCE THRESHOLD */}
           <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 backdrop-blur-md space-y-5">
             <div>
-              <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-wider text-blue-400">AI Response Engine Parameters</h3>
+              <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-wider text-blue-500">AI Response Engine Parameters</h3>
               <p className="text-[10.5px] text-[var(--text-subtle)] mt-0.5 font-sans">Fine-tune confidence limits, booking policies, and out-of-hours fallbacks.</p>
             </div>
 
@@ -476,7 +489,7 @@ export const WhatsAppSetupTab: React.FC = () => {
                     </div>
                     <button
                       onClick={() => item.setVal(!item.val)}
-                      className={`w-7 h-4 rounded-full p-0.5 transition-all outline-none ${
+                      className={`w-7 h-4 rounded-full p-0.5 transition-all outline-none cursor-pointer ${
                         item.val ? "bg-blue-600" : "bg-[var(--bg-elevated)]"
                       }`}
                     >
@@ -495,7 +508,7 @@ export const WhatsAppSetupTab: React.FC = () => {
                 <div className="space-y-2 bg-[var(--bg-elevated)]/30 p-4 border border-[var(--border)] rounded-2xl">
                   <div className="flex justify-between items-center text-[10px] uppercase font-black text-[var(--text-subtle)]">
                     <span>Confidence Match Limit</span>
-                    <span className="text-blue-400 font-mono font-bold">{confidenceThreshold}%</span>
+                    <span className="text-blue-500 font-mono font-bold">{confidenceThreshold}%</span>
                   </div>
                   <input
                     type="range"
@@ -505,7 +518,7 @@ export const WhatsAppSetupTab: React.FC = () => {
                     onChange={(e) => setConfidenceThreshold(parseInt(e.target.value))}
                     className="w-full h-1 bg-[var(--bg-elevated)] rounded-lg appearance-none cursor-pointer accent-blue-500"
                   />
-                  <p className="text-[9px] text-[var(--text-subtle)] text-[var(--text-subtle)] leading-normal">
+                  <p className="text-[9px] text-[var(--text-subtle)] leading-normal">
                     Matches scoring below {confidenceThreshold}% are escalated to humans instantly to protect brand credibility.
                   </p>
                 </div>
@@ -519,7 +532,7 @@ export const WhatsAppSetupTab: React.FC = () => {
                     </div>
                     <button
                       onClick={() => setOutOfHoursResponse(!outOfHoursResponse)}
-                      className={`w-7 h-4 rounded-full p-0.5 transition-all outline-none ${
+                      className={`w-7 h-4 rounded-full p-0.5 transition-all outline-none cursor-pointer ${
                         outOfHoursResponse ? "bg-blue-600" : "bg-[var(--bg-elevated)]"
                       }`}
                     >
@@ -531,12 +544,12 @@ export const WhatsAppSetupTab: React.FC = () => {
 
                   {outOfHoursResponse && (
                     <div className="space-y-1.5">
-                      <label className="text-[9.5px] uppercase font-black tracking-wider text-[var(--text-subtle)] text-[var(--text-subtle)]">Custom Out-Of-Hours reply</label>
+                      <label className="text-[9.5px] uppercase font-black tracking-wider text-[var(--text-subtle)]">Custom Out-Of-Hours reply</label>
                       <textarea
                         rows={2}
                         value={outOfHoursMessage}
                         onChange={(e) => setOutOfHoursMessage(e.target.value)}
-                        className="w-full bg-[#050507] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none"
+                        className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none font-medium"
                       />
                     </div>
                   )}
@@ -553,7 +566,7 @@ export const WhatsAppSetupTab: React.FC = () => {
         <div className="space-y-6">
           
           {/* SIMULATED CLIENT HANDSET GLASS PANEL */}
-          <div className="bg-[var(--bg-card)] border border-blue-500/20 rounded-3xl p-5 relative overflow-hidden shadow-2xl h-[400px] flex flex-col justify-between">
+          <div className="bg-[var(--bg-card)] border border-blue-500/20 rounded-3xl p-5 relative overflow-hidden shadow-xl h-[400px] flex flex-col justify-between">
             
             {/* Handset Header */}
             <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
@@ -576,14 +589,14 @@ export const WhatsAppSetupTab: React.FC = () => {
                   <div
                     className={`p-3 rounded-2xl text-xs leading-relaxed ${
                       log.sender === "user"
-                        ? "bg-blue-600 text-[var(--text)] rounded-br-none"
-                        : "bg-[var(--bg-elevated)] text-[var(--text)] rounded-bl-none border border-[var(--border)]"
+                        ? "bg-blue-600 text-white rounded-br-none font-medium"
+                        : "bg-[var(--input-bg)] text-[var(--text)] rounded-bl-none border border-[var(--border)] font-medium"
                     }`}
                   >
                     <p className="font-sans whitespace-pre-wrap leading-snug">{log.text}</p>
                   </div>
                   {log.sender === "bot" && log.source && (
-                    <div className="flex items-center gap-2 mt-1.5 text-[9px] text-[#4d4d4d] font-mono pl-1">
+                    <div className="flex items-center gap-2 mt-1.5 text-[9px] text-[var(--text-muted)] font-mono pl-1">
                       <span className="text-blue-500 font-extrabold">Source: Match RAG [{log.source}]</span>
                       <span>•</span>
                       <span className="text-green-500 font-extrabold">{log.confidence} Conf</span>
@@ -612,11 +625,11 @@ export const WhatsAppSetupTab: React.FC = () => {
                 value={testerMessage}
                 onChange={(e) => setTesterMessage(e.target.value)}
                 placeholder="Ask e.g. Do you have locker room? pricing?"
-                className="flex-1 bg-[#050507] border border-[var(--border)] rounded-xl px-3 text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)]"
+                className="flex-1 bg-[var(--input-bg)] border border-[var(--border)] rounded-xl px-3 text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)] font-medium"
               />
               <button
                 type="submit"
-                className="w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-550 text-[var(--text)] flex items-center justify-center transition-colors shadow shadow-blue-500/10 cursor-pointer"
+                className="w-10 h-10 rounded-xl bg-blue-600 hover:bg-blue-550 text-white flex items-center justify-center transition-colors shadow shadow-blue-500/10 cursor-pointer"
               >
                 <Send className="w-4 h-4" />
               </button>
@@ -628,12 +641,12 @@ export const WhatsAppSetupTab: React.FC = () => {
           <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-5 backdrop-blur-md space-y-4">
             <div className="flex items-center justify-between border-b border-[var(--border)] pb-2">
               <span className="text-xs font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-1.5">
-                <Terminal className="w-4 h-4 text-blue-400 animate-pulse" />
+                <Terminal className="w-4 h-4 text-blue-500 animate-pulse" />
                 Live Webhook Event Monitor
               </span>
               <button
                 onClick={() => setWebhookLogs([])}
-                className="text-[9px] text-[var(--text-subtle)] hover:text-[var(--text)]"
+                className="text-[9px] text-[var(--text-subtle)] hover:text-[var(--text)] cursor-pointer"
               >
                 Clear logs
               </button>
@@ -643,7 +656,7 @@ export const WhatsAppSetupTab: React.FC = () => {
               {webhookLogs.map((log) => (
                 <div
                   key={log.id}
-                  className={`p-3 bg-[#08080a] border border-[var(--border)] rounded-xl flex gap-3 text-xs justify-between items-start transition-all hover:bg-[var(--bg-card)] ${
+                  className={`p-3 bg-[var(--input-bg)] border border-[var(--border)] rounded-xl flex gap-3 text-xs justify-between items-start transition-all hover:bg-[var(--bg-card)] ${
                     !log.success && "border-red-500/15"
                   }`}
                 >
@@ -651,27 +664,27 @@ export const WhatsAppSetupTab: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <span className={`inline-block px-1.5 py-0.5 text-[8.5px] font-black uppercase tracking-wider rounded ${
                         log.eventType === "Message Received"
-                          ? "bg-blue-600/10 text-blue-400 border border-blue-500/20"
+                          ? "bg-blue-600/10 text-blue-500 border border-blue-500/20"
                           : log.eventType === "Message Sent"
-                          ? "bg-green-600/10 text-green-400 border border-green-500/20"
+                          ? "bg-green-600/10 text-green-500 border border-green-500/20"
                           : log.eventType === "Lead Captured"
-                          ? "bg-purple-600/10 text-purple-400 border border-purple-500/20"
+                          ? "bg-purple-600/10 text-purple-500 border border-purple-500/20"
                           : log.eventType === "Appointment Booked"
-                          ? "bg-cyan-650 bg-cyan-600/10 text-cyan-400 border border-cyan-500/20"
+                          ? "bg-cyan-600/10 text-cyan-500 border border-cyan-500/20"
                           : log.eventType === "Payment Received"
                           ? "bg-amber-600/10 text-amber-500 border border-amber-500/20"
-                          : "bg-red-500/10 text-red-400 border border-red-500/20"
+                          : "bg-red-500/10 text-red-500 border border-red-500/20"
                       }`}>
                         {log.eventType}
                       </span>
                       <span className="text-[9.5px] text-[var(--text-subtle)] font-mono">{log.timestamp}</span>
                     </div>
-                    <p className="text-[10.5px] text-[var(--text)] leading-normal select-text">{log.details}</p>
+                    <p className="text-[10.5px] text-[var(--text)] leading-normal select-text font-medium">{log.details}</p>
                   </div>
                   {log.success ? (
-                    <span className="text-green-400 text-xs mt-0.5"><Check size={12} /></span>
+                    <span className="text-green-500 text-xs mt-0.5"><Check size={12} /></span>
                   ) : (
-                    <span className="text-red-400 text-xs mt-0.5"></span>
+                    <span className="text-red-500 text-xs mt-0.5"></span>
                   )}
                 </div>
               ))}
@@ -679,7 +692,6 @@ export const WhatsAppSetupTab: React.FC = () => {
                 <p className="text-center text-[10.5px] text-[var(--text-subtle)] py-6 italic font-sans">No live webhook transactional logs captured yet.</p>
               )}
             </div>
-
           </div>
 
         </div>

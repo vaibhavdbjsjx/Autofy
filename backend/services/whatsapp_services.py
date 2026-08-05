@@ -89,9 +89,10 @@ class WhatsAppService:
         raise Exception("Invalid verification token")
 
     @staticmethod
-    async def process_incoming_webhook(db: Session, business_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    async def process_incoming_webhook(db: Session, business_id_param: Optional[str], payload: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Parses WhatsApp Business payload updates, records communications, and runs AI automated replies.
+        Parses WhatsApp Business payload updates, dynamically resolves the owning tenant via phone_number_id,
+        records communications, and runs AI automated replies.
         Supports status receipts (sent, delivered, read) and message triggers.
         """
         # 1. Parse Status updates
@@ -105,6 +106,30 @@ class WhatsAppService:
             return {"status": "ignored", "reason": "No changes found"}
 
         value = changes[0].get("value", {})
+
+        # Dynamic Tenant Resolution via phone_number_id metadata
+        phone_metadata = value.get("metadata", {})
+        phone_number_id = phone_metadata.get("phone_number_id")
+
+        from models.business import Business
+        from config import settings
+
+        target_business = None
+        if phone_number_id:
+            target_business = db.query(Business).filter(Business.whatsapp_phone_id == phone_number_id).first()
+        if not target_business and business_id_param:
+            target_business = db.query(Business).filter(Business.id == business_id_param).first()
+
+        if not target_business:
+            # Fallback for dev convenience if only 1 business exists in dev DB
+            all_biz = db.query(Business).all()
+            if settings.ENVIRONMENT != "production" and len(all_biz) == 1:
+                target_business = all_biz[0]
+            else:
+                logger.warning(f"Unmapped WhatsApp webhook received for phone_number_id={phone_number_id or 'missing'}. No tenant assigned.")
+                return {"status": "unmapped_tenant", "detail": "No registered business matches this WhatsApp phone_number_id"}
+
+        business_id = target_business.id
         
         # Checking Status Receipt tracking
         statuses = value.get("statuses", [])

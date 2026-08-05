@@ -131,12 +131,12 @@ Status: READY - Gemini cognitive layer successfully trained.`;
     setAiAnalysisSnippet(analysis);
   }, [setupState]);
 
-  // Hook to simulate Background Autosaving on Input Changes (Zero friction experience!)
-  const triggerAutoSave = () => {
+  // Hook to persist business setup changes via real backend API
+  const triggerAutoSave = async () => {
     setSaveStatus("saving");
     setSyncProgress(30);
     
-    // Smooth progress bar and status transition
+    // Smooth progress bar animation
     const interval = setInterval(() => {
       setSyncProgress(prev => {
         if (prev >= 90) {
@@ -147,7 +147,20 @@ Status: READY - Gemini cognitive layer successfully trained.`;
       });
     }, 150);
 
-    setTimeout(() => {
+    try {
+      const { api, isAuthenticated } = await import("../lib/api");
+      if (isAuthenticated()) {
+        await api.put("/api/v1/business/profile", {
+          name: setupState.businessName,
+          industry: setupState.businessCategory,
+          phone: setupState.phoneNumber,
+          address: setupState.address,
+          website: setupState.website,
+          whatsapp_number: setupState.whatsappNumber,
+          description: setupState.businessDescription
+        });
+      }
+
       setSaveStatus("saved");
       setSyncProgress(100);
       const now = new Date();
@@ -174,8 +187,10 @@ Status: READY - Gemini cognitive layer successfully trained.`;
           hours: `${setupState.workingHours.filter(h => !h.isHoliday).map(h => `${h.day.substring(0, 3)}: ${h.openTime}-${h.closeTime}`).join(", ")}`
         }));
       }
-
-    }, 1000);
+    } catch (err: any) {
+      setSaveStatus("idle");
+      setSyncProgress(0);
+    }
   };
 
   // State update handlers mapping and triggering autosave

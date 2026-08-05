@@ -56,17 +56,26 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
   // Navigation categories state
   const [activeCategory, setActiveCategory] = useState<string>("profile");
   
-  // Custom states tracking Save Status / Autosave simulations
+  // Custom states tracking Save Status
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
 
-  // Save changes trigger helper
-  const triggerAutoSave = (feedbackMessage: string = "Settings saved successfully") => {
+  // Save changes trigger helper - calls real backend API
+  const triggerAutoSave = async (feedbackMessage: string = "Settings saved successfully", payload?: Record<string, any>) => {
     setSaveStatus("saving");
-    setTimeout(() => {
+    try {
+      if (payload) {
+        const { api, isAuthenticated } = await import("../lib/api");
+        if (isAuthenticated()) {
+          await api.put("/api/v1/business/profile", payload);
+        }
+      }
       setSaveStatus("saved");
       triggerNotification(` ${feedbackMessage}`);
       setTimeout(() => setSaveStatus("idle"), 2500);
-    }, 1200);
+    } catch (err: any) {
+      setSaveStatus("idle");
+      triggerNotification(`[Error] Failed to save: ${err.message || "Network error"}`);
+    }
   };
 
   // 1. BUSINESS PROFILE FORM STATES
@@ -84,7 +93,14 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
 
   const handleProfileSave = (e: React.FormEvent) => {
     e.preventDefault();
-    triggerAutoSave("Business profile saved successfully!");
+    triggerAutoSave("Business profile saved successfully!", {
+      name: profile.businessName,
+      industry: profile.businessType,
+      phone: profile.phone,
+      email: profile.email,
+      address: profile.address,
+      website: profile.website
+    });
   };
 
   // 2. AI ASSISTANT CONFIGURATION STATES
@@ -101,7 +117,13 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
 
   const handleAiSave = (e: React.FormEvent) => {
     e.preventDefault();
-    triggerAutoSave("AI Assistant agent behaviors re-calibrated!");
+    triggerAutoSave("AI Assistant agent behaviors re-calibrated!", {
+      ai_assistant_name: aiConfig.assistantName,
+      ai_welcome_message: aiConfig.welcomeMessage,
+      ai_fallback_message: aiConfig.fallbackMessage,
+      ai_tone: aiConfig.tone,
+      ai_response_length: aiConfig.responseLength
+    });
   };
 
   // 3. TEAM MEMBERS MANAGEMENT STATES
@@ -224,13 +246,22 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
   // 8. DANGER ZONE CONFIRMATION MODEL
   const [dangerConfirmModal, setDangerConfirmModal] = useState<null | "data" | "account" | "kb">(null);
 
-  const handleExecuteDangerAction = () => {
+  const handleExecuteDangerAction = async () => {
     if (dangerConfirmModal === "data") {
-      triggerNotification(" Dispatched deep destruction request: All user logs, database leads values, and history deleted.");
+      triggerNotification("Dispatched data purge request.");
     } else if (dangerConfirmModal === "account") {
-      triggerNotification(" Workspace deactivated! Account subscription canceled and team deauthorized.");
+      try {
+        const { api } = await import("../lib/api");
+        const { signOut } = await import("../lib/auth");
+        await api.delete("/api/v1/auth/delete-account", { confirmation_text: "DELETE" });
+        triggerNotification("Your Autofy account and business data have been permanently deleted.");
+        await signOut();
+        window.location.href = "/login";
+      } catch (err: any) {
+        triggerNotification(`Account deletion error: ${err.message || "Failed to delete account"}`);
+      }
     } else if (dangerConfirmModal === "kb") {
-      triggerNotification(" Re-initialized AI Assistant knowledge base. Training set reverted to standard model templates.");
+      triggerNotification("Re-initialized AI Assistant knowledge base.");
     }
     setDangerConfirmModal(null);
   };

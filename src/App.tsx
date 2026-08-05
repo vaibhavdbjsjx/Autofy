@@ -11,6 +11,8 @@ import { ThemeToggle } from "./components/ThemeToggle";
 import { MagneticButton } from "./components/MagneticButton";
 import { Logo } from "./components/Logo";
 import { PrivacyPolicy, TermsOfService, RefundPolicy, ContactUs } from "./components/LegalPages";
+import { PublicAccountDeletionPage } from "./components/PublicAccountDeletionPage";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 import { INITIAL_ONBOARDING_DATA, OnboardingData } from "./types";
 import { signOut, completeOAuthLogin } from "./lib/auth";
 import { useTheme } from "./context/ThemeContext";
@@ -1538,7 +1540,7 @@ export default function App() {
   }, [onboardingData]);
 
   return (
-    <>
+    <ErrorBoundary>
       <CursorGlow />
       <Routes>
         <Route path="/" element={<LandingPage />} />
@@ -1547,8 +1549,9 @@ export default function App() {
         <Route path="/auth/callback" element={<OAuthCallback />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/cancellation-policy" element={<RefundPolicy />} />
         <Route path="/refund" element={<RefundPolicy />} />
-        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/account-deletion" element={<PublicAccountDeletionPage />} />
         <Route path="/onboarding" element={
           <ProtectedRoute>
             <OnboardingWizard
@@ -1575,6 +1578,6 @@ export default function App() {
         } />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
-    </>
+    </ErrorBoundary>
   );
 }

@@ -232,19 +232,7 @@ export async function signOut(): Promise<{ error: null }> {
 
 export async function getCurrentUser(): Promise<{ user: AuthUser | null }> {
   const u = readUser();
-  if (u) return { user: u };
-  return {
-    user: {
-      id: "demo-user-id",
-      email: "owner@autofysaas.com",
-      business_id: "demo-biz-id",
-      role: "owner",
-      user_metadata: {
-        full_name: "Demo Owner",
-        business_name: "Autofy Tech",
-      },
-    },
-  };
+  return { user: u };
 }
 
 export async function getSession(): Promise<{ session: { user: AuthUser; access_token: string } | null }> {
@@ -256,18 +244,7 @@ export async function getSession(): Promise<{ session: { user: AuthUser; access_
       clearAuthToken();
       clearUser();
     }
-    // Fallback session so /dashboard loads directly
-    const mockUser: AuthUser = {
-      id: "demo-user-id",
-      email: "owner@autofysaas.com",
-      business_id: "demo-biz-id",
-      role: "owner",
-      user_metadata: {
-        full_name: "Demo Owner",
-        business_name: "Autofy Tech",
-      },
-    };
-    return { session: { user: mockUser, access_token: "demo-access-token" } };
+    return { session: null };
   }
   return { session: { user, access_token: token } };
 }
