@@ -154,6 +154,13 @@ class WhatsAppService:
         
         msg_id = msg_data.get("id")
         msg_type = msg_data.get("type", "text")
+
+        # Deduplication check
+        if msg_id:
+            from models.conversations import Message
+            existing_msg = db.query(Message).filter(Message.whatsapp_message_id == msg_id).first()
+            if existing_msg:
+                return {"status": "ignored", "reason": f"Duplicate webhook event for message ID {msg_id}"}
         
         # Format textual contents or media URLs
         message_content = ""

@@ -258,13 +258,13 @@ export const MobileAuditTab: React.FC<MobileAuditTabProps> = ({
   const executeSimulatedAttack = () => {
     if (simulatedAttack === "running") return;
     setSimulatedAttack("running");
-    setAttackerActivity(["Launching brute-force injection payload targets..."]);
+    setAttackerActivity(["[SIMULATED TEST TOOL] Launching local sandbox injection checks..."]);
 
     const script = [
-      { t: 800, msg: "Initiating multi-vector dictionary attack on endpoint `/api/v1/auth/login`..." },
-      { t: 1600, msg: "Injecting malicious SQL syntax payload: `admin' OR 1=1; --` on customer searches..." },
-      { t: 2400, msg: "Dispatching 45 fake cross-site requests to verify CSRF token boundaries..." },
-      { t: 3200, msg: "Testing API gateway with 400 repeated webhook dispatch requests..." }
+      { t: 800, msg: "[SIMULATED CHECK] Dictionary payload target check on `/api/v1/auth/login`..." },
+      { t: 1600, msg: "[SIMULATED CHECK] SQL syntax payload check `admin' OR 1=1; --` on customer search parameters..." },
+      { t: 2400, msg: "[SIMULATED CHECK] CSRF token boundary verification (45 simulated dispatches)..." },
+      { t: 3200, msg: "[SIMULATED CHECK] API gateway sliding window rate limit verification..." }
     ];
 
     script.forEach((step) => {

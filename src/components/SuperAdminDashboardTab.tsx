@@ -21,12 +21,13 @@ import {
 } from "lucide-react";
 
 export const SuperAdminDashboardTab: React.FC = () => {
-  // Mock Platform Businesses State
+  // Demo Platform Businesses State (Labeled Preview)
+  const isDemo = true; // SuperAdmin platform view runs in preview mode until admin API endpoint is provisioned
   const [businesses, setBusinesses] = useState([
-    { id: "biz-1", name: "Supreme Athletic Arena", owner: "Karan Johar", plan: "Enterprise", status: "Active", usage: "85%", rev: "₹24,000", created: "June 02, 2026" },
-    { id: "biz-2", name: "AEW Motors India", owner: "Vivek Roy", plan: "Professional", status: "Active", usage: "45%", rev: "₹12,000", created: "May 14, 2026" },
-    { id: "biz-3", name: "Aparna Yoga Shala", owner: "Priya Rao", plan: "Starter Lite", status: "Active", usage: "30%", rev: "₹5,000", created: "June 11, 2026" },
-    { id: "biz-4", name: "Siddharth Leather Works", owner: "Sid Mehta", plan: "Professional", status: "Suspended", usage: "90%", rev: "₹0", created: "Jan 12, 2026" }
+    { id: "biz-1", name: "[Demo] Supreme Athletic Arena", owner: "Karan Johar", plan: "Enterprise", status: "Active", usage: "85%", rev: "₹24,000", created: "June 02, 2026" },
+    { id: "biz-2", name: "[Demo] AEW Motors India", owner: "Vivek Roy", plan: "Professional", status: "Active", usage: "45%", rev: "₹12,000", created: "May 14, 2026" },
+    { id: "biz-3", name: "[Demo] Aparna Yoga Shala", owner: "Priya Rao", plan: "Starter Lite", status: "Active", usage: "30%", rev: "₹5,000", created: "June 11, 2026" },
+    { id: "biz-4", name: "[Demo] Siddharth Leather Works", owner: "Sid Mehta", plan: "Professional", status: "Suspended", usage: "90%", rev: "₹0", created: "Jan 12, 2026" }
   ]);
 
   // System Monitor Status Toggles

@@ -114,11 +114,14 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   const payload = isJson ? await res.json().catch(() => null) : await res.text().catch(() => null);
 
   if (!res.ok) {
-    // The backend uses two error shapes:
-    //   FastAPI default     → { detail: "..." }  (or a list for 422)
-    //   App error handler   → { success: false, error: { message: "..." } }
-    // Pull the human-readable message out of whichever we got, and keep the
-    // structured part as `detail` so callers can inspect field errors.
+    if (res.status === 401) {
+      clearAuthToken();
+      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
+        // Redirect cleanly to login without infinite loop
+        window.location.href = "/login";
+      }
+    }
+
     let message: string | null = null;
     let detail: unknown = payload;
 

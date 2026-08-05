@@ -81,15 +81,15 @@ export const WhatsAppSetupTab: React.FC = () => {
     });
   };
 
-  // Live WhatsApp Tester Simulator
+  // Live WhatsApp Tester Simulator (Sandbox)
   const [testerMessage, setTesterMessage] = useState("");
   const [testerLogs, setTesterLogs] = useState<Array<{ sender: "user" | "bot"; text: string; source?: string; confidence?: string; time?: string }>>([
     {
       sender: "bot",
-      text: "Hi! Welcome to our WhatsApp sandbox. Send any message (e.g. Pricing, locker facilities, book appointment) to test the Autofy RAG intelligence flow.",
-      source: "Templates / Welcome",
+      text: "[LOCAL SANDBOX SIMULATOR] Welcome to the WhatsApp test simulator. Send any test message (e.g. Pricing, facilities, book appointment) to test RAG response rules. (This is a local sandbox and does not send messages via Meta).",
+      source: "Sandbox Rules / Welcome",
       confidence: "100%",
-      time: "42ms"
+      time: "1ms"
     }
   ]);
   const [isTesterLoading, setIsTesterLoading] = useState(false);

@@ -36,13 +36,10 @@ app.add_middleware(RateLimiterMiddleware)
 # 4. Integrate central global exception parser
 register_error_handlers(app)
 
-# 5. Programmatic table instantiation on application startup
+# 5. Startup hook (Alembic manages production database schema lifecycle)
 @app.on_event("startup")
 def on_startup():
-    try:
-        Base.metadata.create_all(bind=engine)
-    except Exception as exc:
-        print(f"Warning: Manual startup schema migration check skipped or failed: {str(exc)}")
+    pass
 
 # 6. Bind core routes pipelines
 app.include_router(auth.router, prefix=settings.API_V1_STR)

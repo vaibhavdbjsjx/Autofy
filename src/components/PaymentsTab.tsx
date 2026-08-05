@@ -34,11 +34,17 @@ export const PaymentsTab: React.FC<{
   onboardingData?: any;
   triggerNotification: (msg: string) => void;
 }> = ({ onboardingData, triggerNotification }) => {
-  const stats = {
+  const isDemoMode = typeof window !== "undefined" && window.location.search.includes("demo=true");
+  const stats = isDemoMode ? {
     totalRevenue: "₹8,42,200",
     monthlyRevenue: "₹1,84,000",
     pendingPayments: "₹24,500",
     successfulPayments: "₹8,17,700"
+  } : {
+    totalRevenue: "₹0",
+    monthlyRevenue: "₹0",
+    pendingPayments: "₹0",
+    successfulPayments: "₹0"
   };
 
   // Gateway integrations with localStorage persistence
