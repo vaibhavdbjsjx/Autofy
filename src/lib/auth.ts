@@ -194,7 +194,7 @@ export async function signInWithGoogle(): Promise<AuthResult> {
   try {
     const res = await api.get<{ authorization_url: string }>("/api/v1/auth/google/authorize");
     if (res?.authorization_url) {
-      window.location.href = res.authorization_url;
+      window.location.assign(res.authorization_url);
       return { data: null, error: null };
     }
     return { data: null, error: { message: "Google sign-in is not available right now." } };
