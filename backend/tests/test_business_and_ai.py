@@ -39,3 +39,59 @@ def test_account_deletion_flow(client: TestClient, auth_headers_b, test_user_b):
     # Subsequent request with token fails or returns 401
     verify_res = client.get("/api/v1/business/profile", headers=auth_headers_b)
     assert verify_res.status_code in [401, 404]
+
+def test_onboarding_completion_persistence_and_phone_normalization(client: TestClient, auth_headers_a):
+    # 1. Complete onboarding with Indian 10-digit number (e.g. 6360254763)
+    res = client.post("/api/v1/business/complete-onboarding", json={
+        "name": "Apex Fitness Hub",
+        "classification": "Gym",
+        "phone": "6360254763",
+        "address": "Bangalore, India"
+    }, headers=auth_headers_a)
+    assert res.status_code == 200
+    data = res.json()
+    assert data["name"] == "Apex Fitness Hub"
+    assert data["classification"] == "Gym"
+    assert data["phone"] == "+916360254763"
+    assert data["is_onboarded"] is True
+
+    # 2. Verify persistence via GET /auth/me
+    me_res = client.get("/api/v1/auth/me", headers=auth_headers_a)
+    assert me_res.status_code == 200
+    assert me_res.json()["is_onboarded"] is True
+
+def test_onboarding_phone_normalization_edge_cases(client: TestClient, auth_headers_a):
+    # Test 0-prefix Indian number: 06360254763 -> +916360254763
+    res1 = client.post("/api/v1/business/complete-onboarding", json={
+        "name": "Apex Fitness Hub",
+        "classification": "Gym",
+        "phone": "06360254763"
+    }, headers=auth_headers_a)
+    assert res1.status_code == 200
+    assert res1.json()["phone"] == "+916360254763"
+
+    # Test double prefix: +91916360254763 -> +916360254763
+    res2 = client.post("/api/v1/business/complete-onboarding", json={
+        "name": "Apex Fitness Hub",
+        "classification": "Gym",
+        "phone": "+91916360254763"
+    }, headers=auth_headers_a)
+    assert res2.status_code == 200
+    assert res2.json()["phone"] == "+916360254763"
+
+def test_onboarding_invalid_phone_rejection(client: TestClient, auth_headers_a):
+    # Test invalid string phone "abc"
+    res1 = client.post("/api/v1/business/complete-onboarding", json={
+        "name": "Apex Fitness Hub",
+        "classification": "Gym",
+        "phone": "abc"
+    }, headers=auth_headers_a)
+    assert res1.status_code == 422
+
+    # Test too short phone "123"
+    res2 = client.post("/api/v1/business/complete-onboarding", json={
+        "name": "Apex Fitness Hub",
+        "classification": "Gym",
+        "phone": "123"
+    }, headers=auth_headers_a)
+    assert res2.status_code == 422

@@ -37,20 +37,56 @@ import {
   WifiOff
 } from "lucide-react";
 
-// ─── E.164 phone validation ────────────────────────────────────
+// ─── E.164 phone validation & normalization ──────────────────
 function validatePhone(raw: string): { ok: boolean; normalized: string; error: string } {
-  const stripped = raw.replace(/[\s\-()]/g, "");
-  if (!stripped.startsWith("+")) {
-    return { ok: false, normalized: "", error: "Please include the country code (e.g. +91 98765 43210)." };
+  if (!raw || !raw.trim()) {
+    return { ok: false, normalized: "", error: "Phone number is required." };
   }
-  const digitsOnly = stripped.slice(1).replace(/\D/g, "");
-  if (digitsOnly.length < 7 || digitsOnly.length > 15) {
-    return { ok: false, normalized: "", error: "Phone number must have 7\u201315 digits after the country code." };
-  }
-  if (/[a-zA-Z]/.test(raw)) {
+
+  // Check for invalid characters (letters or forbidden special symbols)
+  if (/[a-zA-Z]/.test(raw) || /[^\d\s\-()+]/.test(raw)) {
     return { ok: false, normalized: "", error: "Phone number must contain only digits, spaces, +, and hyphens." };
   }
-  return { ok: true, normalized: stripped, error: "" };
+
+  let cleaned = raw.replace(/[\s\-()]/g, "").trim();
+
+  // If starts with +, handle international and double-prefix (+9191...)
+  if (cleaned.startsWith("+")) {
+    let digits = cleaned.slice(1);
+    // Fix double prefix like +91916360254763 -> +916360254763
+    if (digits.startsWith("9191") && digits.length === 14) {
+      digits = digits.slice(2);
+    }
+    if (digits.length < 7 || digits.length > 15) {
+      return { ok: false, normalized: "", error: "Phone number must have 7–15 digits after country code." };
+    }
+    return { ok: true, normalized: "+" + digits, error: "" };
+  }
+
+  // If does not start with +, extract digits
+  let digitsOnly = cleaned.replace(/\D/g, "");
+
+  // Handle leading 0 (e.g. 06360254763 -> 6360254763)
+  if (digitsOnly.startsWith("0") && digitsOnly.length === 11) {
+    digitsOnly = digitsOnly.slice(1);
+  }
+
+  // If 10 digits (standard Indian mobile without prefix, e.g. 6360254763) -> default to +91
+  if (digitsOnly.length === 10) {
+    return { ok: true, normalized: "+91" + digitsOnly, error: "" };
+  }
+
+  // If 12 digits starting with 91 (e.g. 916360254763) -> +916360254763
+  if (digitsOnly.length === 12 && digitsOnly.startsWith("91")) {
+    return { ok: true, normalized: "+" + digitsOnly, error: "" };
+  }
+
+  // General fallback: if 7 to 15 digits
+  if (digitsOnly.length >= 7 && digitsOnly.length <= 15) {
+    return { ok: true, normalized: "+91" + digitsOnly, error: "" };
+  }
+
+  return { ok: false, normalized: "", error: "Please enter a valid 10-digit phone number (e.g. 6360254763 or +91 6360254763)." };
 }
 
 // ─── Industry-aware knowledge placeholders ───────────────────
@@ -612,17 +648,21 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                             Phone Number *
                           </label>
                           <div className="flex items-center rounded-2xl px-4 h-[50px] transition-all border" style={{ background: "var(--input-bg)", borderColor: "var(--border)" }}>
-                            <Phone className="w-[18px] h-[18px] mr-3 flex-shrink-0" style={{ color: "var(--text-subtle)" }} />
+                            <Phone className="w-[18px] h-[18px] mr-2 flex-shrink-0" style={{ color: "var(--text-subtle)" }} />
+                            <span className="text-[13px] font-bold text-[var(--brand)] mr-2 select-none flex items-center gap-1 border-r border-[var(--border)] pr-2 font-mono">
+                              🇮🇳 +91
+                            </span>
                             <input
                               type="tel"
                               value={data.phoneNumber}
                               onChange={(e) => updateField("phoneNumber", e.target.value)}
-                              placeholder="+91 98765 43210"
+                              placeholder="63602 54763"
                               className="w-full bg-transparent text-[14px] focus:outline-none font-sans"
                               style={{ color: "var(--text)" }}
                               required
                             />
                           </div>
+                          <p className="text-[10px] text-[var(--text-subtle)] mt-1 font-sans">Enter 10-digit mobile number or full international number (+1...)</p>
                         </div>
  
                         <div>
@@ -840,7 +880,10 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                           WhatsApp Business Number (Optional)
                         </label>
                         <div className="relative flex items-center bg-[var(--input-bg)] border border-[var(--border)] rounded-[14px] px-4 py-3.5 focus-within:border-[var(--border-strong)] transition-all">
-                          <Phone className="w-[18px] h-[18px] text-[var(--text-subtle)] mr-3 flex-shrink-0" />
+                          <Phone className="w-[18px] h-[18px] text-[var(--text-subtle)] mr-2 flex-shrink-0" />
+                          <span className="text-[13px] font-bold text-[var(--brand)] mr-2 select-none flex items-center gap-1 border-r border-[var(--border)] pr-2 font-mono">
+                            🇮🇳 +91
+                          </span>
                           <input
                             type="tel"
                             disabled={whatsappNumberSaved}
@@ -851,11 +894,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                                 updateField("whatsappConnected", "");
                               }
                             }}
-                            placeholder="+91 98765 43210"
+                            placeholder="63602 54763"
                             className="w-full bg-transparent text-[14px] text-[var(--text)] focus:outline-none placeholder-[var(--text-subtle)] font-sans disabled:opacity-50"
                           />
                         </div>
-                        <p className="text-[10px] text-[var(--text-subtle)] mt-1 font-sans">Include country code, e.g. +91 for India</p>
+                        <p className="text-[10px] text-[var(--text-subtle)] mt-1 font-sans">Enter 10-digit mobile number or full international number (+1...)</p>
                       </div>
 
                       <div className="flex justify-end pt-2">

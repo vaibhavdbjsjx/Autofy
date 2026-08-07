@@ -96,6 +96,38 @@ def update_business_profile(
     db.refresh(business)
     return business
 
+import re
+
+def normalize_and_validate_phone(raw: str) -> str:
+    cleaned = raw.strip()
+    if not cleaned:
+        raise ValueError("Phone number cannot be empty.")
+
+    if re.search(r'[a-zA-Z]', cleaned) or re.search(r'[^\d\s\-()+]', cleaned):
+        raise ValueError("Phone number must contain only digits, spaces, +, and hyphens.")
+
+    stripped = re.sub(r'[\s\-()]', '', cleaned)
+
+    if stripped.startswith('+'):
+        digits = stripped[1:]
+        if digits.startswith('9191') and len(digits) == 14:
+            digits = digits[2:]
+        if not (7 <= len(digits) <= 15):
+            raise ValueError("Phone number must have between 7 and 15 digits after country code.")
+        return f"+{digits}"
+    else:
+        digits_only = re.sub(r'\D', '', stripped)
+        if digits_only.startswith('0') and len(digits_only) == 11:
+            digits_only = digits_only[1:]
+        if len(digits_only) == 10:
+            return f"+91{digits_only}"
+        elif len(digits_only) == 12 and digits_only.startswith('91'):
+            return f"+{digits_only}"
+        elif 7 <= len(digits_only) <= 15:
+            return f"+91{digits_only}"
+        else:
+            raise ValueError("Please enter a valid phone number (e.g. 6360254763 or +91 6360254763).")
+
 class OnboardingCompletionRequest(BaseModel):
     name: str = Field(..., min_length=2, description="Business Name")
     classification: str = Field(..., min_length=2, description="Industry Type")
@@ -122,12 +154,19 @@ def complete_onboarding(
 
     clean_name = payload.name.strip()
     clean_classification = payload.classification.strip()
-    clean_phone = payload.phone.strip()
 
-    if len(clean_name) < 2 or len(clean_classification) < 2 or len(clean_phone) < 5:
+    if len(clean_name) < 2 or len(clean_classification) < 2:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Valid business name, industry type, and phone number are required to complete onboarding."
+            detail="Valid business name and industry type are required to complete onboarding."
+        )
+
+    try:
+        clean_phone = normalize_and_validate_phone(payload.phone)
+    except ValueError as err:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=str(err)
         )
 
     business.name = clean_name
