@@ -51,70 +51,19 @@ interface MarketingAutomationTabProps {
 export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
   triggerNotification = (msg) => console.log(msg)
 }) => {
-  const [campaigns, setCampaigns] = useState<CampaignData[]>([
-    {
-      id: "camp-1",
-      name: "AEW Exhaust Summer Blockloader Promo",
-      channel: "WhatsApp",
-      status: "Completed",
-      scheduled_at: "2026-06-15 10:00",
-      target_segment: "VIP",
-      content: "Hey Royal Riding Champion! Get an exclusive flat ₹1,200 discount on our lightweight AEW exhausts for Classic 350. Valid until this Friday! Order now at local shop.",
-      sent_count: 180,
-      open_rate: 0.92,
-      click_rate: 0.48,
-      conversion_rate: 0.15,
-      revenue_generated: 32400.0,
-      created_at: "2026-06-14"
-    },
-    {
-      id: "camp-2",
-      name: "Stealth Helmet clearance, clearance clearance",
-      channel: "WhatsApp",
-      status: "Completed",
-      scheduled_at: "2026-06-18 11:30",
-      target_segment: "Returning Customer",
-      content: "Exclusive Deal: Get up to 25% off on our brand new Stealth Knight Full Face Helmets. Direct premium protection at low price.",
-      sent_count: 320,
-      open_rate: 0.88,
-      click_rate: 0.35,
-      conversion_rate: 0.08,
-      revenue_generated: 18400.0,
-      created_at: "2026-06-17"
-    },
-    {
-      id: "camp-3",
-      name: "Weekend Fitting Workshop Launch",
-      channel: "WhatsApp",
-      status: "Scheduled",
-      scheduled_at: "2026-06-25 09:00",
-      target_segment: "All",
-      content: "Exciting updates! Our brand new exhaust fitting lab at Sector 17 Vashi, Navi Mumbai is now official. Book a weekend slot for high custom exhaust sound tests.",
-      sent_count: 0,
-      open_rate: 0.0,
-      click_rate: 0.0,
-      conversion_rate: 0.0,
-      revenue_generated: 0.0,
-      created_at: "2026-06-20"
-    }
-  ]);
-
-  const [broadcasts, setBroadcasts] = useState<BroadcastMessageLog[]>([
-    { id: "b1", recipient_name: "Rahul Sharma", recipient_phone: "+91 98765 43210", status: "Converted", sent_at: "2026-06-20 10:00" },
-    { id: "b2", recipient_name: "John Doe", recipient_phone: "+1 (555) 019-2834", status: "Clicked", sent_at: "2026-06-20 10:02" },
-    { id: "b3", recipient_name: "Amit Patel", recipient_phone: "+91 99112 23344", status: "Delivered", sent_at: "2026-06-20 10:05" }
-  ]);
+  const [campaigns, setCampaigns] = useState<CampaignData[]>([]);
+  const [broadcasts, setBroadcasts] = useState<BroadcastMessageLog[]>([]);
 
   const [analytics, setAnalytics] = useState({
-    completedCampaignsCount: 2,
-    totalRevenueMarketing: 50800.0,
-    overallOpenRate: 0.90,
-    overallClickRate: 0.41,
-    overallConversionRate: 0.11
+    completedCampaignsCount: 0,
+    totalRevenueMarketing: 0.0,
+    overallOpenRate: 0.0,
+    overallClickRate: 0.0,
+    overallConversionRate: 0.0
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedCampaignId, setSelectedCampaignId] = useState<string>("camp-1");
+  const [selectedCampaignId, setSelectedCampaignId] = useState<string>("");
 
   // New campaign modal states
   const [isCreatingCampaign, setIsCreatingCampaign] = useState(false);
@@ -131,37 +80,42 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
     setIsLoading(true);
     try {
       const d = await api.get<any>("/api/v1/marketing/campaigns");
-      if (d?.campaigns && d.campaigns.length > 0) {
+      if (Array.isArray(d?.campaigns)) {
         setCampaigns(d.campaigns);
+        if (d.campaigns.length > 0 && !selectedCampaignId) {
+          setSelectedCampaignId(d.campaigns[0].id);
+        }
       }
     } catch (e) {
-      console.log("Marketing campaigns fallback:", e);
+      console.log("Marketing campaigns fetch:", e);
     }
 
     // Fetch broadcasts logs for currently highlighted campaign if any
-    try {
-      const d = await api.get<any>(`/api/v1/marketing/campaigns/${selectedCampaignId}/broadcasts`);
-      if (d?.broadcasts && d.broadcasts.length > 0) {
-        setBroadcasts(d.broadcasts);
+    if (selectedCampaignId) {
+      try {
+        const d = await api.get<any>(`/api/v1/marketing/campaigns/${selectedCampaignId}/broadcasts`);
+        if (Array.isArray(d?.broadcasts)) {
+          setBroadcasts(d.broadcasts);
+        }
+      } catch (e) {
+        console.log("Marketing broadcasts fetch:", e);
       }
-    } catch (e) {
-      console.log("Marketing broadcasts fallback:", e);
     }
 
     try {
       const d = await api.get<any>("/api/v1/marketing/analytics");
       setAnalytics({
-        completedCampaignsCount: d.completed_campaigns_count || 2,
-        totalRevenueMarketing: d.total_revenue_marketing || 50800.0,
-        overallOpenRate: d.overall_open_rate || 0.90,
-        overallClickRate: d.overall_click_rate || 0.41,
-        overallConversionRate: d.overall_conversion_rate || 0.11
+        completedCampaignsCount: d.completed_campaigns_count ?? 0,
+        totalRevenueMarketing: d.total_revenue_marketing ?? 0.0,
+        overallOpenRate: d.overall_open_rate ?? 0.0,
+        overallClickRate: d.overall_click_rate ?? 0.0,
+        overallConversionRate: d.overall_conversion_rate ?? 0.0
       });
     } catch (e) {
-      console.log("Marketing analytics fallback:", e);
+      console.log("Marketing analytics fetch:", e);
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
   };
 
   const activeCamp = campaigns.find(c => c.id === selectedCampaignId) || campaigns[0] || null;
@@ -213,25 +167,13 @@ export const MarketingAutomationTab: React.FC<MarketingAutomationTabProps> = ({
   };
 
   const handleInstantDispatchCampaign = async (id: string) => {
-    // Modify campaign status on frontend locally
-    setCampaigns(campaigns.map(c => c.id === id ? {
-      ...c,
-      status: "Completed",
-      sent_count: 154,
-      open_rate: 0.91,
-      click_rate: 0.44,
-      conversion_rate: 0.12,
-      revenue_generated: 16800.0,
-      scheduled_at: new Date().toISOString().replace('T', ' ').substring(0, 16)
-    } : c));
-
-    triggerNotification("Broadcasting campaign instantly to target WhatsApp recipients!");
+    triggerNotification("Broadcasting campaign to target WhatsApp recipients...");
 
     try {
       await api.post(`/api/v1/marketing/campaigns/${id}/send`);
       fetchMarketingData();
     } catch (err) {
-      console.log(err);
+      console.log("Error sending campaign:", err);
     }
   };
 

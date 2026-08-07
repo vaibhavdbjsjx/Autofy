@@ -213,6 +213,11 @@ export function completeOAuthLogin(fields: {
   email?: string;
   name?: string;
 }): AuthUser {
+  // Clear any stale local onboarding data from a previous session
+  try {
+    localStorage.removeItem("autofy-onboarding-data");
+  } catch { /* ignore */ }
+
   const token: TokenResponse = {
     access_token: fields.access_token,
     token_type: "bearer",
@@ -226,6 +231,13 @@ export function completeOAuthLogin(fields: {
 export async function signOut(): Promise<{ error: null }> {
   clearAuthToken();
   clearUser();
+  try {
+    localStorage.removeItem("autofy-onboarding-data");
+    localStorage.removeItem("autofy-consent");
+    sessionStorage.clear();
+  } catch {
+    /* ignore */
+  }
   emit("SIGNED_OUT", null);
   return { error: null };
 }

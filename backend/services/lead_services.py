@@ -7,6 +7,15 @@ from schemas.leads import LeadCreate, LeadUpdate
 
 logger = logging.getLogger("autofy_lead_services")
 
+def normalize_phone(phone: Optional[str]) -> Optional[str]:
+    if not phone:
+        return None
+    # Strip all non-digit characters
+    cleaned = "".join(c for c in phone if c.isdigit())
+    if not cleaned:
+        return None
+    return cleaned
+
 class LeadCRUD:
     @staticmethod
     def create(db: Session, business_id: str, obj_in: LeadCreate) -> Lead:
@@ -37,10 +46,26 @@ class LeadCRUD:
 
     @staticmethod
     def get_by_phone(db: Session, business_id: str, phone: str) -> Optional[Lead]:
-        return db.query(Lead).filter(
+        if not phone:
+            return None
+        # First try exact query match
+        exact = db.query(Lead).filter(
             Lead.phone == phone,
             Lead.business_id == business_id
         ).first()
+        if exact:
+            return exact
+
+        # Normalized match comparison
+        target_norm = normalize_phone(phone)
+        if not target_norm:
+            return None
+
+        leads = db.query(Lead).filter(Lead.business_id == business_id).all()
+        for lead in leads:
+            if lead.phone and normalize_phone(lead.phone) == target_norm:
+                return lead
+        return None
 
     @staticmethod
     def list_paginated(

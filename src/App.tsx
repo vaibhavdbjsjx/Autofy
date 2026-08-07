@@ -1493,7 +1493,13 @@ function OAuthCallback() {
         email: params.get("email") || "",
         name: params.get("name") || "",
       });
-      navigate("/dashboard", { replace: true });
+
+      const isOnboarded = params.get("is_onboarded") === "true";
+      if (!isOnboarded) {
+        navigate("/onboarding", { replace: true });
+      } else {
+        navigate("/dashboard", { replace: true });
+      }
     } else {
       navigate("/login", { replace: true });
     }
@@ -1553,7 +1559,7 @@ export default function App() {
         <Route path="/refund" element={<RefundPolicy />} />
         <Route path="/account-deletion" element={<PublicAccountDeletionPage />} />
         <Route path="/onboarding" element={
-          <ProtectedRoute>
+          <ProtectedRoute requireUnonboarded>
             <OnboardingWizard
               initialData={onboardingData}
               onComplete={(d) => { setOnboardingData(d); window.location.href = "/dashboard"; }}
@@ -1564,7 +1570,7 @@ export default function App() {
           </ProtectedRoute>
         } />
         <Route path="/dashboard/*" element={
-          <ProtectedRoute>
+          <ProtectedRoute requireOnboarded>
             <Dashboard
               onboardingData={onboardingData}
               activeTab="overview"

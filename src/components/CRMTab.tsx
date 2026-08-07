@@ -166,7 +166,7 @@ export const CRMTab: React.FC<CRMTabProps> = ({
 
     try {
       const data = await api.get<any>(url);
-      if (data?.profiles && data.profiles.length > 0) {
+      if (Array.isArray(data?.profiles)) {
         setProfiles(data.profiles);
       }
     } catch (err) {

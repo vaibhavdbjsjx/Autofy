@@ -428,6 +428,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
     { id: 3, text: "CalSync auto-allotted tomorrow 4:00 PM time slot", unread: false }
   ]);
 
+  const [userProfile, setUserProfile] = useState<{ name: string; email: string; businessName: string } | null>(null);
+
+  useEffect(() => {
+    api.get<any>("/api/v1/auth/me").then((res) => {
+      if (res) {
+        setUserProfile({
+          name: res.name || "",
+          email: res.email || "",
+          businessName: res.business?.name || "",
+        });
+      }
+    }).catch(() => { /* fallback */ });
+  }, []);
+
   const handleRefreshData = () => {
     setIsRefreshing(true);
     fetchDashboardSummary().finally(() => {
@@ -862,11 +876,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-black text-white shadow-sm"
                 style={{ background: "var(--brand-gradient)" }}
               >
-                {data.businessName ? data.businessName[0].toUpperCase() : "T"}
+                {userProfile?.name ? userProfile.name[0].toUpperCase() : (userProfile?.businessName ? userProfile.businessName[0].toUpperCase() : (data.businessName ? data.businessName[0].toUpperCase() : "A"))}
               </div>
               <div className="min-w-0 flex-1 text-left">
                 <p className="truncate text-xs font-bold group-hover:text-[var(--brand)] transition" style={{ color: "var(--text)" }}>
-                  {data.businessName ? data.businessName.toLowerCase() : "the gym"}
+                  {userProfile?.businessName || data.businessName || "My Business"}
                 </p>
                 <span className="mt-0.5 inline-block rounded-full bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-emerald-500 hover:bg-emerald-500/20 transition">
                   Pro plan ⚡
@@ -1128,7 +1142,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-black text-white shadow-sm"
               style={{ background: "var(--brand-gradient)" }}
             >
-              {data.businessName ? data.businessName[0].toUpperCase() : "T"}
+              {userProfile?.name ? userProfile.name[0].toUpperCase() : (userProfile?.businessName ? userProfile.businessName[0].toUpperCase() : (data.businessName ? data.businessName[0].toUpperCase() : "A"))}
             </div>
           </div>
         </header>
@@ -1309,7 +1323,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         >
                           Good morning,{" "}
                           <span className="text-gradient-brand">
-                            {data.businessName ? data.businessName.toLowerCase() : "your business"}.
+                            {userProfile?.name || userProfile?.businessName || data.businessName || "there"}.
                           </span>
                         </h2>
 

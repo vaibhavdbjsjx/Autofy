@@ -1,18 +1,38 @@
 import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { getSession } from '../lib/auth';
+import { api } from '../lib/api';
 
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  requireOnboarded?: boolean;
+  requireUnonboarded?: boolean;
+}
+
+export function ProtectedRoute({ children, requireOnboarded, requireUnonboarded }: ProtectedRouteProps) {
   const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
+  const [isOnboarded, setIsOnboarded] = useState<boolean | null>(null);
 
   useEffect(() => {
     // Gate on a valid backend JWT session (also clears expired tokens).
-    getSession().then(({ session }) => {
-      setStatus(session ? 'authenticated' : 'unauthenticated');
+    getSession().then(async ({ session }) => {
+      if (!session) {
+        setStatus('unauthenticated');
+        return;
+      }
+      try {
+        const me = await api.get<{ is_onboarded?: boolean; business?: { is_onboarded?: boolean } }>('/api/v1/auth/me');
+        const onboardedState = me.is_onboarded ?? me.business?.is_onboarded ?? true;
+        setIsOnboarded(onboardedState);
+      } catch {
+        // Fallback gracefully if API is temporarily unavailable
+        setIsOnboarded(true);
+      }
+      setStatus('authenticated');
     });
   }, []);
 
-  if (status === 'loading') {
+  if (status === 'loading' || (status === 'authenticated' && isOnboarded === null)) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -36,6 +56,14 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (status === 'unauthenticated') {
     return <Navigate to="/login" replace />;
+  }
+
+  if (requireOnboarded && isOnboarded === false) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  if (requireUnonboarded && isOnboarded === true) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return <>{children}</>;

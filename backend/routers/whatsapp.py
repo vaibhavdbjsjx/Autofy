@@ -26,23 +26,49 @@ def whatsapp_webhook_handshake(
     except Exception as err:
         raise HTTPException(status_code=403, detail=str(err))
 
+import hmac
+import hashlib
+import json
+from config import settings
+
+def verify_meta_signature(raw_body: bytes, signature_header: Optional[str]) -> bool:
+    if not settings.META_APP_SECRET:
+        # If META_APP_SECRET is not configured in env, allow webhook processing
+        return True
+    if not signature_header or not signature_header.startswith("sha256="):
+        return False
+    received_sig = signature_header.split("sha256=")[1]
+    expected_sig = hmac.new(
+        settings.META_APP_SECRET.encode("utf-8"),
+        raw_body,
+        hashlib.sha256
+    ).hexdigest()
+    return hmac.compare_digest(expected_sig, received_sig)
+
 @router.post("/webhook")
 async def whatsapp_webhook_inbound_listener(
     request: Request,
     business_id: Optional[str] = Query(None, description="Optional Business ID override (otherwise resolved via phone_number_id)"),
+    x_hub_signature_256: Optional[str] = Header(None, alias="X-Hub-Signature-256"),
     db: Session = Depends(get_db)
 ):
     """
     Public post webhook endpoint listening to incoming WhatsApp.
-    Dynamically resolves tenant using phone_number_id metadata, captures customer questions,
-    processes Gemini replies, logs status updates, and handles media attachments safely.
+    Validates Meta HMAC SHA-256 signature, dynamically resolves tenant using phone_number_id metadata,
+    captures customer questions, processes Gemini replies, logs status updates, and handles media attachments safely.
     """
+    raw_body = await request.body()
+    if not verify_meta_signature(raw_body, x_hub_signature_256):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Meta webhook signature (X-Hub-Signature-256 mismatch)."
+        )
+
     try:
-        payload = await request.json()
+        payload = json.loads(raw_body.decode("utf-8")) if raw_body else {}
         result = await WhatsAppService.process_incoming_webhook(db, business_id, payload)
         return result
     except Exception as err:
-        # Webhook receivers must always quickly return 200/202 to avoid Meta retrying loop
         import logging
         logging.getLogger("autofy_whatsapp_webhook").error(f"Inbound webhook processing error: {err}")
         return {"status": "error_captured", "detail": str(err)}

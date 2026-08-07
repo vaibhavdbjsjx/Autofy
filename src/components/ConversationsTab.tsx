@@ -447,6 +447,24 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
         return c;
       })
     );
+
+    // Persist real Appointment record to PostgreSQL
+    import("../lib/api").then(({ api }) => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      api.post("/api/v1/appointments", {
+        customer_name: activeChat.name,
+        customer_phone: activeChat.phone,
+        customer_email: activeChat.email,
+        appointment_date: tomorrow.toISOString(),
+        start_time: "10:00 AM",
+        end_time: "11:00 AM",
+        timezone: "UTC",
+        status: "Scheduled",
+        notes: `Booked via Quick Action in Inbox chat (${activeChat.id})`,
+        conversation_id: activeChat.id
+      }).catch(err => console.log("Appointment booking error:", err));
+    });
   };
 
   const exportLeadData = () => {

@@ -18,6 +18,7 @@ from models.customer_profile import CustomerProfile
 from models.marketing import Campaign, BroadcastMessage
 from models.support_ticket import SupportTicket, TicketHistory
 from models.subscription import Subscription
+from models.appointment import Appointment
 
 __all__ = [
     "Base", 
@@ -43,6 +44,7 @@ __all__ = [
     "BroadcastMessage",
     "SupportTicket",
     "TicketHistory",
-    "Subscription"
+    "Subscription",
+    "Appointment"
 ]
 

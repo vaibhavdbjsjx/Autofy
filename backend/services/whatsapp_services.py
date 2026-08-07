@@ -81,7 +81,8 @@ class WhatsAppService:
         """
         Validates the handshake verification request for security validation on webhook setup.
         """
-        verify_token = os.environ.get("WHATSAPP_WEBHOOK_VERIFY_TOKEN", "autofy_secret_token")
+        from config import settings
+        verify_token = os.environ.get("WHATSAPP_WEBHOOK_VERIFY_TOKEN") or settings.WHATSAPP_VERIFY_TOKEN
         if hub_mode == "subscribe" and hub_token == verify_token:
             logger.info("WhatsApp Webhook subscription verified successfully.")
             return hub_challenge or ""
@@ -95,6 +96,7 @@ class WhatsAppService:
         records communications, and runs AI automated replies.
         Supports status receipts (sent, delivered, read) and message triggers.
         """
+        db.expire_all()
         # 1. Parse Status updates
         # Payload updates format can contain statuses inside entries
         entry = payload.get("entry", [])
@@ -121,13 +123,8 @@ class WhatsAppService:
             target_business = db.query(Business).filter(Business.id == business_id_param).first()
 
         if not target_business:
-            # Fallback for dev convenience if only 1 business exists in dev DB
-            all_biz = db.query(Business).all()
-            if settings.ENVIRONMENT != "production" and len(all_biz) == 1:
-                target_business = all_biz[0]
-            else:
-                logger.warning(f"Unmapped WhatsApp webhook received for phone_number_id={phone_number_id or 'missing'}. No tenant assigned.")
-                return {"status": "unmapped_tenant", "detail": "No registered business matches this WhatsApp phone_number_id"}
+            logger.warning(f"Unmapped WhatsApp webhook received for phone_number_id={phone_number_id or 'missing'}. No tenant assigned.")
+            return {"status": "unmapped_tenant", "detail": "No registered business matches this WhatsApp phone_number_id"}
 
         business_id = target_business.id
         
@@ -157,7 +154,7 @@ class WhatsAppService:
 
         # Deduplication check
         if msg_id:
-            from models.conversations import Message
+            from models.message import Message
             existing_msg = db.query(Message).filter(Message.whatsapp_message_id == msg_id).first()
             if existing_msg:
                 return {"status": "ignored", "reason": f"Duplicate webhook event for message ID {msg_id}"}
@@ -227,7 +224,7 @@ class WhatsAppService:
         # 5. Process AI automated reply if AI capability is toggled ON
         if conv.ai_enabled:
             # Generates reply using our ConversationalAIService with full business and memory context
-            ai_data = ConversationalAIService.reply_with_ai(db, conv.id, message_content)
+            ai_data = ConversationalAIService.reply_with_ai(db, conv.id, message_content, whatsapp_message_id=msg_id)
             
             # Retrieve phone ID and send actual outgoing REST WhatsApp message back
             phone_metadata = value.get("metadata", {})

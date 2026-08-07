@@ -22,19 +22,22 @@ const GoogleIcon = () => (
 
 // ─── VALIDATION HELPERS ────────────────────────────────────────
 const validateEmail = (val: string) => {
-  return val.includes("@") && val.includes(".");
+  const trimmed = val.trim();
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
 };
 
 const getPasswordStrength = (val: string) => {
   if (!val) return { score: 0, label: "", color: "transparent", pct: 0 };
-  let score = 0;
-  if (val.length >= 8) score++;
+  if (val.length < 8) {
+    return { score: 0, label: "Must be at least 8 characters", color: "var(--danger)", pct: 15 };
+  }
+  let score = 1;
   if (/[A-Z]/.test(val)) score++;
   if (/[0-9]/.test(val)) score++;
   if (/[^A-Za-z0-9]/.test(val)) score++;
 
-  if (score <= 1) return { score, label: "Weak", color: "var(--danger)", pct: 25 };
-  if (score <= 3) return { score, label: "Medium", color: "var(--warning)", pct: 60 };
+  if (score <= 1) return { score, label: "Weak", color: "var(--danger)", pct: 30 };
+  if (score <= 3) return { score, label: "Medium", color: "var(--warning)", pct: 65 };
   return { score, label: "Strong", color: "var(--success)", pct: 100 };
 };
 
@@ -143,26 +146,29 @@ export const LoginView: React.FC<LoginProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   // Email Validation State
-  const isEmailValid = validateEmail(email);
+  const cleanEmail = email.trim();
+  const isEmailValid = validateEmail(cleanEmail);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!isEmailValid) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!validateEmail(normalizedEmail)) {
       setError("Please enter a valid email address.");
       return;
     }
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+    if (!password) {
+      setError("Please enter your password.");
       return;
     }
     setIsLoading(true);
-    const { error: authError } = await signInWithEmail(email, password);
+    const { error: authError } = await signInWithEmail(normalizedEmail, password);
     setIsLoading(false);
     if (authError) {
       setError(authError.message || "Invalid credentials.");
     } else {
-      onSuccess(email);
+      onSuccess(normalizedEmail);
     }
   };
 
@@ -229,7 +235,7 @@ export const LoginView: React.FC<LoginProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <form onSubmit={handleLogin} noValidate style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             {/* Email Field */}
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>Email Address</label>
@@ -238,13 +244,13 @@ export const LoginView: React.FC<LoginProps> = ({
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setError(""); }}
                   placeholder="name@business.com"
                   className="input-field"
                   style={{ paddingLeft: 42, paddingRight: 40 }}
                   required
                 />
-                {email && (
+                {cleanEmail && (
                   <span style={{ position: "absolute", right: 14 }}>
                     {isEmailValid ? (
                       <CheckCircle size={16} style={{ color: "var(--success)" }} />
@@ -264,7 +270,7 @@ export const LoginView: React.FC<LoginProps> = ({
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); setError(""); }}
                   placeholder="••••••••"
                   className="input-field"
                   style={{ paddingLeft: 42, paddingRight: 42 }}
@@ -358,30 +364,35 @@ export const SignUpView: React.FC<SignUpProps> = ({
   const [agreed, setAgreed] = useState(false);
 
   // Real-time validations
+  const cleanEmail = email.trim();
   const isNameValid = fullName.trim().length >= 2;
   const isBusinessValid = businessName.trim().length >= 2;
-  const isEmailValid = validateEmail(email);
+  const isEmailValid = validateEmail(cleanEmail);
   const strength = getPasswordStrength(password);
-  const isPasswordValid = strength.score >= 2;
+  const isPasswordValid = password.length >= 8;
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (!isNameValid) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedName = fullName.trim();
+    const normalizedBusiness = businessName.trim();
+
+    if (normalizedName.length < 2) {
       setError("Please enter your full name.");
       return;
     }
-    if (!isBusinessValid) {
+    if (normalizedBusiness.length < 2) {
       setError("Please enter your business name.");
       return;
     }
-    if (!isEmailValid) {
+    if (!validateEmail(normalizedEmail)) {
       setError("Please enter a valid email address.");
       return;
     }
-    if (!isPasswordValid) {
-      setError("Password is too weak. Must meet strength criteria.");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
     if (!agreed) {
@@ -394,18 +405,18 @@ export const SignUpView: React.FC<SignUpProps> = ({
     } catch { /* storage unavailable — ignore */ }
 
     setIsLoading(true);
-    const { error: authError } = await signUpWithEmail(email, password, businessName, fullName);
+    const { error: authError } = await signUpWithEmail(normalizedEmail, password, normalizedBusiness, normalizedName);
     setIsLoading(false);
 
     if (authError) {
       setError(authError.message || "Failed to create account.");
     } else {
       sendWelcomeEmail({
-        userEmail: email,
-        userName: fullName,
-        businessName: businessName,
+        userEmail: normalizedEmail,
+        userName: normalizedName,
+        businessName: normalizedBusiness,
       });
-      onSuccess({ email, businessName });
+      onSuccess({ email: normalizedEmail, businessName: normalizedBusiness });
     }
   };
 
@@ -479,7 +490,7 @@ export const SignUpView: React.FC<SignUpProps> = ({
             </div>
           )}
 
-          <form onSubmit={handleSignUp} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <form onSubmit={handleSignUp} noValidate style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Full Name */}
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)" }}>Full Name</label>
@@ -488,7 +499,7 @@ export const SignUpView: React.FC<SignUpProps> = ({
                 <input
                   type="text"
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  onChange={(e) => { setFullName(e.target.value); setError(""); }}
                   placeholder="Karan Sharma"
                   className="input-field"
                   style={{ paddingLeft: 42, paddingRight: 40 }}
@@ -514,7 +525,7 @@ export const SignUpView: React.FC<SignUpProps> = ({
                 <input
                   type="text"
                   value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
+                  onChange={(e) => { setBusinessName(e.target.value); setError(""); }}
                   placeholder="Ironclad Fitness"
                   className="input-field"
                   style={{ paddingLeft: 42, paddingRight: 40 }}
@@ -540,13 +551,13 @@ export const SignUpView: React.FC<SignUpProps> = ({
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { setEmail(e.target.value); setError(""); }}
                   placeholder="name@business.com"
                   className="input-field"
                   style={{ paddingLeft: 42, paddingRight: 40 }}
                   required
                 />
-                {email && (
+                {cleanEmail && (
                   <span style={{ position: "absolute", right: 14 }}>
                     {isEmailValid ? (
                       <CheckCircle size={16} style={{ color: "var(--success)" }} />
@@ -566,7 +577,7 @@ export const SignUpView: React.FC<SignUpProps> = ({
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => { setPassword(e.target.value); setError(""); }}
                   placeholder="••••••••"
                   className="input-field"
                   style={{ paddingLeft: 42, paddingRight: 42 }}

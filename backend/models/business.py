@@ -1,6 +1,6 @@
 import uuid
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import Column, String, Text, Float, DateTime, Numeric
+from sqlalchemy import Column, String, Text, Float, DateTime, Numeric, Boolean
 from sqlalchemy.orm import relationship
 from database import Base
 
@@ -17,6 +17,7 @@ class Business(Base):
     logo_url = Column(Text, nullable=True)
     business_hours = Column(String(100), nullable=True)
     timezone = Column(String(100), default="IST - Kolkata (GMT+5:30)")
+    is_onboarded = Column(Boolean, default=False, nullable=False)
 
     # Meta WhatsApp Configurations
     whatsapp_phone_id = Column(String(100), nullable=True, index=True)

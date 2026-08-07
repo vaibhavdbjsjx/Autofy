@@ -163,33 +163,58 @@ def create_new_order(
             detail="Forbidden: Cannot inject orders into another business domain."
         )
 
-    # 1. First parse matching inventory products inside items_json string
+    # 1. Parse items_json
     try:
         items_list = json.loads(payload.items_json)
-    except Exception:
+        if not isinstance(items_list, list) or len(items_list) == 0:
+            raise ValueError("items_json must be a non-empty array.")
+    except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid items_json format: Should represent a parsed JSON array of products."
+            detail="Invalid items_json format: Should represent a non-empty parsed JSON array of products."
         )
 
-    # 2. Re-verify stock and subtract item quantities
+    # 2. Authoritative price calculation & stock deduction
+    calculated_total = Decimal("0.00")
     for item in items_list:
         p_id = item.get("id")
         p_qty = int(item.get("quantity", 1))
         
+        if p_qty <= 0:
+            raise HTTPException(status_code=400, detail="Invalid quantity: Order item quantity must be greater than 0.")
+
         if p_id:
             product = db.query(Product).filter(
                 Product.id == p_id,
                 Product.business_id == current_user.business_id
-            ).first()
-            
-            if product:
-                if product.stock < p_qty:
-                    # Soft warning but still proceed with order or restrict depends on strictly zero
-                    # Let's adjust stock downwards, pinning to zero if exceeds standard limit
-                    product.stock = max(0, product.stock - p_qty)
-                else:
-                    product.stock = product.stock - p_qty
+            ).with_for_update().first()
+
+            if not product:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Invalid product_id: Product '{p_id}' not found or belongs to another organization."
+                )
+
+            if product.stock < p_qty:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Insufficient stock for product '{product.name}'. Available stock: {product.stock}, requested: {p_qty}."
+                )
+
+            unit_price = Decimal(str(product.discount_price)) if (product.discount_price and product.discount_price > 0) else Decimal(str(product.price))
+            calculated_total += (unit_price * Decimal(str(p_qty)))
+            product.stock -= p_qty
+        else:
+            item_price = Decimal(str(item.get("price", 0)))
+            if item_price < 0:
+                raise HTTPException(status_code=400, detail="Invalid item price: Price cannot be negative.")
+            calculated_total += (item_price * Decimal(str(p_qty)))
+
+    discount_val = Decimal(str(payload.discount_amount or 0))
+    if discount_val < 0:
+        raise HTTPException(status_code=400, detail="Invalid discount: Discount amount cannot be negative.")
+
+    authoritative_total = max(Decimal("0.00"), calculated_total - discount_val)
 
     db_order = Order(
         business_id=current_user.business_id,
@@ -198,8 +223,8 @@ def create_new_order(
         customer_phone=payload.customer_phone,
         shipping_address=payload.shipping_address,
         items_json=payload.items_json,
-        total_price=payload.total_price,
-        discount_amount=payload.discount_amount,
+        total_price=authoritative_total,
+        discount_amount=discount_val,
         status=payload.status,
         notes=payload.notes
     )

@@ -90,7 +90,26 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
       try {
         const { api, isAuthenticated } = await import("../lib/api");
         if (isAuthenticated()) {
-          await api.get("/api/v1/leads"); // Pre-warm the connection
+          const res = await api.get<any>("/api/v1/leads");
+          if (Array.isArray(res?.items)) {
+            setCrmLeads(res.items.map((l: any) => ({
+              id: l.id,
+              name: l.name || "Unnamed Lead",
+              phone: l.phone || "",
+              email: l.email || "",
+              address: l.notes || "",
+              source: l.source || "WhatsApp",
+              leadScore: l.score || 10,
+              lastActive: l.updated_at ? l.updated_at.substring(0, 10) : "Today",
+              status: l.status || "New Lead",
+              businessType: "Client",
+              assignedTo: "Owner",
+              createdDate: l.created_at ? l.created_at.substring(0, 10) : "",
+              insights: ["Scored lead record"],
+              conversations: [],
+              timeline: []
+            })));
+          }
         }
       } catch {
         // Use local fallback state
@@ -423,6 +442,11 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
 
         // Propagate change message back
         triggerNotification(` Piper: Moved "${updated[matchIndex].name}" to ${targetStatus}`);
+        
+        // Persist to PostgreSQL backend
+        import("../lib/api").then(({ api }) => {
+          api.put(`/api/v1/leads/${id}`, { status: targetStatus }).catch(err => console.log(err));
+        });
       }
       return updated;
     });
@@ -448,6 +472,11 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
       }
       return lead;
     }));
+
+    import("../lib/api").then(({ api }) => {
+      api.put(`/api/v1/leads/${id}`, { status: newStatus }).catch(err => console.log(err));
+    });
+
     triggerNotification(` Updated lead status node successfully`);
   };
 
@@ -491,6 +520,20 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
     };
 
     setCrmLeads(prev => [item, ...prev]);
+
+    import("../lib/api").then(({ api }) => {
+      api.post("/api/v1/leads", {
+        name: item.name,
+        phone: item.phone,
+        email: item.email,
+        source: item.source,
+        notes: item.address
+      }).then((res: any) => {
+        if (res?.id) {
+          setCrmLeads(prev => prev.map(l => l.id === initialId ? { ...l, id: res.id } : l));
+        }
+      }).catch(err => console.log(err));
+    });
 
     // Cleanup form
     setNewLeadName("");
@@ -562,6 +605,9 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
   const archiveDeleteLead = (id: string, name: string) => {
     setCrmLeads(prev => prev.filter(l => l.id !== id));
     setSelectedLeadId(null);
+    import("../lib/api").then(({ api }) => {
+      api.del(`/api/v1/leads/${id}`).catch(err => console.log(err));
+    });
     triggerNotification(` Lead "${name}" archived successfully`);
   };
 

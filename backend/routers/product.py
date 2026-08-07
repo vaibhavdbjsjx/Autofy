@@ -167,6 +167,13 @@ def create_product(
             detail="Forbidden: Cannot create a product for another organization."
         )
 
+    if payload.price < 0:
+        raise HTTPException(status_code=400, detail="Invalid price: Product price cannot be negative.")
+    if payload.stock < 0:
+        raise HTTPException(status_code=400, detail="Invalid stock: Inventory level cannot be negative.")
+    if payload.discount_percent < 0 or payload.discount_percent > 100:
+        raise HTTPException(status_code=400, detail="Invalid discount: Discount percent must be between 0 and 100.")
+
     db_product = Product(
         business_id=current_user.business_id,
         name=payload.name,

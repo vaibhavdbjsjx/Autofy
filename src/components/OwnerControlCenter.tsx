@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Shield,
@@ -132,12 +132,31 @@ export const OwnerControlCenter: React.FC<{
   // Appointments Calendar values
   const [appointmentFilter, setAppointmentFilter] = useState<"all" | "upcoming" | "completed" | "cancelled">("all");
   const [reminderConfig, setReminderConfig] = useState({ whatsapp: true, sms: false, interval: "24h" });
-  const [appointmentsList, setAppointmentsList] = useState([
-    { id: "apt-1", client: "Priya Patel", date: "2026-06-21", time: "11:30 AM", service: "Premium Crossfit", status: "Completed" },
-    { id: "apt-2", client: "Rahul Sharma", date: "2026-06-22", time: "04:00 PM", service: "Therapeutic Yoga", status: "Upcoming" },
-    { id: "apt-3", client: "Alisha Rao", date: "2026-06-24", time: "09:00 AM", service: "Yoga Trials", status: "Upcoming" },
-    { id: "apt-4", client: "Kabir Sen", date: "2026-06-19", time: "05:30 PM", service: "Personal Session", status: "Cancelled" }
-  ]);
+  const [appointmentsList, setAppointmentsList] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const { api, isAuthenticated } = await import("../lib/api");
+        if (isAuthenticated()) {
+          const res = await api.get<any>("/api/v1/appointments");
+          if (Array.isArray(res?.items)) {
+            setAppointmentsList(res.items.map((apt: any) => ({
+              id: apt.id,
+              client: apt.customer_name,
+              date: apt.appointment_date ? apt.appointment_date.substring(0, 10) : "Today",
+              time: apt.start_time,
+              service: apt.notes || "Standard Booking",
+              status: apt.status === "Scheduled" ? "Upcoming" : apt.status
+            })));
+          }
+        }
+      } catch (err) {
+        console.log("Error fetching appointments:", err);
+      }
+    };
+    fetchAppointments();
+  }, []);
 
   // Chat simulator internally for mobile messages tab
   const [mobileChatInput, setMobileChatInput] = useState("");

@@ -186,6 +186,19 @@ class BusinessKnowledgeService:
                         matched_docs.append(doc)
                         break
 
+        # 7. Retrieve Custom Trained AI Answer Triggers
+        from models.ai_training import AITrainedAnswer
+        all_trained = db.query(AITrainedAnswer).filter(
+            AITrainedAnswer.business_id == business_id,
+            AITrainedAnswer.status == "active"
+        ).all()
+        matched_trained = []
+        for tr in all_trained:
+            for kw in keywords:
+                if kw in tr.trigger_phrase.lower() or kw in tr.trained_response.lower():
+                    matched_trained.append(tr)
+                    break
+
         # Prepare default configurations if nothing matched
         return {
             "faqs": matched_faqs if matched_faqs else all_faqs[:3],
@@ -193,13 +206,14 @@ class BusinessKnowledgeService:
             "services": matched_services if matched_services else all_services[:3],
             "products": matched_products if matched_products else all_products[:3],
             "membership_plans": matched_plans if matched_plans else all_plans[:2],
-            "documents": matched_docs[:2]
+            "documents": matched_docs if matched_docs else all_docs[:2],
+            "trained_answers": matched_trained if matched_trained else all_trained[:3]
         }
 
 
 class ConversationalAIService:
     @staticmethod
-    def reply_with_ai(db: Session, conversation_id: str, incoming_message: str) -> Dict[str, Any]:
+    def reply_with_ai(db: Session, conversation_id: str, incoming_message: str, whatsapp_message_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Generates automated conversational reply using Gemini model 3.5-flash.
         Implements memory, exact business facts injection, confidence score, and automatic escalation threshold check.
@@ -230,15 +244,15 @@ class ConversationalAIService:
 
         # Build context prompt
         faq_context = "\n".join([f"Q: {f.question}\nA: {f.answer}" for f in context["faqs"]])
-        policies_context = "\n".join([f"Policy [{p.policy_type}]: {p.title} - {p.content}" for f in context["policies"]])
+        policies_context = "\n".join([f"Policy [{p.policy_type}]: {p.title} - {p.content}" for p in context["policies"]])
         services_context = "\n".join([f"Service: {s.name} | Price: {s.price} INR | Duration: {s.duration_minutes}m\nDescription: {s.description or 'N/A'}" for s in context["services"]])
         products_context = "\n".join([f"Product: {pr.name} | Price: {pr.price} INR | Stock: {pr.stock}\nDescription: {pr.description or 'N/A'}" for pr in context["products"]])
         plans_context = "\n".join([f"Membership: {m.name} | Cost: {m.price} INR per month | Specs: {m.description or 'N/A'}" for m in context["membership_plans"]])
         docs_context = "\n".join([f"Document [{d.title}]: {d.content_extracted[:1000]}..." for d in context["documents"] if d.content_extracted])
+        trained_context = "\n".join([f"Intent/Trigger: {t.trigger_phrase} -> Mandated Response: {t.trained_response}" for t in context.get("trained_answers", [])])
 
         # Agent configuration parameters
         agent_name = business.config_agent_name or "AutoBot Elite"
-        welcome_msg = business.config_welcome_message or "Hello! Welcome to our store. How can I assist you today?"
         fallback_msg = business.config_fallback_message or "I apologize, but I am unable to answer this based on current business guidelines. Let me transfer you to a human manager."
         confidence_threshold = business.config_confidence_threshold or 0.78
 
@@ -246,9 +260,9 @@ class ConversationalAIService:
 You are "{agent_name}", a brilliant, helpful customer care AI representative for the business: "{business.name}".
 Your goal is to assist customers based ONLY on the verified business details provided below. Do not invent any values, prices, policies, or facts not present in this prompt.
 
-=========================================
-VERIFIED BUSINESS CATALOGS & KNOWLEDGE:
-=========================================
+[CUSTOM TRAINED RULES & MANDATED ANSWERS]
+{trained_context if trained_context else "None"}
+
 [SERVICES CATALOG]
 {services_context}
 
@@ -258,35 +272,32 @@ VERIFIED BUSINESS CATALOGS & KNOWLEDGE:
 [MEMBERSHIP PLANS]
 {plans_context}
 
-[FREQUENTLY ASKED QUESTIONS (FAQs)]
-{faq_context}
-
-[BUSINESS OPERATION POLICIES]
+[BUSINESS POLICIES]
 {policies_context}
 
-[UPLINK EXTRACTIONS]
+[FREQUENTLY ASKED QUESTIONS]
+{faq_context}
+
+[UPLOADED DOCUMENTS / MANUALS]
 {docs_context}
 
 =========================================
-CONVERSATION MEMORY (Short-term):
+SHORT-TERM CONVERSATION MEMORY:
 =========================================
-{memory_str}
+{memory_str if memory_str else "No previous messages."}
 
 =========================================
-INSTRUCTIONS FOR AI GENERATION:
+USER QUERY:
 =========================================
-1. Analyze the customer's query: "{incoming_message}".
-2. Check if the provided VERIFIED BUSINESS DETAILS adequately allow you to answer the query correctly without speculation.
-3. Compute your response confidence score (0.0 to 1.0). If the answer is completely documented in FAQs, catalogs, or policies, set confidence high (e.g. 0.90 - 1.00). If the question is of general nature or not answered by verified info, set it low (e.g. 0.20 - 0.60).
-4. If confidence is below the business threshold of {confidence_threshold}, OR if the customer explicitly requests human agent, live representative, or human transfer, set escalate to true.
-5. In case of escalation (escalate=true) or low confidence, formulate a polite transitioning message (referring to the fallback message instruction) and state clearly that a human expert is taking over.
+Customer: {incoming_message}
 
-YOU MUST RESPOND ONLY WITH A VALID JSON OBJECT matching this exact structure (do not include markdown block codes like ```json):
+Answer politely, concisely, and professionally.
+Return output in strictly valid JSON format with keys:
 {{
-  "reply": "your helpful customer message here",
-  "confidence": 0.95,
-  "escalate": false,
-  "matched_faqs": ["List of matched FAQ titles/questions if helpful"]
+    "reply": "Your response to the customer",
+    "confidence": 0.95,
+    "escalate": false,
+    "matched_faqs": ["FAQ Question matched"]
 }}
 """
 
@@ -359,6 +370,7 @@ YOU MUST RESPOND ONLY WITH A VALID JSON OBJECT matching this exact structure (do
             sender_id=conv.platform_sender_id,
             message_type="text",
             content=incoming_message,
+            whatsapp_message_id=whatsapp_message_id,
             status="read"
         )
         MessageCRUD.create(db, conversation_id, customer_msg_in)

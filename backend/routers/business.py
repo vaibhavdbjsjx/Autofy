@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from database import get_db
 from models.user import User
 from models.business import Business
@@ -20,6 +20,7 @@ class BusinessUpdateSchema(BaseModel):
     logo_url: Optional[str] = None
     business_hours: Optional[str] = None
     timezone: Optional[str] = None
+    is_onboarded: Optional[bool] = None
 
     # AI Behaviors parameters
     config_agent_name: Optional[str] = None
@@ -38,6 +39,7 @@ class BusinessResponseSchema(BaseModel):
     logo_url: Optional[str] = None
     business_hours: Optional[str] = None
     timezone: str
+    is_onboarded: bool = False
     config_agent_name: str
     config_welcome_message: Optional[str] = None
     config_fallback_message: Optional[str] = None
@@ -81,6 +83,59 @@ def update_business_profile(
     for key, value in update_data.items():
         setattr(business, key, value)
 
+    # If updating business profile, automatically mark onboarding as complete
+    if payload.is_onboarded is not None:
+        business.is_onboarded = payload.is_onboarded
+    elif payload.name or payload.classification or payload.phone:
+        business.is_onboarded = True
+
+    db.commit()
+    db.refresh(business)
+    return business
+
+class OnboardingCompletionRequest(BaseModel):
+    name: str = Field(..., min_length=2, description="Business Name")
+    classification: str = Field(..., min_length=2, description="Industry Type")
+    phone: str = Field(..., min_length=5, description="Business Phone Number")
+    website: Optional[str] = None
+    address: Optional[str] = None
+
+@router.post("/complete-onboarding", response_model=BusinessResponseSchema)
+def complete_onboarding(
+    payload: OnboardingCompletionRequest,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Explicitly validates required corporate parameters, persists them atomically,
+    and marks onboarding as complete for the caller's business workspace.
+    """
+    business = db.query(Business).filter(Business.id == current_user.business_id).first()
+    if not business:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Business entity not found."
+        )
+
+    clean_name = payload.name.strip()
+    clean_classification = payload.classification.strip()
+    clean_phone = payload.phone.strip()
+
+    if len(clean_name) < 2 or len(clean_classification) < 2 or len(clean_phone) < 5:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Valid business name, industry type, and phone number are required to complete onboarding."
+        )
+
+    business.name = clean_name
+    business.classification = clean_classification
+    business.phone = clean_phone
+    if payload.website is not None:
+        business.website = payload.website.strip()
+    if payload.address is not None:
+        business.address = payload.address.strip()
+
+    business.is_onboarded = True
     db.commit()
     db.refresh(business)
     return business
@@ -240,9 +295,10 @@ def get_dashboard_summary(
     ).count()
 
     # 3. Appointments
-    active_appts_count = db.query(SupportTicket).filter(
-        SupportTicket.business_id == biz_id,
-        SupportTicket.status.in_(["Open", "Scheduled", "Pending"])
+    from models.appointment import Appointment
+    active_appts_count = db.query(Appointment).filter(
+        Appointment.business_id == biz_id,
+        Appointment.status.in_(["Scheduled", "Confirmed"])
     ).count()
 
     # 4. WhatsApp Conversations & Customer Interactions
