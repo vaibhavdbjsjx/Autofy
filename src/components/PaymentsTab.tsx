@@ -47,29 +47,18 @@ export const PaymentsTab: React.FC<{
     successfulPayments: "₹0"
   };
 
-  // Gateway integrations with localStorage persistence
+  // Gateway integrations in React component state
   const [activeGateway, setActiveGateway] = useState<"Razorpay" | "PhonePe" | "Cashfree" | "Stripe">("Razorpay");
-  const [gatewayConfigs, setGatewayConfigs] = useState<Record<string, GatewayConfig>>(() => {
-    try {
-      const saved = localStorage.getItem("autofy-gateways");
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return {
-      Razorpay: { apiKey: "", secretKey: "", webhookSecret: "", merchantId: "", status: "Disconnected" },
-      PhonePe: { apiKey: "", secretKey: "", webhookSecret: "", merchantId: "", status: "Disconnected" },
-      Cashfree: { apiKey: "", secretKey: "", webhookSecret: "", merchantId: "", status: "Disconnected" },
-      Stripe: { apiKey: "", secretKey: "", webhookSecret: "", merchantId: "", status: "Disconnected" }
-    };
+  const [gatewayConfigs, setGatewayConfigs] = useState<Record<string, GatewayConfig>>({
+    Razorpay: { apiKey: "", secretKey: "", webhookSecret: "", merchantId: "", status: "Disconnected" },
+    PhonePe: { apiKey: "", secretKey: "", webhookSecret: "", merchantId: "", status: "Disconnected" },
+    Cashfree: { apiKey: "", secretKey: "", webhookSecret: "", merchantId: "", status: "Disconnected" },
+    Stripe: { apiKey: "", secretKey: "", webhookSecret: "", merchantId: "", status: "Disconnected" }
   });
 
   const [isRazorpayModalOpen, setIsRazorpayModalOpen] = useState(false);
   const [rzpKeyId, setRzpKeyId] = useState(gatewayConfigs.Razorpay.apiKey || "");
   const [rzpKeySecret, setRzpKeySecret] = useState(gatewayConfigs.Razorpay.secretKey || "");
-
-  // Sync state to local storage when gateway configuration changes
-  useEffect(() => {
-    localStorage.setItem("autofy-gateways", JSON.stringify(gatewayConfigs));
-  }, [gatewayConfigs]);
 
   const handleSaveRazorpay = () => {
     if (!rzpKeyId || !rzpKeySecret) {
@@ -87,7 +76,7 @@ export const PaymentsTab: React.FC<{
       }
     }));
     setIsRazorpayModalOpen(false);
-    triggerNotification(" Razorpay settings stored in local storage successfully!");
+    triggerNotification(" Razorpay gateway configuration updated!");
   };
 
   // UPI settings state

@@ -161,11 +161,12 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
     }
 
     try {
-      const d = await api.get<any>("/api/v1/business/team-members");
-      if (d?.team_members && d.team_members.length > 0) {
-        setAgents(d.team_members.map((t: any) => ({
+      const d = await api.get<any>("/api/v1/team/members");
+      const teamMembers = Array.isArray(d) ? d : d?.team_members;
+      if (teamMembers && teamMembers.length > 0) {
+        setAgents(teamMembers.map((t: any) => ({
           id: t.id,
-          name: t.user?.full_name || t.role,
+          name: t.name || t.role,
           role: t.role
         })));
       }
@@ -207,30 +208,18 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
   const handleUpdateTicketStatus = async (statusVal: "Open" | "Pending" | "Resolved" | "Closed") => {
     if (!activeTicket) return;
 
-    // Local update
-    setTickets(tickets.map(t => t.id === activeTicket.id ? {
-      ...t,
-      status: statusVal,
-      sla_status: statusVal === "Resolved" || statusVal === "Closed" ? "Met" : t.sla_status
-    } : t));
-
-    const changeTime = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const newLog: TicketLog = {
-      id: "log-" + Math.floor(Math.random() * 900),
-      changed_by: "Manager",
-      action: "Status Changed",
-      notes: `Status reassessed to: '${statusVal}'`,
-      created_at: changeTime
-    };
-
-    setHistory([newLog, ...history]);
-    triggerNotification(`Support ticket status updated to: ${statusVal}`);
-
     try {
       await api.put(`/api/v1/tickets/${activeTicket.id}`, { status: statusVal });
-      fetchTicketsData();
+      setTickets(tickets.map(t => t.id === activeTicket.id ? {
+        ...t,
+        status: statusVal,
+        sla_status: statusVal === "Resolved" || statusVal === "Closed" ? "Met" : t.sla_status
+      } : t));
+      await fetchTicketsData();
+      await fetchTicketLogs();
+      triggerNotification(`Support ticket status updated to: ${statusVal}`);
     } catch (err) {
-      console.log(err);
+      triggerNotification?.(err instanceof Error ? err.message : "Failed to update support ticket status.");
     }
   };
 
@@ -239,28 +228,18 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
     const foundAgent = agents.find(g => g.id === agentId);
     const agentName = foundAgent ? foundAgent.name : "Unassigned";
 
-    setTickets(tickets.map(t => t.id === activeTicket.id ? {
-      ...t,
-      assigned_agent_id: agentId,
-      assigned_agent_name: agentName
-    } : t));
-
-    const changeTime = new Date().toISOString().replace('T', ' ').substring(0, 16);
-    const newLog: TicketLog = {
-      id: "log-" + Math.floor(Math.random() * 910),
-      changed_by: "System",
-      action: "Reassigned",
-      notes: `Ticket successfully assigned/rerouted to support specialist: ${agentName}`,
-      created_at: changeTime
-    };
-    setHistory([newLog, ...history]);
-    triggerNotification(`Support ticket reassigned to: ${agentName}`);
-
     try {
       await api.put(`/api/v1/tickets/${activeTicket.id}`, { assigned_agent_id: agentId });
-      fetchTicketsData();
+      setTickets(tickets.map(t => t.id === activeTicket.id ? {
+        ...t,
+        assigned_agent_id: agentId,
+        assigned_agent_name: agentName
+      } : t));
+      await fetchTicketsData();
+      await fetchTicketLogs();
+      triggerNotification(`Support ticket reassigned to: ${agentName}`);
     } catch (err) {
-      console.log(err);
+      triggerNotification?.(err instanceof Error ? err.message : "Failed to reassign support ticket.");
     }
   };
 
@@ -287,17 +266,6 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
       created_at: new Date().toISOString().replace("T", " ").substring(0, 16)
     };
 
-    setTickets([newTkt, ...tickets]);
-    setIsCreatingTicket(false);
-
-    setNewCustName("");
-    setNewCustEmail("");
-    setNewCustPhone("");
-    setNewTicketTitle("");
-    setNewTicketDesc("");
-
-    triggerNotification("New customer support ticket registered.");
-
     try {
       await api.post("/api/v1/tickets", {
         customer_name: newTkt.customer_name,
@@ -307,9 +275,16 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
         description: newTkt.description,
         priority: newTkt.priority
       });
-      fetchTicketsData();
+      setIsCreatingTicket(false);
+      setNewCustName("");
+      setNewCustEmail("");
+      setNewCustPhone("");
+      setNewTicketTitle("");
+      setNewTicketDesc("");
+      await fetchTicketsData();
+      triggerNotification("New customer support ticket registered.");
     } catch (err) {
-      console.log(err);
+      triggerNotification?.(err instanceof Error ? err.message : "Failed to register support ticket.");
     }
   };
 

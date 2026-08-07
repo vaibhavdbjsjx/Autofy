@@ -269,6 +269,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [isTabLoading, setIsTabLoading] = useState(true);
   const [summaryData, setSummaryData] = useState<DashboardSummaryResponse | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+  const [subStatus, setSubStatus] = useState<any>(null);
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      api.get("/api/v1/subscriptions/status")
+        .then(res => setSubStatus(res))
+        .catch(() => {});
+    }
+  }, []);
 
   const fetchDashboardSummary = async () => {
     setIsTabLoading(true);
@@ -883,7 +892,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   {userProfile?.businessName || data.businessName || "My Business"}
                 </p>
                 <span className="mt-0.5 inline-block rounded-full bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-emerald-500 hover:bg-emerald-500/20 transition">
-                  Pro plan ⚡
+                  {subStatus?.status === "TRIAL_ACTIVE" ? `Trial (${subStatus?.plan_name || "Pro"}) ⚡` : (subStatus?.plan_name || "Starter Plan")}
                 </span>
               </div>
             </div>

@@ -15,6 +15,7 @@
 // existing UI (AuthPages, PaymentsTab, ProtectedRoute) keeps working.
 // ════════════════════════════════════════════════════════════
 import { api, ApiError, setAuthToken, clearAuthToken, getAuthToken } from "./api";
+import { purgeLegacyOnboardingKeys, clearTenantOnboardingData } from "./onboardingStorage";
 
 // Supabase-compatible user shape so consumers like PaymentsTab
 // (user.email, user.user_metadata.full_name) don't need changes.
@@ -213,10 +214,8 @@ export function completeOAuthLogin(fields: {
   email?: string;
   name?: string;
 }): AuthUser {
-  // Clear any stale local onboarding data from a previous session
-  try {
-    localStorage.removeItem("autofy-onboarding-data");
-  } catch { /* ignore */ }
+  // Purge any legacy un-scoped onboarding or gateway keys
+  purgeLegacyOnboardingKeys();
 
   const token: TokenResponse = {
     access_token: fields.access_token,
@@ -229,10 +228,14 @@ export function completeOAuthLogin(fields: {
 }
 
 export async function signOut(): Promise<{ error: null }> {
+  const currentUser = readUser();
+  if (currentUser?.business_id) {
+    clearTenantOnboardingData(currentUser.business_id);
+  }
+  purgeLegacyOnboardingKeys();
   clearAuthToken();
   clearUser();
   try {
-    localStorage.removeItem("autofy-onboarding-data");
     localStorage.removeItem("autofy-consent");
     sessionStorage.clear();
   } catch {

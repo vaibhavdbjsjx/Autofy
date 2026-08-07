@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from models.business import Business
 from models.user import User
 from models.team_member import TeamMember
+from models.support_ticket import SupportTicket
 from auth.security import get_password_hash, verify_password
 
 def test_user_profile_persistence(db_session: Session):
@@ -127,3 +128,59 @@ def test_empty_business_settings(db_session: Session):
 
     members = db_session.query(TeamMember).filter(TeamMember.business_id == "biz-empty-settings").all()
     assert len(members) == 0
+
+def test_support_ticket_reassignment_requires_same_tenant_agent(
+    client: TestClient,
+    db_session: Session,
+    test_business_a,
+    auth_headers_a
+):
+    """
+    Verify support tickets cannot be assigned to a TeamMember from another business.
+    """
+    biz_b = Business(id="biz-ticket-b", name="Ticket Biz B", email="ticketb@test.com", classification="Retail")
+    agent_a = TeamMember(
+        id="tm-ticket-a",
+        business_id=test_business_a.id,
+        name="Tenant A Agent",
+        email="agent-a@tickets.test",
+        role="Support Agent",
+        status="Active"
+    )
+    agent_b = TeamMember(
+        id="tm-ticket-b",
+        business_id=biz_b.id,
+        name="Tenant B Agent",
+        email="agent-b@tickets.test",
+        role="Support Agent",
+        status="Active"
+    )
+    ticket = SupportTicket(
+        id="ticket-tenant-a",
+        business_id=test_business_a.id,
+        customer_name="Ticket Customer",
+        title="Tenant scoped ticket",
+        description="Must stay scoped to tenant A",
+        status="Open",
+        priority="Medium"
+    )
+    db_session.add_all([biz_b, agent_a, agent_b, ticket])
+    db_session.commit()
+
+    foreign_res = client.put(
+        "/api/v1/tickets/ticket-tenant-a",
+        json={"assigned_agent_id": "tm-ticket-b"},
+        headers=auth_headers_a
+    )
+    assert foreign_res.status_code == 404
+    db_session.refresh(ticket)
+    assert ticket.assigned_agent_id is None
+
+    valid_res = client.put(
+        "/api/v1/tickets/ticket-tenant-a",
+        json={"assigned_agent_id": "tm-ticket-a"},
+        headers=auth_headers_a
+    )
+    assert valid_res.status_code == 200
+    db_session.refresh(ticket)
+    assert ticket.assigned_agent_id == "tm-ticket-a"

@@ -15,7 +15,7 @@ class OrderBase(BaseModel):
     notes: Optional[str] = None
 
 class OrderCreate(OrderBase):
-    business_id: str = Field(..., max_length=36)
+    pass
 
 class OrderUpdate(BaseModel):
     customer_name: Optional[str] = None

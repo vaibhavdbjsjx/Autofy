@@ -18,7 +18,7 @@ class ProductBase(BaseModel):
     is_available: bool = True
 
 class ProductCreate(ProductBase):
-    business_id: str = Field(..., max_length=36)
+    pass
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = Field(None, max_length=255)

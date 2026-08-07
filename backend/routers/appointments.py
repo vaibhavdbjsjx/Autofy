@@ -62,6 +62,8 @@ def get_appointment_detail(
     return appt
 
 @router.put("/{appointment_id}", response_model=AppointmentResponse)
+@router.patch("/{appointment_id}", response_model=AppointmentResponse)
+@router.patch("/{appointment_id}/cancel", response_model=AppointmentResponse)
 def update_appointment(
     appointment_id: str,
     payload: AppointmentUpdate,

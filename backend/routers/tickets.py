@@ -106,7 +106,7 @@ def get_tickets(
     for t in tickets:
         agent_name = "Unassigned"
         if t.assigned_agent:
-            agent_name = t.assigned_agent.user.full_name if t.assigned_agent.user else t.assigned_agent.role
+            agent_name = t.assigned_agent.name or t.assigned_agent.role
             
         item = {
             "id": t.id,
@@ -204,12 +204,16 @@ def update_support_ticket(
         old_agent_id = ticket.assigned_agent_id
         new_agent_id = payload["assigned_agent_id"]
         if old_agent_id != new_agent_id:
-            ticket.assigned_agent_id = new_agent_id
             agent_text = "Unassigned"
             if new_agent_id:
-                agent = db.query(TeamMember).filter(TeamMember.id == new_agent_id).first()
-                if agent and agent.user:
-                    agent_text = agent.user.full_name
+                agent = db.query(TeamMember).filter(
+                    TeamMember.id == new_agent_id,
+                    TeamMember.business_id == current_user.business_id
+                ).first()
+                if not agent:
+                    raise HTTPException(status_code=404, detail="Support agent not found")
+                agent_text = agent.name or agent.role
+            ticket.assigned_agent_id = new_agent_id
             audit_notes.append(f"Agent reassigned to: {agent_text}")
             
     if audit_notes:
@@ -219,7 +223,7 @@ def update_support_ticket(
         # Insert log history audit trial
         history = TicketHistory(
             ticket_id=ticket.id,
-            changed_by=current_user.full_name or "Manager Desk",
+            changed_by=current_user.name or "Manager Desk",
             action="Update",
             notes="; ".join(audit_notes)
         )

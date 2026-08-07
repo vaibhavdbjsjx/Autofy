@@ -30,6 +30,7 @@ import {
   Sliders,
   Check
 } from "lucide-react";
+import { api } from "../lib/api";
 
 interface OrderItem {
   id: string;
@@ -69,74 +70,10 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
   setProductsList,
   triggerNotification
 }) => {
-  // Pre-populated realistic initial orders
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: "ORD-9382",
-      customer_name: "Rahul Sharma",
-      customer_email: "rahul.sharma@gmail.com",
-      customer_phone: "+91 98765 43210",
-      shipping_address: "Plot 42, Sector 17, Vashi, Navi Mumbai, MH - 400703",
-      items: [
-        { id: "p-1", name: "AEW Exhaust for Classic 350", quantity: 1, price: 5850 }
-      ],
-      total_price: 5850,
-      discount_amount: 650,
-      status: "Shipped",
-      shipping_carrier: "Delhivery Air",
-      tracking_number: "DEL-93820120",
-      estimated_delivery: "2026-06-25",
-      notes: "Please deliver after 5:00 PM.",
-      created_at: "2026-06-18 10:30"
-    },
-    {
-      id: "ORD-8441",
-      customer_name: "John Doe",
-      customer_email: "john.doe@example.com",
-      customer_phone: "+1 (555) 019-2834",
-      shipping_address: "128 West Ivy Street, San Diego, CA - 92101",
-      items: [
-        { id: "p-4", name: "Carbon Dual-Ring Riding Gloves", quantity: 2, price: 2400 }
-      ],
-      total_price: 4800,
-      discount_amount: 0,
-      status: "Delivered",
-      shipping_carrier: "DHL Express",
-      tracking_number: "DHL-844183",
-      estimated_delivery: "2026-06-19",
-      notes: "Leave package at the front porch.",
-      created_at: "2026-06-15 14:15"
-    },
-    {
-      id: "ORD-7128",
-      customer_name: "Amit Patel",
-      customer_email: "amit.patel@yahoo.com",
-      customer_phone: "+91 99112 23344",
-      shipping_address: "Block B-4, Green Glen Layout, Bellandur, Bangalore, KA - 560103",
-      items: [
-        { id: "p-5", name: "Stealth Knight Full Face Helmet", quantity: 1, price: 3600 }
-      ],
-      total_price: 3600,
-      discount_amount: 900,
-      status: "Pending",
-      notes: "Ring bell twice.",
-      created_at: "2026-06-20 08:00"
-    },
-    {
-      id: "ORD-1102",
-      customer_name: "Vikram Singh",
-      customer_email: "vikram.singh@outlook.com",
-      customer_phone: "+91 98888 77777",
-      shipping_address: "C-12, Malviya Nagar, Jaipur, RJ - 302017",
-      items: [
-        { id: "p-2", name: "Red Rooster Performance Exhaust", quantity: 1, price: 6120 }
-      ],
-      total_price: 6120,
-      discount_amount: 1080,
-      status: "Confirmed",
-      created_at: "2026-06-19 18:45"
-    }
-  ]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [catalog, setCatalog] = useState<Array<{ id: string; name: string; price: number; stock: number }>>([]);
+  const [isLoadingOrders, setIsLoadingOrders] = useState(true);
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
 
   // View States
   const [activeTab, setActiveTab] = useState<"dashboard" | "admin" | "customer" | "create">("dashboard");
@@ -153,7 +90,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
   const [tempAdminActionNotes, setTempAdminActionNotes] = useState("");
 
   // Customer Tracking ID Search
-  const [customerSearchId, setCustomerSearchId] = useState("ORD-9382");
+  const [customerSearchId, setCustomerSearchId] = useState("");
   const [selectedTrackOrder, setSelectedTrackOrder] = useState<Order | null>(null);
   const [showCancelRequestModal, setShowCancelRequestModal] = useState(false);
   const [showRefundRequestModal, setShowRefundRequestModal] = useState(false);
@@ -170,24 +107,76 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
   const [newItemId, setNewItemId] = useState("");
   const [newItemQty, setNewItemIdQty] = useState(1);
 
-  // Pre-configured fallback products list in case dynamic React Context lists are empty
-  const defaultProducts = [
-    { id: "p-1", name: "AEW Exhaust for Classic 350", price: 5850, stock: 12 },
-    { id: "p-2", name: "Red Rooster Performance Exhaust", price: 6120, stock: 8 },
-    { id: "p-3", name: "Gursewak Custom Exhaust Core", price: 4800, stock: 0 },
-    { id: "p-4", name: "Carbon Dual-Ring Riding Gloves", price: 2400, stock: 3 },
-    { id: "p-5", name: "Stealth Knight Full Face Helmet", price: 3600, stock: 14 }
-  ];
+  const parseOrderItems = (raw: string): OrderItem[] => {
+    try {
+      const parsed = JSON.parse(raw || "[]");
+      if (!Array.isArray(parsed)) return [];
+      return parsed.map((item: any) => ({
+        id: item.product_id || item.id || "",
+        name: item.name || item.product_name || item.product_id || item.id || "Line item",
+        quantity: Number(item.quantity || 1),
+        price: Number(item.price || 0)
+      }));
+    } catch {
+      return [];
+    }
+  };
 
-  // Resolve inventory items
-  const activeCatalog = productsList && productsList.length > 0 
-    ? productsList.map(p => ({
+  const normalizeOrder = (item: any): Order => ({
+    id: item.id,
+    customer_name: item.customer_name || "",
+    customer_email: item.customer_email || "",
+    customer_phone: item.customer_phone || "",
+    shipping_address: item.shipping_address || "",
+    items: parseOrderItems(item.items_json),
+    total_price: Number(item.total_price || 0),
+    discount_amount: Number(item.discount_amount || 0),
+    status: item.status || "Pending",
+    shipping_carrier: item.shipping_carrier || undefined,
+    tracking_number: item.tracking_number || undefined,
+    estimated_delivery: item.estimated_delivery || undefined,
+    cancellation_reason: item.cancellation_reason || undefined,
+    refund_reason: item.refund_reason || undefined,
+    refund_amount: item.refund_amount ? Number(item.refund_amount) : undefined,
+    notes: item.notes || undefined,
+    created_at: item.created_at || ""
+  });
+
+  const fetchOrders = async () => {
+    setIsLoadingOrders(true);
+    try {
+      const res = await api.get<{ items: any[] }>("/api/v1/orders");
+      setOrders((res.items || []).map(normalizeOrder));
+    } catch (err) {
+      triggerNotification(err instanceof Error ? err.message : "Failed to load orders.");
+    } finally {
+      setIsLoadingOrders(false);
+    }
+  };
+
+  const fetchCatalog = async () => {
+    try {
+      const res = await api.get<{ items: any[] }>("/api/v1/products?only_available=true");
+      setCatalog((res.items || []).map((p: any) => ({
         id: p.id,
         name: p.name,
-        price: typeof p.price === 'string' ? parseFloat(p.price.replace(/[^\d.]/g, '')) || 500 : p.price || 500,
-        stock: p.stockQuantity !== undefined ? p.stockQuantity : 10
-      }))
-    : defaultProducts;
+        price: Number(p.discount_price && Number(p.discount_price) > 0 ? p.discount_price : p.price || 0),
+        stock: Number(p.stock || 0)
+      })));
+    } catch (err) {
+      triggerNotification(err instanceof Error ? err.message : "Failed to load product catalog.");
+    }
+  };
+
+  const refreshOrdersAndCatalog = async () => {
+    await Promise.all([fetchOrders(), fetchCatalog()]);
+  };
+
+  useEffect(() => {
+    refreshOrdersAndCatalog();
+  }, []);
+
+  const activeCatalog = catalog;
 
   // Auto-fill tracking on customer tab load or change
   useEffect(() => {
@@ -201,33 +190,29 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
   }, [customerSearchId, orders]);
 
   // Handle Order Status transitions
-  const handleUpdateStatus = (orderId: string, nextStatus: Order["status"]) => {
+  const handleUpdateStatus = async (orderId: string, nextStatus: Order["status"]) => {
     const targetOrder = orders.find(o => o.id === orderId);
     if (!targetOrder) return;
 
-    const updated = orders.map(o => {
-      if (o.id === orderId) {
-        let updateObj: Partial<Order> = { status: nextStatus };
-        if (nextStatus === "Shipped") {
-          updateObj.shipping_carrier = tempCarrier || "Standard Mail Service";
-          updateObj.tracking_number = tempTracking || "TRK-" + Math.floor(Math.random() * 9000000);
-          updateObj.estimated_delivery = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-        }
-        return { ...o, ...updateObj };
+    try {
+      await api.patch(`/api/v1/orders/${orderId}/status`, { status: nextStatus });
+      if (nextStatus === "Shipped" && (tempCarrier || tempTracking)) {
+        await api.put(`/api/v1/orders/${orderId}`, {
+          shipping_carrier: tempCarrier || undefined,
+          tracking_number: tempTracking || undefined
+        });
       }
-      return o;
-    });
-
-    setOrders(updated);
-    triggerNotification(`Order #${orderId} status code progressed safely to ${nextStatus}.`);
-
-    // Reset inputs
-    setTempCarrier("");
-    setTempTracking("");
+      await refreshOrdersAndCatalog();
+      triggerNotification(`Order #${orderId} status updated to ${nextStatus}.`);
+      setTempCarrier("");
+      setTempTracking("");
+    } catch (err) {
+      triggerNotification(err instanceof Error ? err.message : "Failed to update order status.");
+    }
   };
 
   // Submit cancellation (Customer flow)
-  const handleCustomerCancel = (e: React.FormEvent) => {
+  const handleCustomerCancel = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cancelReason.trim()) {
       triggerNotification("Please provide a reason to cancel this shipment.");
@@ -235,43 +220,19 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
     }
     if (!selectedTrackOrder) return;
 
-    // Direct automated cancel with stock recovery
-    const updated = orders.map(o => {
-      if (o.id === selectedTrackOrder.id) {
-        return {
-          ...o,
-          status: "Cancelled" as const,
-          cancellation_reason: cancelReason
-        };
-      }
-      return o;
-    });
-
-    setOrders(updated);
-    
-    // Automatically revert stocks of the products
-    if (setProductsList && productsList && productsList.length > 0) {
-      // Revert product counts
-      const updatedProducts = productsList.map(p => {
-        const orderedItem = selectedTrackOrder.items.find(item => item.id === p.id);
-        if (orderedItem) {
-          return {
-            ...p,
-            stockQuantity: (p.stockQuantity || 0) + orderedItem.quantity
-          };
-        }
-        return p;
-      });
-      setProductsList(updatedProducts);
+    try {
+      await api.post(`/api/v1/orders/${selectedTrackOrder.id}/cancel`, { reason: cancelReason });
+      await refreshOrdersAndCatalog();
+      triggerNotification("Order cancelled. Eligible stock restoration was handled by the backend.");
+      setShowCancelRequestModal(false);
+      setCancelReason("");
+    } catch (err) {
+      triggerNotification(err instanceof Error ? err.message : "Failed to cancel order.");
     }
-
-    triggerNotification(`Order successfully cancelled. In-stock levels auto-restored inside catalog inventory pool.`);
-    setShowCancelRequestModal(false);
-    setCancelReason("");
   };
 
   // Submit refund request (Customer flow)
-  const handleCustomerRefund = (e: React.FormEvent) => {
+  const handleCustomerRefund = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!refundReason.trim()) {
       triggerNotification("Please fill in why you are claiming a refund.");
@@ -279,22 +240,18 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
     }
     if (!selectedTrackOrder) return;
 
-    const updated = orders.map(o => {
-      if (o.id === selectedTrackOrder.id) {
-        return {
-          ...o,
-          status: "Refunded" as const,
-          refund_reason: refundReason,
-          refund_amount: o.total_price // Full refund default
-        };
-      }
-      return o;
-    });
-
-    setOrders(updated);
-    triggerNotification(`Order refund claim for ₹${selectedTrackOrder.total_price.toLocaleString("en-IN")} submitted and approved.`);
-    setShowRefundRequestModal(false);
-    setRefundReason("");
+    try {
+      await api.post(`/api/v1/orders/${selectedTrackOrder.id}/refund`, {
+        reason: refundReason,
+        refund_amount: tempRefundAmount ? Number(tempRefundAmount) : undefined
+      });
+      await refreshOrdersAndCatalog();
+      triggerNotification("Order refund recorded.");
+      setShowRefundRequestModal(false);
+      setRefundReason("");
+    } catch (err) {
+      triggerNotification(err instanceof Error ? err.message : "Failed to process refund.");
+    }
   };
 
   // Fast manual add item selection to order builder
@@ -338,7 +295,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
   };
 
   // Execute full client order generation
-  const handleCompileOrderCheckout = (e: React.FormEvent) => {
+  const handleCompileOrderCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!billingName.trim() || !billingAddress.trim()) {
       triggerNotification("Please define both standard recipient name and delivery address.");
@@ -349,60 +306,38 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
       return;
     }
 
-    // Calc financial totals
-    const totalWithDiscounts = selectedItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const mockDiscount = Math.floor(totalWithDiscounts * 0.1); // default 10% promo mock value
-    const finalBillValue = totalWithDiscounts - mockDiscount;
-
-    const invoiceOrder: Order = {
-      id: "ORD-" + Math.floor(1000 + Math.random() * 9000),
-      customer_name: billingName,
-      customer_email: billingEmail || "retail.buyer@outlook.com",
-      customer_phone: billingPhone || "+91 91100 22003",
-      shipping_address: billingAddress,
-      items: selectedItems,
-      total_price: finalBillValue,
-      discount_amount: mockDiscount,
-      status: "Pending",
-      notes: orderNotes,
-      created_at: new Date().toISOString().replace('T', ' ').substring(0, 16)
-    };
-
-    setOrders([invoiceOrder, ...orders]);
-
-    // ----------------------------------------------------
-    // CRITICAL: Reduce stock quantities automatically in React Product management context!
-    // ----------------------------------------------------
-    if (setProductsList && productsList && productsList.length > 0) {
-      const updatedCatalog = productsList.map(p => {
-        const itemLine = selectedItems.find(line => line.id === p.id);
-        if (itemLine) {
-          const rem = Math.max(0, (p.stockQuantity || 10) - itemLine.quantity);
-          // Alert prompt if hitting low stock boundaries
-          if (rem <= (p.lowStockThreshold || 4)) {
-            triggerNotification(`System Alert: "${p.name}" stock level fell below safety margin (${rem} in stock).`);
-          }
-          return {
-            ...p,
-            stockQuantity: rem
-          };
-        }
-        return p;
+    setIsSubmittingOrder(true);
+    try {
+      const items_json = JSON.stringify(selectedItems.map(item => ({
+        product_id: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price
+      })));
+      await api.post("/api/v1/orders", {
+        customer_name: billingName.trim(),
+        customer_email: billingEmail.trim() || "unknown@example.com",
+        customer_phone: billingPhone.trim() || null,
+        shipping_address: billingAddress.trim(),
+        items_json,
+        total_price: 0,
+        discount_amount: 0,
+        notes: orderNotes
       });
-      setProductsList(updatedCatalog);
+      triggerNotification("Order created. Backend calculated total and deducted stock.");
+      setBillingName("");
+      setBillingEmail("");
+      setBillingPhone("");
+      setBillingAddress("");
+      setOrderNotes("");
+      setSelectedItems([]);
+      setActiveTab("admin");
+      await refreshOrdersAndCatalog();
+    } catch (err) {
+      triggerNotification(err instanceof Error ? err.message : "Failed to create order.");
+    } finally {
+      setIsSubmittingOrder(false);
     }
-
-    // Success outcomes
-    triggerNotification(`Success! Verified Order #${invoiceOrder.id} compiled. Stock values adjusted down.`);
-    
-    // Clear form
-    setBillingName("");
-    setBillingEmail("");
-    setBillingPhone("");
-    setBillingAddress("");
-    setOrderNotes("");
-    setSelectedItems([]);
-    setActiveTab("admin");
   };
 
   // Calculation helpers for overall dashboard analysis Tab
@@ -1010,17 +945,16 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
                               {/* Manual direct cancellation fallback override */}
                               {o.status !== "Cancelled" && o.status !== "Refunded" && o.status !== "Delivered" && (
                                 <button
-                                  onClick={() => {
+                                  onClick={async () => {
                                     const reason = prompt("Enter manual cancellation reason tag:");
                                     if (reason) {
-                                      const updated = orders.map(ord => {
-                                        if (ord.id === o.id) {
-                                          return { ...ord, status: "Cancelled" as const, cancellation_reason: reason };
-                                        }
-                                        return ord;
-                                      });
-                                      setOrders(updated);
-                                      triggerNotification(`Order #${o.id} successfully cancelled by administrator.`);
+                                      try {
+                                        await api.post(`/api/v1/orders/${o.id}/cancel`, { reason });
+                                        await refreshOrdersAndCatalog();
+                                        triggerNotification(`Order #${o.id} cancelled by administrator.`);
+                                      } catch (err) {
+                                        triggerNotification(err instanceof Error ? err.message : "Failed to cancel order.");
+                                      }
                                     }
                                   }}
                                   className="w-full py-1.5 bg-[var(--bg-elevated)] border border-[var(--border)] hover:bg-red-500/10 hover:text-red-400 text-[var(--text)] font-extrabold text-[10.5px] rounded-xl transition-all cursor-pointer"
@@ -1032,17 +966,16 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
                               {/* Manual refundClaim for delivered fallback */}
                               {o.status === "Delivered" && (
                                 <button
-                                  onClick={() => {
+                                  onClick={async () => {
                                     const reason = prompt("Describe refund claim reason:");
                                     if (reason) {
-                                      const updated = orders.map(ord => {
-                                        if (ord.id === o.id) {
-                                          return { ...ord, status: "Refunded" as const, refund_reason: reason, refund_amount: ord.total_price };
-                                        }
-                                        return ord;
-                                      });
-                                      setOrders(updated);
-                                      triggerNotification(`Order #${o.id} successfully processed for full refund.`);
+                                      try {
+                                        await api.post(`/api/v1/orders/${o.id}/refund`, { reason });
+                                        await refreshOrdersAndCatalog();
+                                        triggerNotification(`Order #${o.id} refund recorded.`);
+                                      } catch (err) {
+                                        triggerNotification(err instanceof Error ? err.message : "Failed to refund order.");
+                                      }
                                     }
                                   }}
                                   className="w-full py-1.5 bg-[var(--bg-elevated)] border border-[var(--border)] hover:bg-purple-500/10 hover:text-purple-400 text-[var(--text)] font-extrabold text-[10.5px] rounded-xl transition-all cursor-pointer"

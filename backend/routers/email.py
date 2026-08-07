@@ -1,9 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, EmailStr
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from config import settings
+from auth.dependencies import get_current_active_user
+from models.user import User
 
 router = APIRouter(prefix="/api/email", tags=["email"])
 
@@ -35,7 +37,7 @@ def send_email_smtp(to_email: str, subject: str, html_body: str):
         server.sendmail(settings.SMTP_FROM_EMAIL, to_email, msg.as_string())
 
 @router.post("/subscription-confirmation")
-async def send_subscription_confirmation(req: SubscriptionEmailRequest):
+async def send_subscription_confirmation(req: SubscriptionEmailRequest, current_user: User = Depends(get_current_active_user)):
     html = f"""
     <!DOCTYPE html>
     <html>
@@ -170,7 +172,7 @@ async def send_subscription_confirmation(req: SubscriptionEmailRequest):
         return {"success": False, "error": str(e)}
 
 @router.post("/welcome")
-async def send_welcome_email(req: WelcomeEmailRequest):
+async def send_welcome_email(req: WelcomeEmailRequest, current_user: User = Depends(get_current_active_user)):
     html = f"""
     <!DOCTYPE html>
     <html>

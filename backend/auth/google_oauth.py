@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any
 from fastapi import HTTPException, status
 from pydantic import BaseModel
 from config import settings
+from urllib.parse import urlencode
 
 class GoogleUserSchema(BaseModel):
     email: str
@@ -12,7 +13,7 @@ class GoogleUserSchema(BaseModel):
 
 class GoogleOAuthService:
     @staticmethod
-    def get_authorization_url() -> str:
+    def get_authorization_url(state: Optional[str] = None) -> str:
         """
         Builds the secure redirects URI targeting Google's identity servers.
         """
@@ -25,7 +26,9 @@ class GoogleOAuthService:
             "access_type": "offline",
             "prompt": "consent"
         }
-        query_string = "&".join(f"{key}={value}" for key, value in params.items())
+        if state:
+            params["state"] = state
+        query_string = urlencode(params)
         return f"{base_url}?{query_string}"
 
     @staticmethod

@@ -430,21 +430,12 @@ export const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ onboardingData
   ]);
 
   // Api keys state
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([
-    { id: "key-1", name: "WhatsApp Chatbot Production Client", keyPrefix: "af_live_9fae1...", created: "2026-05-12", expires: "2027-05-12", status: "active" },
-    { id: "key-2", name: "Looker Studio Sandbox Node Token", keyPrefix: "af_sandbox_37bf2...", created: "2026-05-24", expires: "2026-11-24", status: "active" },
-    { id: "key-3", name: "Deprecated Zapier Webhook sync", keyPrefix: "af_live_211b5...", created: "2026-03-01", expires: "2026-09-01", status: "revoked" }
-  ]);
+  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
 
   // Webhook management state
-  const [webhookUrl, setWebhookUrl] = useState("https://api.yourcommerceserver.com/webhooks/autofy");
-  const [selectedEvents, setSelectedEvents] = useState<string[]>(["lead.captured", "payment.completed"]);
-  const [webhookLogs, setWebhookLogs] = useState<WebhookLog[]>([
-    { id: "log-1", timestamp: "2026-06-20 11:15:32", event: "payment.completed", url: "https://api.yourcommerceserver.com/webhooks/autofy", status: 200, latency: "142ms" },
-    { id: "log-2", timestamp: "2026-06-20 11:12:04", event: "lead.captured", url: "https://api.yourcommerceserver.com/webhooks/autofy", status: 200, latency: "98ms" },
-    { id: "log-3", timestamp: "2026-06-20 10:45:11", event: "appointment.booked", url: "https://api.yourcommerceserver.com/webhooks/autofy", status: 200, latency: "115ms" },
-    { id: "log-4", timestamp: "2026-06-20 09:30:18", event: "payment.completed", url: "https://api.yourcommerceserver.com/webhooks/autofy", status: 500, latency: "2100ms" }
-  ]);
+  const [webhookUrl, setWebhookUrl] = useState("");
+  const [selectedEvents, setSelectedEvents] = useState<string[]>([]);
+  const [webhookLogs, setWebhookLogs] = useState<WebhookLog[]>([]);
 
   // Live Workflow builder visual interactive state representation
   const [workflowNodes, setWorkflowNodes] = useState([
@@ -483,89 +474,23 @@ export const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ onboardingData
 
   // Core Connection trigger toggler handler
   const handleToggleConnection = (id: string) => {
-    setIntegrations((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          const newConnected = !item.connected;
-          const updatedStatus = newConnected ? "active" : "inactive";
-          const updatedHealth = newConnected ? 100 : 0;
-          const targetText = newConnected ? `Connected Integration successfully: ${item.name}` : `Disconnected Integration: ${item.name}`;
-          
-          triggerNotification(`[System] ${targetText}`);
-          
-          // Sync changes in open detail view if active too
-          if (selectedIntegration && selectedIntegration.id === id) {
-            setSelectedIntegration({
-              ...item,
-              connected: newConnected,
-              apiStatus: updatedStatus as any,
-              health: updatedHealth
-            });
-          }
-
-          return {
-            ...item,
-            connected: newConnected,
-            apiStatus: updatedStatus as any,
-            health: updatedHealth,
-            lastSync: newConnected ? "Just now" : "Never synced"
-          };
-        }
-        return item;
-      })
-    );
+    const target = integrations.find((item) => item.id === id);
+    triggerNotification(`${target?.name || "Integration"} requires provider setup and is not connected in this deployment.`);
   };
 
   // Rotate client key index flow handler
   const handleRotateKey = (keyId: string) => {
-    setApiKeys((prev) =>
-      prev.map((key) => {
-        if (key.id === keyId) {
-          const randHex = Math.random().toString(16).substring(2, 7);
-          triggerNotification(`[Security] Secure token rotated! Autofy backend compiled updated hash key client: af_live_${randHex}...`);
-          return {
-            ...key,
-            keyPrefix: `af_live_${randHex}...`,
-            created: new Date().toISOString().split("T")[0]
-          };
-        }
-        return key;
-      })
-    );
+    triggerNotification("API key rotation is unavailable until backend key management is implemented.");
   };
 
   // Revoke client key index flow handler
   const handleRevokeKey = (keyId: string) => {
-    setApiKeys((prev) =>
-      prev.map((key) => {
-        if (key.id === keyId) {
-          const isRevoked = key.status === "revoked";
-          const nextStatus = isRevoked ? "active" : "revoked";
-          triggerNotification(isRevoked ? `[Success] API Key Reactivated!` : `[Warning] API Key Revoked! Integrations utilizing this token will stop syncing.`);
-          return {
-            ...key,
-            status: nextStatus as any
-          };
-        }
-        return key;
-      })
-    );
+    triggerNotification("API key revocation is unavailable until backend key management is implemented.");
   };
 
   // Create new key
   const handleGenerateKey = () => {
-    const newId = `key-${Date.now()}`;
-    const randHex = Math.random().toString(16).substring(2, 7);
-    const newK: ApiKey = {
-      id: newId,
-      name: `External Client App - Token ${apiKeys.length + 1}`,
-      keyPrefix: `af_live_${randHex}...`,
-      created: new Date().toISOString().split("T")[0],
-      expires: "2027-06-20",
-      status: "active"
-    };
-    setApiKeys((prev) => [...prev, newK]);
-    triggerNotification("[Success] Created new secure API access key!");
+    triggerNotification("API key generation is unavailable until backend key management is implemented.");
   };
 
   // Toggle checklist webhook event

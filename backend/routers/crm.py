@@ -170,6 +170,7 @@ def create_crm_profile(
     return {"status": "success", "id": profile.id}
 
 @router.put("/profiles/{profile_id}", response_model=Dict[str, Any])
+@router.patch("/profiles/{profile_id}", response_model=Dict[str, Any])
 def update_crm_profile(
     profile_id: str,
     payload: Dict[str, Any],

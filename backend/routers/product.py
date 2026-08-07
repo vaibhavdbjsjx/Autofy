@@ -160,13 +160,6 @@ def create_product(
     """
     Create a new inventory product.
     """
-    # Enforce current user's business_id
-    if payload.business_id != current_user.business_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, 
-            detail="Forbidden: Cannot create a product for another organization."
-        )
-
     if payload.price < 0:
         raise HTTPException(status_code=400, detail="Invalid price: Product price cannot be negative.")
     if payload.stock < 0:

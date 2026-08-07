@@ -28,6 +28,7 @@ class TeamMemberResponseSchema(BaseModel):
     status: str
 
 @router.get("/members", response_model=List[TeamMemberResponseSchema])
+@router.get("", response_model=List[TeamMemberResponseSchema])
 def list_team_members(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)

@@ -1,5 +1,16 @@
 import pytest
 from fastapi.testclient import TestClient
+from urllib.parse import parse_qs, urlparse
+
+
+def _google_oauth_state(client: TestClient, monkeypatch) -> str:
+    monkeypatch.setattr("routers.auth.settings.GOOGLE_CLIENT_ID", "test-client-id")
+    monkeypatch.setattr("routers.auth.settings.GOOGLE_CLIENT_SECRET", "test-client-secret")
+    res = client.get("/api/v1/auth/google/authorize")
+    assert res.status_code == 200
+    query = parse_qs(urlparse(res.json()["authorization_url"]).query)
+    assert "state" in query
+    return query["state"][0]
 
 def test_health_check_endpoint(client: TestClient):
     response = client.get("/health")
@@ -75,19 +86,20 @@ def test_google_oauth_user_creation_and_isolation(client: TestClient, monkeypatc
     monkeypatch.setattr("auth.google_oauth.GoogleOAuthService.exchange_code_for_user_info", mock_google_a)
 
     # 1. Callback for Google Account A
-    res_a = client.get("/api/v1/auth/google/callback?code=code_a", follow_redirects=False)
+    state_a = _google_oauth_state(client, monkeypatch)
+    res_a = client.get(f"/api/v1/auth/google/callback?code=code_a&state={state_a}", follow_redirects=False)
     assert res_a.status_code == 307
     location_a = res_a.headers["location"]
     assert "access_token=" in location_a
     assert "is_onboarded=false" in location_a
 
     # Extract Token A
-    from urllib.parse import parse_qs, urlparse
     parsed_a = parse_qs(urlparse(location_a).fragment)
     token_a = parsed_a["access_token"][0]
 
     # 2. Callback for Google Account B
-    res_b = client.get("/api/v1/auth/google/callback?code=code_b", follow_redirects=False)
+    state_b = _google_oauth_state(client, monkeypatch)
+    res_b = client.get(f"/api/v1/auth/google/callback?code=code_b&state={state_b}", follow_redirects=False)
     assert res_b.status_code == 307
     location_b = res_b.headers["location"]
     assert "access_token=" in location_b
@@ -126,8 +138,8 @@ def test_onboarding_completion_flow(client: TestClient, monkeypatch):
         )
     monkeypatch.setattr("auth.google_oauth.GoogleOAuthService.exchange_code_for_user_info", mock_google)
 
-    res = client.get("/api/v1/auth/google/callback?code=code_onboard", follow_redirects=False)
-    from urllib.parse import parse_qs, urlparse
+    state = _google_oauth_state(client, monkeypatch)
+    res = client.get(f"/api/v1/auth/google/callback?code=code_onboard&state={state}", follow_redirects=False)
     parsed = parse_qs(urlparse(res.headers["location"]).fragment)
     token = parsed["access_token"][0]
     headers = {"Authorization": f"Bearer {token}"}
@@ -162,8 +174,8 @@ def test_onboarding_backend_validation_rejection(client: TestClient, monkeypatch
         )
     monkeypatch.setattr("auth.google_oauth.GoogleOAuthService.exchange_code_for_user_info", mock_google)
 
-    res = client.get("/api/v1/auth/google/callback?code=code_invalid", follow_redirects=False)
-    from urllib.parse import parse_qs, urlparse
+    state = _google_oauth_state(client, monkeypatch)
+    res = client.get(f"/api/v1/auth/google/callback?code=code_invalid&state={state}", follow_redirects=False)
     parsed = parse_qs(urlparse(res.headers["location"]).fragment)
     token = parsed["access_token"][0]
     headers = {"Authorization": f"Bearer {token}"}
@@ -211,13 +223,154 @@ def test_email_collision_handling(client: TestClient, monkeypatch):
         )
     monkeypatch.setattr("auth.google_oauth.GoogleOAuthService.exchange_code_for_user_info", mock_google_collision)
 
-    sso_res = client.get("/api/v1/auth/google/callback?code=code_shared", follow_redirects=False)
+    state = _google_oauth_state(client, monkeypatch)
+    sso_res = client.get(f"/api/v1/auth/google/callback?code=code_shared&state={state}", follow_redirects=False)
     assert sso_res.status_code == 307
-    from urllib.parse import parse_qs, urlparse
     parsed = parse_qs(urlparse(sso_res.headers["location"]).fragment)
     token = parsed["access_token"][0]
-
     headers = {"Authorization": f"Bearer {token}"}
     me_res = client.get("/api/v1/auth/me", headers=headers).json()
     assert me_res["email"] == "shared_identity@gmail.com"
     assert me_res["name"] == "Collision User"
+
+def test_email_auth_normalizes_case_for_signup_login_and_duplicates(client: TestClient):
+    signup_res = client.post("/api/v1/auth/signup", json={
+        "name": "Case User",
+        "business_name": "Case Studio",
+        "email": "Case.User@Example.COM",
+        "password": "Password123!"
+    })
+    assert signup_res.status_code == 201
+
+    login_res = client.post("/api/v1/auth/login", json={
+        "email": "case.user@example.com",
+        "password": "Password123!"
+    })
+    assert login_res.status_code == 200
+
+    dup_res = client.post("/api/v1/auth/signup", json={
+        "name": "Duplicate Case User",
+        "business_name": "Duplicate Case Studio",
+        "email": "case.user@example.com",
+        "password": "Password123!"
+    })
+    assert dup_res.status_code == 409
+
+    headers = {"Authorization": f"Bearer {login_res.json()['access_token']}"}
+    me_res = client.get("/api/v1/auth/me", headers=headers)
+    assert me_res.status_code == 200
+    assert me_res.json()["email"] == "case.user@example.com"
+
+def test_google_oauth_state_is_required_validated_and_single_use(client: TestClient, monkeypatch, db_session):
+    from auth.google_oauth import GoogleUserSchema
+    from datetime import datetime, timedelta
+    from models.oauth_state import OAuthState
+
+    async def mock_google(code: str):
+        return GoogleUserSchema(
+            email="stateful_user@example.com",
+            name="Stateful User",
+            picture=None,
+            sub="sub_stateful_123"
+        )
+
+    monkeypatch.setattr("auth.google_oauth.GoogleOAuthService.exchange_code_for_user_info", mock_google)
+
+    missing_state = client.get("/api/v1/auth/google/callback?code=code_missing", follow_redirects=False)
+    assert missing_state.status_code == 400
+
+    mismatched_state = client.get("/api/v1/auth/google/callback?code=code_bad&state=attacker_state", follow_redirects=False)
+    assert mismatched_state.status_code == 400
+
+    state = _google_oauth_state(client, monkeypatch)
+    valid = client.get(f"/api/v1/auth/google/callback?code=code_good&state={state}", follow_redirects=False)
+    assert valid.status_code == 307
+    assert "access_token=" in valid.headers["location"]
+
+    replay = client.get(f"/api/v1/auth/google/callback?code=code_replay&state={state}", follow_redirects=False)
+    assert replay.status_code == 400
+
+    expired_value = "expired_state_for_test"
+    db_session.add(OAuthState(state=expired_value, provider="google", expires_at=datetime.utcnow() - timedelta(seconds=1)))
+    db_session.commit()
+    expired = client.get(f"/api/v1/auth/google/callback?code=code_expired&state={expired_value}", follow_redirects=False)
+    assert expired.status_code == 400
+
+def test_google_oauth_email_collision_is_case_insensitive(client: TestClient, monkeypatch):
+    from auth.google_oauth import GoogleUserSchema
+
+    signup_res = client.post("/api/v1/auth/signup", json={
+        "name": "Case Collision",
+        "business_name": "Case Collision Studio",
+        "email": "Owner.Collision@Example.com",
+        "password": "Password123!"
+    })
+    assert signup_res.status_code == 201
+
+    async def mock_google_collision(code: str):
+        return GoogleUserSchema(
+            email="owner.collision@example.com",
+            name="Case Collision SSO",
+            picture=None,
+            sub="sub_case_collision"
+        )
+
+    monkeypatch.setattr("auth.google_oauth.GoogleOAuthService.exchange_code_for_user_info", mock_google_collision)
+    state = _google_oauth_state(client, monkeypatch)
+    sso_res = client.get(f"/api/v1/auth/google/callback?code=code_case_collision&state={state}", follow_redirects=False)
+    assert sso_res.status_code == 307
+
+    parsed = parse_qs(urlparse(sso_res.headers["location"]).fragment)
+    token = parsed["access_token"][0]
+    me_res = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+    assert me_res.status_code == 200
+    assert me_res.json()["email"] == "owner.collision@example.com"
+
+def test_cross_account_onboarding_isolation(client: TestClient, monkeypatch):
+    """
+    Verify complete tenant isolation between two separate onboarding accounts.
+    Account A onboarding completions or values never leak into Account B.
+    """
+    from auth.google_oauth import GoogleUserSchema
+
+    async def mock_google_iso(code: str):
+        if code == "code_user_a":
+            return GoogleUserSchema(email="account_a@test.com", name="User A", picture=None, sub="sub_a_100")
+        return GoogleUserSchema(email="account_b@test.com", name="User B", picture=None, sub="sub_b_200")
+
+    monkeypatch.setattr("auth.google_oauth.GoogleOAuthService.exchange_code_for_user_info", mock_google_iso)
+
+    # 1. Login Account A via OAuth -> is_onboarded=False
+    state_a = _google_oauth_state(client, monkeypatch)
+    res_a = client.get(f"/api/v1/auth/google/callback?code=code_user_a&state={state_a}", follow_redirects=False)
+    parsed_a = parse_qs(urlparse(res_a.headers["location"]).fragment)
+    token_a = parsed_a["access_token"][0]
+    headers_a = {"Authorization": f"Bearer {token_a}"}
+
+    me_a = client.get("/api/v1/auth/me", headers=headers_a).json()
+    assert me_a["is_onboarded"] is False
+
+    # Account A completes onboarding with business "kv" and phone "8762326889"
+    complete_a = client.post("/api/v1/business/complete-onboarding", json={
+        "name": "kv",
+        "classification": "Coaching",
+        "phone": "8762326889"
+    }, headers=headers_a)
+    assert complete_a.status_code == 200
+
+    me_a_after = client.get("/api/v1/auth/me", headers=headers_a).json()
+    assert me_a_after["is_onboarded"] is True
+    assert me_a_after["business"]["name"] == "kv"
+
+    # 2. Login NEW Account B via OAuth without Account A logout
+    state_b = _google_oauth_state(client, monkeypatch)
+    res_b = client.get(f"/api/v1/auth/google/callback?code=code_user_b&state={state_b}", follow_redirects=False)
+    parsed_b = parse_qs(urlparse(res_b.headers["location"]).fragment)
+    token_b = parsed_b["access_token"][0]
+    headers_b = {"Authorization": f"Bearer {token_b}"}
+
+    me_b = client.get("/api/v1/auth/me", headers=headers_b).json()
+    # Account B MUST be a brand new tenant with is_onboarded=False
+    assert me_b["is_onboarded"] is False
+    assert me_b["business"]["id"] != me_a["business"]["id"]
+    assert me_b["business"]["name"] != "kv"

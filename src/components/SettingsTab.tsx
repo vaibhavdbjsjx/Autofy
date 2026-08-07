@@ -233,14 +233,12 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
   ]);
 
   // 7. DEVELOPER API CREDENTIALS STATES
-  const [primaryApiKey, setPrimaryApiKey] = useState("af_live_9fae15549887cd8c8db990");
+  const [primaryApiKey] = useState("No API key issued");
   const [showApiKey, setShowApiKey] = useState(false);
-  const [webhookSecret, setWebhookSecret] = useState("whsec_5464d1f2efac9ebb7c1c0");
+  const [webhookSecret] = useState("Not configured");
 
   const handleRegenerateApiKey = () => {
-    const randHex = Array.from({ length: 22 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-    setPrimaryApiKey(`af_live_${randHex}`);
-    triggerNotification(" Regenerated secure production API access key. Ensure client services compile new key!");
+    triggerNotification("Developer API key issuance is not enabled in this deployment.");
   };
 
   // 8. DANGER ZONE CONFIRMATION MODEL
@@ -1231,8 +1229,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
                   <div className="p-4 bg-[var(--bg-card)] bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-2xl space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider">Secret Production Key</span>
-                      <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-550/20 text-[9px] font-mono font-bold px-2 py-0.5 rounded-full uppercase">
-                        TLS Verified API Mode
+                      <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 text-[9px] font-mono font-bold px-2 py-0.5 rounded-full uppercase">
+                        Not Issued
                       </span>
                     </div>
 
@@ -1251,6 +1249,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
                       </button>
                     </div>
                     <p className="text-[9px] text-[var(--text-subtle)]">Provide this secret token during customized webhook or platform connections requests to authenticate clients.</p>
+                    <p className="text-[9px] text-amber-400">API credentials require a backend key-management service and are unavailable in this deployment.</p>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
@@ -1289,11 +1288,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
                     <p className="text-[var(--text)] font-mono mt-1 font-bold">{webhookSecret}</p>
                   </div>
                   <button
-                    onClick={() => {
-                      const randHex = Array.from({ length: 18 }, () => Math.floor(Math.random() * 16).toString(16)).join("");
-                      setWebhookSecret(`whsec_${randHex}`);
-                      triggerNotification(" Rotated outbound webhook secret. Ensure checksum handlers compile updated secret.");
-                    }}
+                    onClick={() => triggerNotification("Outbound webhook secrets are not enabled in this deployment.")}
                     className="p-2 px-3 text-[10.5px] font-bold text-[var(--text)] bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)] border border-[var(--border)] rounded-xl transition cursor-pointer shrink-0"
                   >
                     Rotate Secrets signature

@@ -11,80 +11,8 @@ import uuid
 router = APIRouter(prefix="/ai-training", tags=["AI Training Center"])
 
 def ensure_ai_seeds(db: Session, business_id: str):
-    # If no AI logs exist, seed a set of realistic logs
-    log_count = db.query(AILog).filter(AILog.business_id == business_id).count()
-    if log_count == 0:
-        seed_logs = [
-            AILog(
-                business_id=business_id,
-                user_query="Do you build custom titanium chambers for exhausts?",
-                ai_response="I'm sorry, we only stock stainless steel single-core silencers listed in our inventory.",
-                confidence=0.45,
-                status="raw",
-                is_failed_or_low_confidence=True
-            ),
-            AILog(
-                business_id=business_id,
-                user_query="Can I return my helmet if the size is too small?",
-                ai_response="I don't have information on the refund policy of our shop. Let me check with our manager.",
-                confidence=0.52,
-                status="raw",
-                is_failed_or_low_confidence=True
-            ),
-            AILog(
-                business_id=business_id,
-                user_query="What is the db level of Red Rooster for Meteor 350?",
-                ai_response="The Red Rooster Exhaust is designed inside standard government-approved db limits.",
-                confidence=0.88,
-                status="reviewed",
-                is_failed_or_low_confidence=False
-            ),
-            AILog(
-                business_id=business_id,
-                user_query="Are you open on Sundays for installation?",
-                ai_response="Our support team is active from 9 AM to 6 PM Monday through Friday. I cannot confirm weekend installs.",
-                confidence=0.38,
-                status="raw",
-                is_failed_or_low_confidence=True
-            ),
-        ]
-        db.add_all(seed_logs)
-        db.commit()
-
-    # Seed knowledge gaps if empty
-    gap_count = db.query(AIKnowledgeGap).filter(AIKnowledgeGap.business_id == business_id).count()
-    if gap_count == 0:
-        seed_gaps = [
-            AIKnowledgeGap(
-                business_id=business_id,
-                topic="Custom Titanium Fabrication",
-                unanswered_query="Do you build custom titanium chambers for exhausts?",
-                hit_count=14,
-                suggested_faq_question="Do you manufacture custom titanium exhaust pipes?",
-                suggested_faq_answer="We specialize in premium stainless steel slip-ons but can arrange titanium custom works via advanced pre-orders. Contact our custom lab desk.",
-                status="detected"
-            ),
-            AIKnowledgeGap(
-                business_id=business_id,
-                topic="Weekend Fitting Lab Hours",
-                unanswered_query="Are you open on Sundays for installation?",
-                hit_count=9,
-                suggested_faq_question="Can I book custom exhaust fitting on weekends?",
-                suggested_faq_answer="Our mechanic workshop operates 10:00 AM to 5:00 PM on Saturdays. Sundays are closed except by exclusive club appointments.",
-                status="detected"
-            ),
-            AIKnowledgeGap(
-                business_id=business_id,
-                topic="International Customs Carrier Duties",
-                unanswered_query="Do you ship to UAE and handle duty clearance?",
-                hit_count=6,
-                suggested_faq_question="Do you ship to international regions?",
-                suggested_faq_answer="Yes, we support global shipping via DHL Express. Buyers are responsible for localized import customs clearances.",
-                status="detected"
-            )
-        ]
-        db.add_all(seed_gaps)
-        db.commit()
+    # No-op: Do not auto-seed fake logs or knowledge gaps for production accounts
+    pass
 
 @router.get("/logs", response_model=Dict[str, Any])
 def get_ai_logs(

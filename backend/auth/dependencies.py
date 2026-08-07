@@ -90,3 +90,31 @@ def require_live_entitlement(
             detail="Live operation requires an active subscription or active 7-day free trial. Please start a trial or upgrade your plan."
         )
     return current_user
+
+class FeatureChecker:
+    """
+    Server-side feature entitlement dependency.
+    Validates that caller's active plan includes permission for feature_name (e.g. 'custom_rag', 'appointments_booking').
+    """
+    def __init__(self, feature_name: str):
+        self.feature_name = feature_name
+
+    def __call__(
+        self,
+        current_user: User = Depends(get_current_active_user),
+        db: Session = Depends(get_db)
+    ) -> User:
+        from services.entitlement_services import EntitlementService
+        sub_state = EntitlementService.evaluate_subscription_state(db, current_user.business_id)
+        if not sub_state.get("is_live_accessible", False):
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail="Live operation requires an active subscription or active 7-day free trial."
+            )
+        entitlements = sub_state.get("entitlements", {})
+        if not entitlements.get(self.feature_name, True):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"The feature '{self.feature_name}' is not included in your current {sub_state.get('plan_name')}. Please upgrade your plan to unlock."
+            )
+        return current_user

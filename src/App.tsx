@@ -14,7 +14,13 @@ import { PrivacyPolicy, TermsOfService, RefundPolicy, ContactUs } from "./compon
 import { PublicAccountDeletionPage } from "./components/PublicAccountDeletionPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { INITIAL_ONBOARDING_DATA, OnboardingData } from "./types";
-import { signOut, completeOAuthLogin } from "./lib/auth";
+import { getCurrentUser, signOut, completeOAuthLogin, AuthUser } from "./lib/auth";
+import {
+  loadTenantOnboardingData,
+  saveTenantOnboardingData,
+  clearTenantOnboardingData,
+  purgeLegacyOnboardingKeys
+} from "./lib/onboardingStorage";
 import { useTheme } from "./context/ThemeContext";
 import { fadeUp, scaleIn, staggerContainer } from "./lib/motionVariants";
 import {
@@ -1129,11 +1135,11 @@ function PricingSection() {
   const [usd, setUsd] = useState(false);
 
   const plans = [
-    { name: "Starter", priceINR: 999, priceUSD: 12, features: ["1 WhatsApp number", "500 AI replies/mo", "Lead capture", "Basic analytics", "Email support"],
+    { name: "Starter Plan", priceINR: 999, priceUSD: 12, features: ["Up to 1,000 Messages / mo", "Standard AI Response Speed", "Basic WhatsApp Integration", "Manual Lead Export", "Email Support"],
       accent: "#3B82F6", popular: false },
-    { name: "Growth", priceINR: 2499, priceUSD: 29, features: ["3 WhatsApp numbers", "Unlimited AI replies", "CRM & lead scoring", "UPI + card payments", "Priority support", "Custom AI persona"],
+    { name: "Pro Business Plan", priceINR: 2499, priceUSD: 29, features: ["Unlimited WhatsApp Messages", "24/7 Autonomous AI Employee", "Instant Live RAG Sync", "Auto Appointment & Booking", "UPI & Online Payment Links", "VIP Priority Support"],
       accent: "#8B5CF6", popular: true },
-    { name: "Enterprise", priceINR: 5999, priceUSD: 69, features: ["Unlimited numbers", "Unlimited everything", "White-label option", "API access", "Dedicated account manager", "Custom integrations", "SLA guarantee"],
+    { name: "Enterprise Plan", priceINR: 4999, priceUSD: 59, features: ["Everything in Pro +", "Custom Fine-tuned LLM Model", "Multi-Number WhatsApp Sync", "Dedicated Account Manager", "99.9% Uptime Guarantee SLA"],
       accent: "#F59E0B", popular: false },
   ];
 
@@ -1519,31 +1525,47 @@ function OAuthCallback() {
 // ════════════════════════════════════════════════════════════
 // MAIN APP — React Router
 // ════════════════════════════════════════════════════════════
-const ONBOARDING_STORAGE_KEY = "autofy-onboarding-data";
-
-function loadOnboardingData(): OnboardingData {
-  try {
-    const saved = localStorage.getItem(ONBOARDING_STORAGE_KEY);
-    if (saved) return { ...INITIAL_ONBOARDING_DATA, ...JSON.parse(saved) };
-  } catch {
-    /* corrupt/unavailable storage — fall back to defaults */
-  }
-  return INITIAL_ONBOARDING_DATA;
-}
-
 export default function App() {
-  // Hydrate from localStorage so onboarding progress survives the full-page
-  // reloads that navigation (window.location.href) triggers. Without this the
-  // Dashboard always received the empty INITIAL_ONBOARDING_DATA.
-  const [onboardingData, setOnboardingData] = useState<OnboardingData>(loadOnboardingData);
-
-  useEffect(() => {
+  const location = useLocation();
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
     try {
-      localStorage.setItem(ONBOARDING_STORAGE_KEY, JSON.stringify(onboardingData));
+      const raw = localStorage.getItem("autofy-user");
+      return raw ? (JSON.parse(raw) as AuthUser) : null;
     } catch {
-      /* storage unavailable — non-fatal */
+      return null;
     }
-  }, [onboardingData]);
+  });
+
+  // Track active authenticated business_id
+  const businessId = currentUser?.business_id;
+
+  const [onboardingData, setOnboardingData] = useState<OnboardingData>(() => {
+    return loadTenantOnboardingData(businessId);
+  });
+
+  // Re-sync user session & re-hydrate tenant-scoped onboarding draft on route change or business switch
+  useEffect(() => {
+    purgeLegacyOnboardingKeys();
+    getCurrentUser().then(({ user }) => {
+      setCurrentUser(user);
+      const activeBiz = user?.business_id;
+      const dataForBiz = loadTenantOnboardingData(activeBiz);
+      setOnboardingData(dataForBiz);
+    });
+  }, [location.pathname]);
+
+  // Persist onboarding draft strictly under autofy-onboarding-data:<business_id>
+  useEffect(() => {
+    if (businessId) {
+      saveTenantOnboardingData(businessId, onboardingData);
+    }
+  }, [businessId, onboardingData]);
+
+  const handleFinishOnboarding = (d: OnboardingData) => {
+    clearTenantOnboardingData(businessId);
+    setOnboardingData(INITIAL_ONBOARDING_DATA);
+    window.location.href = "/dashboard";
+  };
 
   return (
     <ErrorBoundary>
@@ -1562,9 +1584,9 @@ export default function App() {
           <ProtectedRoute requireUnonboarded>
             <OnboardingWizard
               initialData={onboardingData}
-              onComplete={(d) => { setOnboardingData(d); window.location.href = "/dashboard"; }}
-              onOpenDashboard={(d) => { setOnboardingData(d); window.location.href = "/dashboard"; }}
-              onTestAssistant={(d) => { setOnboardingData(d); window.location.href = "/dashboard"; }}
+              onComplete={handleFinishOnboarding}
+              onOpenDashboard={handleFinishOnboarding}
+              onTestAssistant={handleFinishOnboarding}
               onBackToHome={() => { window.location.href = "/"; }}
             />
           </ProtectedRoute>

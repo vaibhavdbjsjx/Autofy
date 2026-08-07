@@ -46,6 +46,7 @@ class BusinessResponseSchema(BaseModel):
     config_confidence_threshold: float
 
 @router.get("/profile", response_model=BusinessResponseSchema)
+@router.get("/me", response_model=BusinessResponseSchema)
 def get_business_profile(
     current_user: User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
@@ -62,6 +63,8 @@ def get_business_profile(
     return business
 
 @router.put("/profile", response_model=BusinessResponseSchema)
+@router.put("/update-profile", response_model=BusinessResponseSchema)
+@router.patch("/profile", response_model=BusinessResponseSchema)
 def update_business_profile(
     payload: BusinessUpdateSchema,
     current_user: User = Depends(RoleChecker(["Owner", "Admin"])),

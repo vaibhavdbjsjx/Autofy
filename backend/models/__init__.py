@@ -19,6 +19,7 @@ from models.marketing import Campaign, BroadcastMessage
 from models.support_ticket import SupportTicket, TicketHistory
 from models.subscription import Subscription
 from models.appointment import Appointment
+from models.oauth_state import OAuthState
 
 __all__ = [
     "Base", 
@@ -45,6 +46,6 @@ __all__ = [
     "SupportTicket",
     "TicketHistory",
     "Subscription",
-    "Appointment"
+    "Appointment",
+    "OAuthState"
 ]
-

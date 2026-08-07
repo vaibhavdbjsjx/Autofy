@@ -1,19 +1,54 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
+import secrets
 from typing import Optional
 from urllib.parse import urlencode
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import RedirectResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr, Field
 from config import settings
 from database import get_db
 from models.user import User
 from models.business import Business
+from models.oauth_state import OAuthState
 from auth.security import get_password_hash, verify_password, create_access_token
 from auth.google_oauth import GoogleOAuthService
 from auth.dependencies import get_current_active_user
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+
+OAUTH_STATE_TTL_SECONDS = 600
+
+
+def _normalize_email(email: str) -> str:
+    return str(email).strip().lower()
+
+
+def _create_oauth_state(db: Session) -> str:
+    state = secrets.token_urlsafe(32)
+    now = datetime.utcnow()
+    expires_at = now + timedelta(seconds=OAUTH_STATE_TTL_SECONDS)
+    db.query(OAuthState).filter(OAuthState.expires_at <= now).delete(synchronize_session=False)
+    db.add(OAuthState(state=state, provider="google", expires_at=expires_at))
+    db.commit()
+    return state
+
+
+def _consume_oauth_state(db: Session, state: Optional[str]) -> bool:
+    if not state:
+        return False
+    now = datetime.utcnow()
+    row = db.query(OAuthState).filter(
+        OAuthState.state == state,
+        OAuthState.provider == "google"
+    ).first()
+    if not row:
+        return False
+    is_valid = row.expires_at > now
+    db.delete(row)
+    db.commit()
+    return is_valid
 
 # Inbound Request Schemas
 class SignupRequest(BaseModel):
@@ -41,7 +76,8 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     and binds the initial corporate workspace Owner User account parameters.
     """
     # 1. Block existing email registrations
-    existing_user = db.query(User).filter(User.email == payload.email).first()
+    normalized_email = _normalize_email(payload.email)
+    existing_user = db.query(User).filter(func.lower(User.email) == normalized_email).first()
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -51,7 +87,7 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     # 2. Persist Business properties in a clean transactional unit
     new_business = Business(
         name=payload.business_name,
-        email=payload.email,
+        email=normalized_email,
         phone=payload.phone,
         is_onboarded=False
     )
@@ -63,7 +99,7 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     new_owner = User(
         business_id=new_business.id,
         name=payload.name,
-        email=payload.email,
+        email=normalized_email,
         password_hash=hashed_pwd,
         role="Owner",
         status="Active"
@@ -93,7 +129,8 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     """
     Core sign-in gateway verifying salted credentials and returning valid signed JWTs.
     """
-    user = db.query(User).filter(User.email == payload.email).first()
+    normalized_email = _normalize_email(payload.email)
+    user = db.query(User).filter(func.lower(User.email) == normalized_email).first()
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -122,7 +159,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     )
 
 @router.get("/google/authorize")
-def google_authorize():
+def google_authorize(db: Session = Depends(get_db)):
     """
     Exposes the Google OAuth2 OpenID Connect permission redirect URI.
 
@@ -135,7 +172,8 @@ def google_authorize():
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Google sign-in isn't configured yet. Please sign up with email, or add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the backend .env.",
         )
-    redirect_url = GoogleOAuthService.get_authorization_url()
+    state = _create_oauth_state(db)
+    redirect_url = GoogleOAuthService.get_authorization_url(state=state)
     return {"authorization_url": redirect_url}
 
 def _frontend_redirect(path: str, params: dict) -> RedirectResponse:
@@ -148,12 +186,18 @@ def _frontend_redirect(path: str, params: dict) -> RedirectResponse:
 
 
 @router.get("/google/callback")
-async def google_callback(code: str, db: Session = Depends(get_db)):
+async def google_callback(code: str, state: Optional[str] = Query(None), db: Session = Depends(get_db)):
     """
     Receives Google's code exchange parameter, verifies sub-id credentials,
     re-fetches active User account profiles, or registers brand new tenants,
     then redirects the browser back to the SPA with a signed session token.
     """
+    if not _consume_oauth_state(db, state):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid or expired Google OAuth state.",
+        )
+
     try:
         google_profile = await GoogleOAuthService.exchange_code_for_user_info(code)
     except HTTPException as exc:
@@ -161,14 +205,15 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
         return _frontend_redirect("/login", {"auth_error": str(exc.detail)})
 
     # Check if this third-party user already possesses an active Autofy profile
-    user = db.query(User).filter(User.email == google_profile.email).first()
+    normalized_email = _normalize_email(google_profile.email)
+    user = db.query(User).filter(func.lower(User.email) == normalized_email).first()
 
     if not user:
         # Create a new Business workspace and Active User dynamically if not found (Needs onboarding)
         # We do NOT set default fallback strings like "Studio Suite" — business name must come from onboarding.
         new_business = Business(
             name=google_profile.name or "New Business",
-            email=google_profile.email,
+            email=normalized_email,
             is_onboarded=False
         )
         db.add(new_business)
@@ -178,8 +223,8 @@ async def google_callback(code: str, db: Session = Depends(get_db)):
         dummy_pwd = get_password_hash(f"sso_google_{google_profile.sub}_auth_safe_2026")
         user = User(
             business_id=new_business.id,
-            name=google_profile.name or google_profile.email.split("@")[0],
-            email=google_profile.email,
+            name=google_profile.name or normalized_email.split("@")[0],
+            email=normalized_email,
             password_hash=dummy_pwd,
             role="Owner",
             status="Active"

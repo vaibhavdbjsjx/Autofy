@@ -28,6 +28,7 @@ import {
   Sparkles
 } from "lucide-react";
 import { OnboardingData } from "../types";
+import { api } from "../lib/api";
 
 interface ProductItem {
   id: string;
@@ -56,116 +57,41 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
   setProductsList: syncBackProducts,
   triggerNotification
 }) => {
-  // Base state with pre-populated, highly realistic Royal Enfield exhausts & accessories products
-  const [products, setProducts] = useState<ProductItem[]>([
-    {
-      id: "p-1",
-      name: "AEW Exhaust for Classic 350",
-      category: "Exhausts",
-      price: 6500,
-      discount_percent: 10,
-      discount_price: 5850,
-      stock: 12,
-      low_stock_threshold: 4,
-      image_url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=600&auto=format&fit=crop",
-      additional_images: "https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?q=80&w=400&auto=format",
-      description: "Premium stainless steel free-flow exhaust. Delivers the signature Royal Enfield rumble safely with a removable dB killer.",
-      variants: "Color: Polished Chrome, Matte Black; Fitting: Classic 350, Bullet 350",
-      is_available: true
-    },
-    {
-      id: "p-2",
-      name: "Red Rooster Performance Exhaust",
-      category: "Exhausts",
-      price: 7200,
-      discount_percent: 15,
-      discount_price: 6120,
-      stock: 8,
-      low_stock_threshold: 3,
-      image_url: "https://images.unsplash.com/photo-1599819811279-d5ad9cccf838?q=80&w=600&auto=format&fit=crop",
-      additional_images: "",
-      description: "High-grade ceramic wool packed exhaust tube supplying optimum backpressure and 10% horse-power enhancements.",
-      variants: "Finish: Brushed Aluminum, Gloss Chrome",
-      is_available: true
-    },
-    {
-      id: "p-3",
-      name: "Gursewak Custom Exhaust Core",
-      category: "Exhausts",
-      price: 4800,
-      discount_percent: 0,
-      discount_price: 4800,
-      stock: 0, // Out of stock to test alternative recommendations flow
-      low_stock_threshold: 2,
-      image_url: "https://images.unsplash.com/photo-1609109238936-391f251d7350?q=80&w=600&auto=format&fit=crop",
-      additional_images: "",
-      description: "Authentic retro brass custom exhaust with extreme rumble profile for twin-spark Royal Enfield models.",
-      variants: "Tone: Ultra Thump, Matte Thump",
-      is_available: true
-    },
-    {
-      id: "p-4",
-      name: "Carbon Dual-Ring Riding Gloves",
-      category: "Accessories",
-      price: 2400,
-      discount_percent: 0,
-      discount_price: 2400,
-      stock: 3, // Low stock state
-      low_stock_threshold: 5,
-      image_url: "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?q=80&w=600&auto=format&fit=crop",
-      additional_images: "",
-      description: "Touchscreen responsive premium leather riding gloves with carbon fiber knuckles shield.",
-      variants: "Size: M, L, XL; Color: Desert Brown, Stealth Black",
-      is_available: true
-    },
-    {
-      id: "p-5",
-      name: "Stealth Knight Full Face Helmet",
-      category: "Accessories",
-      price: 4500,
-      discount_percent: 20,
-      discount_price: 3600,
-      stock: 14,
-      low_stock_threshold: 3,
-      image_url: "https://images.unsplash.com/photo-1599819811279-d5ad9cccf838?q=80&w=600&auto=format&fit=crop",
-      additional_images: "",
-      description: "ISO Certified aerodynamic motorcycle helmet featuring dual peak visor protection and anti-fog ventilation layers.",
-      variants: "Size: L, XL; Finish: Matte Charcoal, Neon Yellow",
-      is_available: true
-    }
-  ]);
+  const [products, setProducts] = useState<ProductItem[]>([]);
+  const [isLoadingProducts, setIsLoadingProducts] = useState(true);
+  const [isSavingProduct, setIsSavingProduct] = useState(false);
 
-  // Sync state if products are managed globally
-  useEffect(() => {
-    if (initialProducts && initialProducts.length > 0) {
-      // Map basic dashboard mock objects to high fidelity properties if needed
-      const mapped = initialProducts.map(ip => {
-        const found = products.find(p => p.id === ip.id);
-        if (found) return { ...found, stock: ip.stockQuantity !== undefined ? ip.stockQuantity : found.stock };
-        return {
-          id: ip.id || "p-" + Math.random(),
-          name: ip.name || "Custom Item",
-          category: ip.category || "General",
-          price: typeof ip.price === 'string' ? parseFloat(ip.price.replace(/[^\d.]/g, '')) || 500 : ip.price || 500,
-          discount_percent: 0,
-          discount_price: typeof ip.price === 'string' ? parseFloat(ip.price.replace(/[^\d.]/g, '')) || 500 : ip.price || 500,
-          stock: ip.stockQuantity !== undefined ? ip.stockQuantity : 10,
-          low_stock_threshold: 4,
-          image_url: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=600&auto=format&fit=crop",
-          additional_images: "",
-          description: ip.description || "Synthesized item details.",
-          variants: "Standard type",
-          is_available: ip.isAvailable !== undefined ? ip.isAvailable : true
-        };
-      });
-      // Prevent infinite loops by comparing keys and sizes
-      const hash1 = products.map(p => p.id + p.stock).join(",");
-      const hash2 = mapped.map(p => p.id + p.stock).join(",");
-      if (hash1 !== hash2) {
-        setProducts(mapped);
-      }
+  const normalizeProduct = (item: any): ProductItem => ({
+    id: item.id,
+    name: item.name || "",
+    category: item.category || "General",
+    price: Number(item.price || 0),
+    discount_percent: Number(item.discount_percent || 0),
+    discount_price: Number(item.discount_price || 0),
+    stock: Number(item.stock || 0),
+    low_stock_threshold: Number(item.low_stock_threshold || 5),
+    image_url: item.image_url || "",
+    additional_images: item.additional_images || "",
+    description: item.description || "",
+    variants: item.variants || "",
+    is_available: item.is_available !== false
+  });
+
+  const fetchProducts = async () => {
+    setIsLoadingProducts(true);
+    try {
+      const res = await api.get<{ items: any[] }>("/api/v1/products");
+      handlePropagateChange((res.items || []).map(normalizeProduct));
+    } catch (err) {
+      triggerNotification(err instanceof Error ? err.message : "Failed to load inventory.");
+    } finally {
+      setIsLoadingProducts(false);
     }
-  }, [initialProducts]);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   // State sync back is propagated gently
   const handlePropagateChange = (newProducts: ProductItem[]) => {
@@ -246,7 +172,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
   };
 
   // Save/Edit product submission
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formPrice.trim() || !formStock.trim()) {
       triggerNotification("Please fill in the required fields (Name, Price, and Stock).");
@@ -256,92 +182,76 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
     const priceNum = parseFloat(formPrice) || 0;
     const discountPctNum = parseInt(formDiscountPercent) || 0;
     const computedDiscountPrice = priceNum - (priceNum * (discountPctNum / 100));
+    const payload = {
+      name: formName.trim(),
+      category: formCategory,
+      price: priceNum,
+      discount_percent: discountPctNum,
+      discount_price: computedDiscountPrice,
+      stock: parseInt(formStock) || 0,
+      low_stock_threshold: parseInt(formLowStockThreshold) || 5,
+      image_url: formImageUrl.trim() || null,
+      additional_images: formAdditionalImages,
+      description: formDescription,
+      variants: formVariants,
+      is_available: formIsAvailable
+    };
 
-    if (editingProduct) {
-      // Modify
-      const updated = products.map(p => {
-        if (p.id === editingProduct.id) {
-          return {
-            ...p,
-            name: formName,
-            category: formCategory,
-            price: priceNum,
-            discount_percent: discountPctNum,
-            discount_price: computedDiscountPrice,
-            stock: parseInt(formStock) || 0,
-            low_stock_threshold: parseInt(formLowStockThreshold) || 3,
-            image_url: formImageUrl || "https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=600&auto=format&fit=crop",
-            additional_images: formAdditionalImages,
-            description: formDescription,
-            variants: formVariants,
-            is_available: formIsAvailable
-          };
-        }
-        return p;
-      });
-      handlePropagateChange(updated);
-      triggerNotification(`Product "${formName}" updated successfully.`);
-    } else {
-      // Create new
-      const newProduct: ProductItem = {
-        id: "p-" + Date.now(),
-        name: formName,
-        category: formCategory,
-        price: priceNum,
-        discount_percent: discountPctNum,
-        discount_price: computedDiscountPrice,
-        stock: parseInt(formStock) || 0,
-        low_stock_threshold: parseInt(formLowStockThreshold) || 5,
-        image_url: formImageUrl || "https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=600&auto=format&fit=crop",
-        additional_images: formAdditionalImages,
-        description: formDescription,
-        variants: formVariants,
-        is_available: formIsAvailable
-      };
-      handlePropagateChange([newProduct, ...products]);
-      triggerNotification(`Product "${formName}" added to inventory.`);
+    setIsSavingProduct(true);
+    try {
+      if (editingProduct) {
+        await api.put(`/api/v1/products/${editingProduct.id}`, payload);
+        triggerNotification(`Product "${formName}" updated successfully.`);
+      } else {
+        await api.post("/api/v1/products", payload);
+        triggerNotification(`Product "${formName}" added to inventory.`);
+      }
+      setManagementModalOpen(false);
+      await fetchProducts();
+    } catch (err) {
+      triggerNotification(err instanceof Error ? err.message : "Failed to save product.");
+    } finally {
+      setIsSavingProduct(false);
     }
-    setManagementModalOpen(false);
   };
 
   // Stock counts adjusters
-  const handleQuickAdjustStock = (pId: string, amount: number) => {
-    const updated = products.map(p => {
-      if (p.id === pId) {
-        const value = p.stock + amount;
-        return { ...p, stock: value < 0 ? 0 : value };
+  const handleQuickAdjustStock = async (pId: string, amount: number) => {
+    try {
+      const item = normalizeProduct(await api.post(`/api/v1/products/${pId}/stock`, { quantity: amount }));
+      handlePropagateChange(products.map(p => p.id === pId ? item : p));
+      if (item.stock <= item.low_stock_threshold && amount < 0) {
+        triggerNotification(`Low Stock Alert: "${item.name}" has only ${item.stock} units remaining.`);
+      } else {
+        triggerNotification("Stock quantity updated.");
       }
-      return p;
-    });
-    handlePropagateChange(updated);
-    
-    // Alert triggers if hitting critical levels
-    const item = updated.find(p => p.id === pId);
-    if (item && item.stock <= item.low_stock_threshold && amount < 0) {
-      triggerNotification(`Low Stock Alert: "${item.name}" has only ${item.stock} units remaining.`);
-    } else {
-      triggerNotification("Stock quantity updated.");
+    } catch (err) {
+      triggerNotification(err instanceof Error ? err.message : "Failed to update stock.");
     }
   };
 
   // Availability swapper
-  const handleToggleAvailability = (pId: string) => {
-    const updated = products.map(p => {
-      if (p.id === pId) {
-        return { ...p, is_available: !p.is_available };
-      }
-      return p;
-    });
-    handlePropagateChange(updated);
-    const item = updated.find(p => p.id === pId);
-    triggerNotification(`"${item?.name}" is now marked ${item?.is_available ? "Online" : "Offline"}.`);
+  const handleToggleAvailability = async (pId: string) => {
+    const current = products.find(p => p.id === pId);
+    if (!current) return;
+    try {
+      const item = normalizeProduct(await api.put(`/api/v1/products/${pId}`, { is_available: !current.is_available }));
+      handlePropagateChange(products.map(p => p.id === pId ? item : p));
+      triggerNotification(`"${item.name}" is now marked ${item.is_available ? "Online" : "Offline"}.`);
+    } catch (err) {
+      triggerNotification(err instanceof Error ? err.message : "Failed to update availability.");
+    }
   };
 
   // Delete product
-  const handleDeleteProduct = (pId: string, name: string) => {
-    const updated = products.filter(p => p.id !== pId);
-    handlePropagateChange(updated);
-    triggerNotification(`"${name}" removed from inventory.`);
+  const handleDeleteProduct = async (pId: string, name: string) => {
+    try {
+      await api.del(`/api/v1/products/${pId}`);
+      handlePropagateChange(products.filter(p => p.id !== pId));
+      triggerNotification(`"${name}" removed from inventory.`);
+    } catch (err) {
+      triggerNotification(err instanceof Error ? err.message : "Failed to delete product.");
+    }
   };
 
   // Live simulation variables & scenarios
@@ -458,39 +368,7 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
 
   // Mock complete checkout reduce stock animation function
   const handleSimulatePurchase = (productId: string) => {
-    let selectedName = "";
-    const updated = products.map(p => {
-      if (p.id === productId) {
-        selectedName = p.name;
-        const remaining = p.stock - 1;
-        return { ...p, stock: remaining < 0 ? 0 : remaining };
-      }
-      return p;
-    });
-    handlePropagateChange(updated);
-    triggerNotification(`Purchase Mock Success! Automated stock level reduced by 1 unit for "${selectedName}".`);
-    
-    // Reflect immediate change in mock viewport messages
-    setSimMessages(prev => prev.map(msg => {
-      if (msg.mediaId === productId && msg.mediaStock !== undefined) {
-        return { ...msg, mediaStock: Math.max(0, msg.mediaStock - 1) };
-      }
-      return msg;
-    }));
-
-    // If alternatives recommendation purchase
-    setSimMessages(prev => prev.map(msg => {
-      if (msg.alternatives) {
-        const modifiedAlts = msg.alternatives.map(alt => {
-          if (alt.id === productId) {
-            return { ...alt, stock: Math.max(0, alt.stock - 1) };
-          }
-          return alt;
-        });
-        return { ...msg, alternatives: modifiedAlts };
-      }
-      return msg;
-    }));
+    triggerNotification("Sandbox purchase simulation is disabled in production. Create a real order from Orders to deduct stock.");
   };
 
   // Search filter logic applied

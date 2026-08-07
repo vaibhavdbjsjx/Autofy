@@ -157,12 +157,6 @@ def create_new_order(
     """
     Create a new order and AUTOMATICALLY reduce in-stock levels of associated products.
     """
-    if payload.business_id != current_user.business_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Forbidden: Cannot inject orders into another business domain."
-        )
-
     # 1. Parse items_json
     try:
         items_list = json.loads(payload.items_json)
@@ -177,7 +171,7 @@ def create_new_order(
     # 2. Authoritative price calculation & stock deduction
     calculated_total = Decimal("0.00")
     for item in items_list:
-        p_id = item.get("id")
+        p_id = item.get("id") or item.get("product_id")
         p_qty = int(item.get("quantity", 1))
         
         if p_qty <= 0:
@@ -282,6 +276,8 @@ def delete_order_completely(
     return
 
 @router.post("/{order_id}/status", response_model=OrderResponse)
+@router.patch("/{order_id}/status", response_model=OrderResponse)
+@router.put("/{order_id}/status", response_model=OrderResponse)
 def update_order_status(
     order_id: str,
     payload: OrderStatusUpdate,
@@ -346,7 +342,7 @@ def cancel_order(
         try:
             items_list = json.loads(db_order.items_json)
             for item in items_list:
-                p_id = item.get("id")
+                p_id = item.get("id") or item.get("product_id")
                 p_qty = int(item.get("quantity", 1))
                 if p_id:
                     prod = db.query(Product).filter(

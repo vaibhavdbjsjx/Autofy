@@ -72,6 +72,7 @@ def get_lead_by_id(
     return lead
 
 @router.put("/{lead_id}", response_model=LeadResponse)
+@router.patch("/{lead_id}", response_model=LeadResponse)
 def update_lead(
     lead_id: str,
     payload: LeadUpdate,
