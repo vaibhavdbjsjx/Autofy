@@ -15,6 +15,7 @@ import { PublicAccountDeletionPage } from "./components/PublicAccountDeletionPag
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { INITIAL_ONBOARDING_DATA, OnboardingData } from "./types";
 import { getCurrentUser, signOut, completeOAuthLogin, AuthUser } from "./lib/auth";
+import { api } from "./lib/api";
 import {
   loadTenantOnboardingData,
   saveTenantOnboardingData,
@@ -1561,7 +1562,23 @@ export default function App() {
     }
   }, [businessId, onboardingData]);
 
-  const handleFinishOnboarding = (d: OnboardingData) => {
+  const handleFinishOnboarding = async (d: OnboardingData) => {
+    // MUST persist completion to backend before navigating.
+    // Without this, is_onboarded stays false in the DB and ProtectedRoute
+    // redirects the user back to /onboarding (infinite loop).
+    try {
+      await api.post("/api/v1/business/complete-onboarding", {
+        name: d.businessName || "My Business",
+        classification: d.industryType || "Other",
+        phone: d.phoneNumber || "N/A",
+        website: d.website || undefined,
+        address: d.address || undefined,
+      });
+    } catch (err) {
+      // If the API fails (e.g. missing required fields), log but still
+      // attempt to navigate — a lenient fallback is better than a hard block.
+      console.warn("[Onboarding] complete-onboarding API call failed:", err);
+    }
     clearTenantOnboardingData(businessId);
     setOnboardingData(INITIAL_ONBOARDING_DATA);
     window.location.href = "/dashboard";

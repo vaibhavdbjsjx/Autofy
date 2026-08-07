@@ -32,8 +32,82 @@ import {
   Home,
   HelpCircle,
   ImagePlus,
-  ExternalLink
+  ExternalLink,
+  Wifi,
+  WifiOff
 } from "lucide-react";
+
+// ─── E.164 phone validation ────────────────────────────────────
+function validatePhone(raw: string): { ok: boolean; normalized: string; error: string } {
+  const stripped = raw.replace(/[\s\-()]/g, "");
+  if (!stripped.startsWith("+")) {
+    return { ok: false, normalized: "", error: "Please include the country code (e.g. +91 98765 43210)." };
+  }
+  const digitsOnly = stripped.slice(1).replace(/\D/g, "");
+  if (digitsOnly.length < 7 || digitsOnly.length > 15) {
+    return { ok: false, normalized: "", error: "Phone number must have 7\u201315 digits after the country code." };
+  }
+  if (/[a-zA-Z]/.test(raw)) {
+    return { ok: false, normalized: "", error: "Phone number must contain only digits, spaces, +, and hyphens." };
+  }
+  return { ok: true, normalized: stripped, error: "" };
+}
+
+// ─── Industry-aware knowledge placeholders ───────────────────
+type IndustryKey = "Gym" | "Salon" | "Clinic" | "Restaurant" | "Coaching" | "Retail" | "Real Estate" | "Other";
+const INDUSTRY_EXAMPLES: Record<IndustryKey, { services: string; memberships: string; faqs: string; policies: string }> = {
+  Gym: {
+    services: "Personal Training \u2014 \u20b92,500/month\n3-Month Gym Membership \u2014 \u20b94,500\nZumba Classes \u2014 \u20b91,200/month",
+    memberships: "1 Month AC \u2014 \u20b92,000\n3 Month AC \u2014 \u20b95,000\nYearly Non-AC \u2014 \u20b910,000",
+    faqs: "Q: Do you have a trial class?\nA: Yes, first class is free.\nQ: What are your timings?\nA: 5 AM \u2013 10 PM, all days.",
+    policies: "No refunds after 7 days of membership start.",
+  },
+  Salon: {
+    services: "Haircut (Ladies) \u2014 \u20b9300\u2013\u20b9800\nHair Colouring (Global) \u2014 \u20b92,000\nBridal Makeup Package \u2014 \u20b98,000",
+    memberships: "Monthly Skincare Plan \u2014 \u20b91,500\nBridal Prep Package (3 months) \u2014 \u20b912,000",
+    faqs: "Q: Do I need to book an appointment?\nA: Walk-ins welcome, but appointments preferred for bridal.\nQ: What brands do you use?\nA: L'Or\u00e9al Professional and Schwarzkopf.",
+    policies: "Advance booking required for bridal. 50% deposit is non-refundable.",
+  },
+  Clinic: {
+    services: "General Consultation \u2014 \u20b9500\nFollow-up \u2014 \u20b9300\nBlood Test Panel \u2014 \u20b91,200\nECG \u2014 \u20b9400",
+    memberships: "Annual Health Card \u2014 \u20b93,500 (includes 4 consultations + basic tests)",
+    faqs: "Q: Do you accept walk-ins?\nA: Yes, for general consultations.\nQ: What are your timings?\nA: Mon\u2013Sat, 9 AM \u2013 8 PM.",
+    policies: "Prescriptions valid for 30 days. No refunds for completed consultations.",
+  },
+  Restaurant: {
+    services: "Veg Thali \u2014 \u20b9180\nChicken Biryani \u2014 \u20b9250\nPaneer Butter Masala \u2014 \u20b9220\nParty Catering (30 pax) \u2014 \u20b99,000",
+    memberships: "Lunch Subscription (20 days) \u2014 \u20b92,800\nMonthly Tiffin Service \u2014 \u20b93,200",
+    faqs: "Q: Do you offer home delivery?\nA: Yes, within 5 km. Minimum order \u20b9200.\nQ: Can I pre-order for events?\nA: Yes, 48 hours in advance.",
+    policies: "Catering needs 30% advance. No cancellations within 24 hours of event.",
+  },
+  Coaching: {
+    services: "Mathematics (Std 10) \u2014 \u20b92,500/month\nScience Batch \u2014 \u20b92,000/month\nIIT-JEE Preparation \u2014 \u20b95,000/month",
+    memberships: "Annual Study Plan \u2014 \u20b924,000\nCrash Course (2 months) \u2014 \u20b98,000",
+    faqs: "Q: Are trial classes available?\nA: Yes, one free demo class per subject.\nQ: What are batch timings?\nA: Morning (6\u20138 AM), Evening (5\u20138 PM).",
+    policies: "No refunds after 10 days of joining. Transfer to another batch allowed once per year.",
+  },
+  Retail: {
+    services: "Product inquiry via WhatsApp\nCustom orders accepted\nBulk/wholesale pricing available on request",
+    memberships: "Loyalty Card \u2014 1 point per \u20b9100 spent\nPremium Member \u2014 10% off on all purchases",
+    faqs: "Q: Do you offer home delivery?\nA: Yes, within the city. COD available.\nQ: Return policy?\nA: 7-day return for unused items in original packaging.",
+    policies: "Damaged goods must be reported within 24 hours of delivery.",
+  },
+  "Real Estate": {
+    services: "Property Consultation \u2014 Free\nSite Visit Arrangement \u2014 Free\nResidential & Commercial Listings",
+    memberships: "Premium Listing Package \u2014 \u20b95,000/month",
+    faqs: "Q: Do you handle buying and renting?\nA: Yes, residential and commercial.\nQ: What documents are required?\nA: Aadhar, PAN, and income proof.",
+    policies: "Brokerage: 1\u20132% for purchase, 1 month rent for leasing.",
+  },
+  Other: {
+    services: "Service 1 \u2014 \u20b9XXX\nService 2 \u2014 \u20b9XXX\nConsultation \u2014 \u20b9XXX",
+    memberships: "Monthly Plan \u2014 \u20b9XXX\nAnnual Plan \u2014 \u20b9XXX",
+    faqs: "Q: What are your working hours?\nA: [Your hours here]\nQ: Do you offer home service?\nA: [Your answer here]",
+    policies: "[Your refund or cancellation policy here]",
+  },
+};
+function getIndustryExamples(industryType: string) {
+  return INDUSTRY_EXAMPLES[(industryType as IndustryKey)] || INDUSTRY_EXAMPLES["Other"];
+}
 import { OnboardingData } from "../types";
 
 interface OnboardingWizardProps {
@@ -62,8 +136,6 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
   const [data, setData] = useState<OnboardingData>(initialData);
   const [autoSavePulse, setAutoSavePulse] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [isConnectingWhatsapp, setIsConnectingWhatsapp] = useState(false);
-  const [, setWhatsappTimer] = useState<NodeJS.Timeout | null>(null);
   
   // Custom dropdown state
   const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
@@ -119,20 +191,30 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
         setStepError("Please enter your business phone number.");
         return;
       }
+      const phoneValidation = validatePhone(data.phoneNumber);
+      if (!phoneValidation.ok) {
+        setStepError(phoneValidation.error);
+        return;
+      }
+      // Store the E.164-normalized phone
+      updateField("phoneNumber", phoneValidation.normalized);
     } else if (currentStep === 2) {
       if (!data.knowledgeText.services.trim() && data.uploadedFiles.length === 0) {
         setStepError("Please enter your services or upload a document so Autofy can learn about your business.");
         return;
       }
     } else if (currentStep === 3) {
-      if (!data.whatsappNumber.trim()) {
-        setStepError("Please enter your WhatsApp Business number.");
-        return;
+      // WhatsApp step is OPTIONAL — validate format if provided, but never block
+      if (data.whatsappNumber.trim()) {
+        const waValidation = validatePhone(data.whatsappNumber);
+        if (!waValidation.ok) {
+          setStepError(waValidation.error);
+          return;
+        }
+        // Normalize if valid
+        updateField("whatsappNumber", waValidation.normalized);
       }
-      if (data.whatsappConnected !== "connected") {
-        setStepError("Please connect your WhatsApp number to proceed.");
-        return;
-      }
+      // Always allow advancing — WhatsApp Cloud API is configured later in Dashboard
     } else if (currentStep === 4) {
       if (!data.paymentMethod) {
         setStepError("Please select a payment method.");
@@ -164,21 +246,21 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
     }
   };
 
-  const handleConnectWhatsapp = () => {
+  // Save the WhatsApp number locally — truthful: does NOT connect Cloud API.
+  // "Connected" state only comes from the Dashboard WhatsApp Setup with real Meta credentials.
+  const handleSaveWhatsappNumber = () => {
     if (!data.whatsappNumber.trim()) {
-      setStepError("Please enter a WhatsApp number first.");
+      setStepError("Please enter a WhatsApp Business number first.");
+      return;
+    }
+    const validation = validatePhone(data.whatsappNumber);
+    if (!validation.ok) {
+      setStepError(validation.error);
       return;
     }
     setStepError("");
-    setIsConnectingWhatsapp(true);
-    updateField("whatsappConnected", "connecting");
-
-    const timer = setTimeout(() => {
-      setIsConnectingWhatsapp(false);
-      updateField("whatsappConnected", "connected");
-    }, 2800);
-
-    setWhatsappTimer(timer);
+    updateField("whatsappNumber", validation.normalized);
+    updateField("whatsappConnected", "number_saved");
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,13 +278,8 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
         size: (file.size / (1024 * 1024)).toFixed(2) + " MB",
         type: file.type || "application/pdf"
       };
-      
       updateField("uploadedFiles", [...data.uploadedFiles, newFile]);
       setIsUploading(false);
-      
-      if (file.name.toLowerCase().includes("menu") || file.name.toLowerCase().includes("pricing")) {
-        updateKnowledgeField("pricing", "Extracted from " + file.name + "\n1. Premium Package - ₹4,999\n2. Standard Package - ₹2,499");
-      }
     }, 1500);
   };
 
@@ -237,6 +314,18 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
     { label: "Real Estate", icon: <Home className="w-5 h-5" /> },
     { label: "Other", icon: <HelpCircle className="w-5 h-5" /> },
   ];
+
+  // Derived: industry examples for Step 2 placeholders
+  const industryExamples = getIndustryExamples(data.industryType);
+
+  // Derived: WhatsApp state
+  // number_saved = user typed a number and validated it during onboarding
+  // connected = real Meta Cloud API connection (only set by Dashboard/backend)
+  const whatsappNumberSaved = data.whatsappConnected === "number_saved" || data.whatsappConnected === "connected";
+  const whatsappGenuinelyConnected = data.whatsappConnected === "connected";
+
+  // Knowledge is ready if at least services text or a file exists
+  const knowledgeReady = data.knowledgeText.services.trim().length > 0 || data.uploadedFiles.length > 0;
 
   return (
     <div className="min-h-screen bg-[var(--bg)] text-[var(--text)] flex flex-col lg:grid lg:grid-cols-[320px_1fr] relative transition-colors duration-300 overflow-hidden">
@@ -589,6 +678,11 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                       </h2>
                       <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1 font-sans">
                         The more you share, the smarter your AI becomes. You can always add more later.
+                        {data.industryType && (
+                          <span className="ml-1 text-[var(--brand)] font-semibold">
+                            Showing examples for {data.industryType}.
+                          </span>
+                        )}
                       </p>
                     </div>
 
@@ -601,7 +695,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         <textarea
                           value={data.knowledgeText.services}
                           onChange={(e) => updateKnowledgeField("services", e.target.value)}
-                          placeholder="e.g.&#10;Personal Training — ₹2,500/month&#10;3-Month Gym Membership — ₹4,500&#10;Zumba Classes — ₹1,200/month"
+                          placeholder={industryExamples.services}
                           rows={4}
                           className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-[14px] px-4 py-3 text-[14px] text-[var(--text)] focus:outline-none focus:border-[var(--border-strong)] placeholder-[var(--text-subtle)] font-sans resize-none"
                         />
@@ -629,7 +723,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         <textarea
                           value={data.knowledgeText.faqs}
                           onChange={(e) => updateKnowledgeField("faqs", e.target.value)}
-                          placeholder="e.g.&#10;Q: Do you have a trial class?&#10;A: Yes, first class is free.&#10;Q: What are your timings?&#10;A: 5 AM – 10 PM, all days."
+                          placeholder={industryExamples.faqs}
                           rows={4}
                           className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-[14px] px-4 py-3 text-[14px] text-[var(--text)] focus:outline-none focus:border-[var(--border-strong)] placeholder-[var(--text-subtle)] font-sans resize-none"
                         />
@@ -643,7 +737,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         <textarea
                           value={data.knowledgeText.policies}
                           onChange={(e) => updateKnowledgeField("policies", e.target.value)}
-                          placeholder="e.g. No refunds after 7 days of membership start."
+                          placeholder={industryExamples.policies}
                           rows={2}
                           className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-[14px] px-4 py-3 text-[14px] text-[var(--text)] focus:outline-none focus:border-[var(--border-strong)] placeholder-[var(--text-subtle)] font-sans resize-none"
                         />
@@ -713,7 +807,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                   </div>
                 )}
 
-                {/* STEP 3: WHATSAPP SETUP */}
+                {/* STEP 3: WHATSAPP SETUP — TRUTHFUL: number save only, Cloud API in Dashboard */}
                 {currentStep === 3 && (
                   <div className="space-y-6">
                     <div>
@@ -722,66 +816,71 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         <span>Step 3 of 5</span>
                       </div>
                       <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text)] font-display leading-tight">
-                        Connect your WhatsApp
+                        Save your WhatsApp number
                       </h2>
                       <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1 font-sans">
-                        Autofy will reply to your customers from this number.
+                        This step is optional. Full WhatsApp Cloud API setup happens in the Dashboard after signup.
                       </p>
                     </div>
 
                     <div className="space-y-5 pt-2">
+                      {/* Truthful info banner */}
                       <div className="bg-[var(--input-bg)] border border-[var(--border)] rounded-[18px] p-5 flex gap-4 text-left">
-                        <Smartphone className="w-6 h-6 text-[var(--text-muted)] shrink-0 mt-0.5" />
+                        <Info className="w-6 h-6 text-[var(--brand)] shrink-0 mt-0.5" />
                         <div>
-                          <h4 className="text-[13px] font-bold text-[var(--text)] uppercase tracking-wider font-display">You need a WhatsApp Business number</h4>
+                          <h4 className="text-[13px] font-bold text-[var(--text)] uppercase tracking-wider font-display">WhatsApp Cloud API requires additional setup</h4>
                           <p className="text-xs text-[var(--text-muted)] mt-1.5 leading-relaxed font-sans">
-                            This is the number your customers already message you on. Make sure WhatsApp Business is installed on it.
+                            To enable AI responses via WhatsApp, you'll need a verified Meta Business account, WhatsApp Business Phone Number ID, and permanent access token. Configure these in Dashboard → WhatsApp Setup.
                           </p>
                         </div>
                       </div>
 
                       <div>
                         <label className="block text-[11px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-2 font-sans">
-                          WhatsApp Business Number
+                          WhatsApp Business Number (Optional)
                         </label>
                         <div className="relative flex items-center bg-[var(--input-bg)] border border-[var(--border)] rounded-[14px] px-4 py-3.5 focus-within:border-[var(--border-strong)] transition-all">
                           <Phone className="w-[18px] h-[18px] text-[var(--text-subtle)] mr-3 flex-shrink-0" />
                           <input
                             type="tel"
-                            disabled={data.whatsappConnected === "connected"}
+                            disabled={whatsappNumberSaved}
                             value={data.whatsappNumber}
-                            onChange={(e) => updateField("whatsappNumber", e.target.value)}
+                            onChange={(e) => {
+                              updateField("whatsappNumber", e.target.value);
+                              if (data.whatsappConnected === "number_saved") {
+                                updateField("whatsappConnected", "");
+                              }
+                            }}
                             placeholder="+91 98765 43210"
                             className="w-full bg-transparent text-[14px] text-[var(--text)] focus:outline-none placeholder-[var(--text-subtle)] font-sans disabled:opacity-50"
                           />
                         </div>
+                        <p className="text-[10px] text-[var(--text-subtle)] mt-1 font-sans">Include country code, e.g. +91 for India</p>
                       </div>
 
                       <div className="flex justify-end pt-2">
-                        {data.whatsappConnected === "connected" ? (
+                        {whatsappGenuinelyConnected ? (
                           <div className="w-full bg-green-500/10 border border-green-500/20 text-green-400 rounded-xl p-3 flex items-center justify-center gap-2 text-xs font-semibold select-none">
                             <Check className="w-4 h-4" />
-                            <span>Connected! Autofy will now respond to messages sent to +{data.whatsappNumber}</span>
+                            <span>Connected via WhatsApp Cloud API: {data.whatsappNumber}</span>
+                          </div>
+                        ) : whatsappNumberSaved ? (
+                          <div className="w-full bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-xl p-3 flex items-start gap-3 text-xs font-semibold select-none">
+                            <Wifi className="w-4 h-4 shrink-0 mt-0.5" />
+                            <div>
+                              <div>Number saved: {data.whatsappNumber}</div>
+                              <div className="text-[11px] font-normal mt-1 text-blue-300/80">
+                                Complete WhatsApp Cloud API configuration in Dashboard → WhatsApp Setup to activate AI responses.
+                              </div>
+                            </div>
                           </div>
                         ) : (
                           <button
                             type="button"
-                            onClick={handleConnectWhatsapp}
-                            disabled={isConnectingWhatsapp}
-                            className={`w-full py-3.5 rounded-xl font-bold text-xs tracking-wider uppercase transition-all duration-200 active:scale-[0.98] cursor-pointer ${
-                              isConnectingWhatsapp
-                                ? "bg-[var(--input-bg)] border border-[var(--border)] text-[var(--text-muted)] cursor-not-allowed"
-                                : "btn-primary"
-                            }`}
+                            onClick={handleSaveWhatsappNumber}
+                            className="w-full py-3.5 rounded-xl font-bold text-xs tracking-wider uppercase transition-all duration-200 active:scale-[0.98] cursor-pointer btn-primary"
                           >
-                            {isConnectingWhatsapp ? (
-                              <span className="flex items-center justify-center gap-2">
-                                <span className="w-3.5 h-3.5 border-2 border-[var(--border)] border-t-white rounded-full animate-spin" />
-                                Connecting…
-                              </span>
-                            ) : (
-                              <>Connect WhatsApp <ArrowRight size={14} className="inline" /></>
-                            )}
+                            Save Number <ArrowRight size={14} className="inline" />
                           </button>
                         )}
                       </div>
@@ -981,7 +1080,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                   </div>
                 )}
 
-                {/* STEP 5: SUMMARY & GO LIVE */}
+                {/* STEP 5: SUMMARY & GO LIVE — TRUTHFUL */}
                 {currentStep === 5 && (
                   <div className="space-y-6">
                     <div>
@@ -990,16 +1089,16 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         <span>Step 5 of 5</span>
                       </div>
                       <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[var(--text)] font-display leading-tight">
-                        Your AI is ready.
+                        {knowledgeReady ? "Your AI knowledge base is ready." : "Almost there!"}
                       </h2>
                       <p className="text-xs sm:text-sm text-[var(--text-muted)] mt-1 font-sans">
-                        Autofy has learned about your business. Here's a summary of what's been set up.
+                        Here's a summary of what's been set up for your Autofy account.
                       </p>
                     </div>
 
                     <div className="space-y-5 pt-2">
                       <div className="bg-[var(--input-bg)] border border-[var(--border)] rounded-[22px] p-6 space-y-4 text-left">
-                        {/* Row 1 */}
+                        {/* Business */}
                         <div className="flex items-start gap-3 text-sm">
                           <Building2 className="w-4 h-4 text-[var(--text-subtle)] mt-0.5 shrink-0" />
                           <div>
@@ -1008,16 +1107,24 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                           </div>
                         </div>
 
-                        {/* Row 2 */}
+                        {/* WhatsApp — truthful */}
                         <div className="flex items-start gap-3 text-sm">
                           <MessageSquare className="w-4 h-4 text-[var(--text-subtle)] mt-0.5 shrink-0" />
                           <div>
-                            <p className="text-[12px] text-[var(--text-muted)] leading-none mb-1 font-sans">WhatsApp</p>
-                            <p className="text-[14px] text-[var(--text)] font-semibold">{data.whatsappNumber || "Not connected"}</p>
+                            <p className="text-[12px] text-[var(--text-muted)] leading-none mb-1 font-sans">WhatsApp Channel</p>
+                            <p className="text-[14px] font-semibold" style={{
+                              color: whatsappGenuinelyConnected ? "var(--success, #10b981)" : "var(--text-muted)"
+                            }}>
+                              {whatsappGenuinelyConnected
+                                ? `Connected — ${data.whatsappNumber}`
+                                : whatsappNumberSaved
+                                  ? `Number saved (${data.whatsappNumber}) — Cloud API setup required in Dashboard`
+                                  : "Not configured — setup in Dashboard → WhatsApp Setup"}
+                            </p>
                           </div>
                         </div>
 
-                        {/* Row 3 */}
+                        {/* Payments */}
                         <div className="flex items-start gap-3 text-sm">
                           <DollarSign className="w-4 h-4 text-[var(--text-subtle)] mt-0.5 shrink-0" />
                           <div>
@@ -1028,43 +1135,67 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                           </div>
                         </div>
 
-                        {/* Row 4 */}
+                        {/* Knowledge */}
                         <div className="flex items-start gap-3 text-sm">
                           <FileText className="w-4 h-4 text-[var(--text-subtle)] mt-0.5 shrink-0" />
                           <div>
-                            <p className="text-[12px] text-[var(--text-muted)] leading-none mb-1 font-sans">Knowledge</p>
+                            <p className="text-[12px] text-[var(--text-muted)] leading-none mb-1 font-sans">AI Knowledge Base</p>
                             <p className="text-[14px] text-[var(--text)] font-semibold">
-                              {data.uploadedFiles.length} files + manual entries
+                              {knowledgeReady
+                                ? `${data.uploadedFiles.length} file(s) + text entries`
+                                : "Not configured yet"}
                             </p>
                           </div>
                         </div>
 
-                        <div className="border-t border-[var(--border)] pt-4 flex items-center gap-2.5 select-none">
-                          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                          <span className="text-[12px] text-[var(--text-muted)] font-semibold font-sans">AI is ready to respond to customers</span>
+                        {/* Truthful readiness indicators */}
+                        <div className="border-t border-[var(--border)] pt-4 space-y-2">
+                          {knowledgeReady && (
+                            <div className="flex items-center gap-2.5 select-none">
+                              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                              <span className="text-[12px] text-[var(--text-muted)] font-semibold font-sans">AI knowledge base is ready</span>
+                            </div>
+                          )}
+                          {!whatsappGenuinelyConnected && (
+                            <div className="flex items-center gap-2.5 select-none">
+                              <WifiOff className="w-3.5 h-3.5 text-amber-500" />
+                              <span className="text-[12px] text-amber-500 font-semibold font-sans">
+                                WhatsApp Cloud API not yet connected — customer replies not active
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
 
-                      {/* Open dashboard / Test actions */}
+                      {/* CTA Buttons */}
                       <div className="flex flex-col gap-3 pt-2">
+                        {/* PRIMARY: complete onboarding + go to dashboard */}
                         <button
                           onClick={() => onOpenDashboard(data)}
                           className="btn-primary w-full justify-center h-12 rounded-[14px] text-[13px] font-bold cursor-pointer"
                         >
                           Open my dashboard <ArrowRight size={14} className="inline" />
                         </button>
+                        {/* SECONDARY: complete onboarding then navigate to WhatsApp setup in dashboard */}
+                        {/* Uses sessionStorage intent instead of navigate() to avoid routing before is_onboarded=true */}
                         <button
                           onClick={() => {
+                            try { sessionStorage.setItem("autofy-dashboard-tab", "whatsapp_setup"); } catch { /* ignore */ }
                             onOpenDashboard(data);
-                            navigate("/dashboard/whatsapp_setup");
                           }}
                           className="btn-secondary w-full justify-center h-12 rounded-[14px] text-[13px] font-bold cursor-pointer flex items-center gap-2 hover:border-blue-500 hover:text-blue-500"
                         >
                           <Phone className="w-4 h-4 text-blue-500" />
-                          <span>Configure WhatsApp Cloud Setup in Dashboard</span>
+                          <span>Configure WhatsApp Cloud API in Dashboard</span>
                           <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
+
+                      {!whatsappGenuinelyConnected && (
+                        <p className="text-[11px] text-[var(--text-subtle)] text-center font-sans">
+                          WhatsApp Cloud API setup takes ~10 minutes and requires a Meta Business account.
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1088,15 +1219,16 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                 Step {currentStep} of 5
               </span>
 
-              {/* Next/Continue btn — Landing Page CTA styling */}
-              <button
-                type="button"
-                onClick={handleNext}
-                className="btn-primary px-8 py-3.5 rounded-full text-xs sm:text-sm font-extrabold font-display uppercase tracking-wider cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
-              >
-                <span>{currentStep === 5 ? "Complete Setup" : "Continue"}</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
+              {currentStep < 5 && (
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="btn-primary px-8 py-3.5 rounded-full text-xs sm:text-sm font-extrabold font-display uppercase tracking-wider cursor-pointer shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+                >
+                  <span>Continue</span>
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
             </div>
           </div>
         </div>
