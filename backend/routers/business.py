@@ -99,6 +99,11 @@ def update_business_profile(
 import re
 
 def normalize_and_validate_phone(raw: str) -> str:
+    """
+    Normalize and validate phone numbers.
+    Indian mobile: exactly 10 digits starting with [6-9], normalized to +91XXXXXXXXXX.
+    International: must start with +, 7-15 digits total after +.
+    """
     cleaned = raw.strip()
     if not cleaned:
         raise ValueError("Phone number cannot be empty.")
@@ -110,23 +115,33 @@ def normalize_and_validate_phone(raw: str) -> str:
 
     if stripped.startswith('+'):
         digits = stripped[1:]
+        # Fix double prefix: +91916360254763 -> +916360254763
         if digits.startswith('9191') and len(digits) == 14:
             digits = digits[2:]
+        # Validate +91 Indian numbers
+        if digits.startswith('91'):
+            national = digits[2:]
+            if len(national) != 10 or national[0] not in '6789':
+                raise ValueError("Indian mobile number must be 10 digits starting with 6, 7, 8, or 9.")
+            return f"+{digits}"
+        # Other international: E.164 requires 7-15 digits after +
         if not (7 <= len(digits) <= 15):
-            raise ValueError("Phone number must have between 7 and 15 digits after country code.")
+            raise ValueError("International number must have 7-15 digits after +.")
         return f"+{digits}"
     else:
         digits_only = re.sub(r'\D', '', stripped)
+        # Strip leading 0 (trunk prefix)
         if digits_only.startswith('0') and len(digits_only) == 11:
             digits_only = digits_only[1:]
-        if len(digits_only) == 10:
+        # Strip leading 91 (country code without +)
+        if digits_only.startswith('91') and len(digits_only) == 12:
+            national = digits_only[2:]
+            if national[0] in '6789':
+                digits_only = national
+        # Must be exactly 10 digits starting with 6-9
+        if len(digits_only) == 10 and digits_only[0] in '6789':
             return f"+91{digits_only}"
-        elif len(digits_only) == 12 and digits_only.startswith('91'):
-            return f"+{digits_only}"
-        elif 7 <= len(digits_only) <= 15:
-            return f"+91{digits_only}"
-        else:
-            raise ValueError("Please enter a valid phone number (e.g. 6360254763 or +91 6360254763).")
+        raise ValueError("Enter a valid 10-digit Indian mobile number (starting with 6-9) or international number with + country code.")
 
 class OnboardingCompletionRequest(BaseModel):
     name: str = Field(..., min_length=2, description="Business Name")

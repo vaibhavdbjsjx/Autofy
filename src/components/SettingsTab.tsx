@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Building2,
@@ -80,16 +80,59 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
 
   // 1. BUSINESS PROFILE FORM STATES
   const [profile, setProfile] = useState({
-    businessName: onboardingData?.businessName || "Autofy Premium SaaS",
-    businessType: onboardingData?.businessType || "Automotive Direct Dealership",
-    phone: onboardingData?.whatsappNumber || "+91 98765 43210",
-    email: "owner@autofysaas.com",
-    address: "742 Evergreen Terrace, Sector V, Salt Lake",
-    website: "https://autofysaas.com",
+    businessName: onboardingData?.businessName || "",
+    businessType: onboardingData?.businessType || "",
+    phone: onboardingData?.whatsappNumber || "",
+    email: "",
+    address: "",
+    website: "",
     hours: "09:00 AM - 07:00 PM (Mon - Sat)",
     timezone: "IST - Kolkata (GMT+5:30)",
-    logoPreview: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=120&h=120&q=80"
+    logoPreview: ""
   });
+
+  // Fetch real tenant profile on mount
+  useEffect(() => {
+    const fetchSettingsData = async () => {
+      try {
+        const { api, isAuthenticated } = await import("../lib/api");
+        if (isAuthenticated()) {
+          const [meRes, bizRes] = await Promise.allSettled([
+            api.get<any>("/api/v1/auth/me"),
+            api.get<any>("/api/v1/business/profile")
+          ]);
+          let userEmail = "";
+          let userName = "";
+          if (meRes.status === "fulfilled" && meRes.value) {
+            userEmail = meRes.value.email || "";
+            userName = meRes.value.name || "";
+          }
+          if (bizRes.status === "fulfilled" && bizRes.value) {
+            const b = bizRes.value;
+            setProfile(prev => ({
+              ...prev,
+              businessName: b.name || prev.businessName,
+              businessType: b.classification || prev.businessType,
+              phone: b.phone || prev.phone,
+              email: userEmail || b.email || prev.email,
+              address: b.address || prev.address,
+              website: b.website || prev.website
+            }));
+            if (userName || userEmail) {
+              setTeam([{
+                id: "tm-owner",
+                name: userName || "Account Owner",
+                email: userEmail || "owner@business.com",
+                role: "Owner",
+                status: "Active"
+              }]);
+            }
+          }
+        }
+      } catch { /* non-fatal */ }
+    };
+    fetchSettingsData();
+  }, []);
 
   const handleProfileSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -105,10 +148,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
 
   // 2. AI ASSISTANT CONFIGURATION STATES
   const [aiConfig, setAiConfig] = useState({
-    assistantName: onboardingData?.agentName || "AutoBot Elite",
-    welcomeMessage: onboardingData?.welcomeMessage || "Welcome to Autofy! How can I assist you with your premium booking today?",
-    fallbackMessage: "I apologize, I am unable to resolve this request immediately. A professional service manager will assist you shortly.",
-    tone: "premium" as "professional" | "friendly" | "casual" | "premium",
+    assistantName: onboardingData?.agentName || "AI Assistant",
+    welcomeMessage: onboardingData?.welcomeMessage || "Welcome! How can I assist you today?",
+    fallbackMessage: "I apologize, I am unable to resolve this request immediately. A team member will assist you shortly.",
+    tone: "professional" as "professional" | "friendly" | "casual" | "premium",
     responseLength: "medium" as "short" | "medium" | "detailed",
     humanEscalation: true,
     confidenceThreshold: 78,
@@ -126,13 +169,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
     });
   };
 
-  // 3. TEAM MEMBERS MANAGEMENT STATES
-  const [team, setTeam] = useState<TeamMember[]>([
-    { id: "tm-1", name: "Vaibhav Saxena", email: "vaibhav.sg18@gmail.com", role: "Owner", status: "Active" },
-    { id: "tm-2", name: "Anish Chatterjee", email: "anish.c@autofysaas.com", role: "Admin", status: "Active" },
-    { id: "tm-3", name: "Ria Sengupta", email: "ria@autofysaas.com", role: "Manager", status: "Active" },
-    { id: "tm-4", name: "Ketan Mehta", email: "ketan.m@autofysaas.com", role: "Support Agent", status: "Pending" }
-  ]);
+  // 3. TEAM MEMBERS MANAGEMENT STATES — starts empty, populated from user account
+  const [team, setTeam] = useState<TeamMember[]>([]);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteName, setInviteName] = useState("");
   const [inviteEmail, setInviteEmail] = useState("");

@@ -22,16 +22,8 @@ import {
 } from "lucide-react";
 
 export const NotificationsCenterTab: React.FC = () => {
-  // Notifications List State
-  const [notifications, setNotifications] = useState([
-    { id: "1", type: "lead", title: "New Lead Captured", body: "Karan Johar has registered from the landing page workout banner.", time: "2 min ago", priority: "High", read: false, category: "Lead" },
-    { id: "2", type: "appointment", title: "Appointment Scheduled", body: "Vivek Roy locked Yoga Session for June 24 at 10:00 AM.", time: "15 min ago", priority: "Medium", read: false, category: "Appointment" },
-    { id: "3", type: "payment", title: "Payment Completed", body: "Premium Consultation subscription charge of ₹24,000 processed successfully.", time: "1 hour ago", priority: "High", read: false, category: "Payment" },
-    { id: "4", type: "whatsapp", title: "WhatsApp Message Inbound", body: "Priya Patel replied: 'Please confirm tomorrow's timing slot matches.'", time: "3 hours ago", priority: "Medium", read: true, category: "WhatsApp" },
-    { id: "5", type: "system", title: "Database Backup Succeeded", body: "Cloud database node snap-3392.db completed cold storage cluster sync.", time: "10 hours ago", priority: "Low", read: true, category: "System" },
-    { id: "6", type: "ai", title: "AI Model latency warning", body: "Gemini 3.5 experienced 2.4s throttle delay. Switched to flash-direct router.", time: "1 day ago", priority: "Low", read: true, category: "AI" },
-    { id: "7", type: "support", title: "Support Ticket Raised", body: "Ticket #T-909 opened by user Aparna Yoga concerning billing double hold.", time: "1 day ago", priority: "High", read: true, category: "Support" }
-  ]);
+  // Notifications List State — initialized empty for fresh accounts
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   // Filters State
   const [activeCategory, setActiveCategory] = useState<string>("All");

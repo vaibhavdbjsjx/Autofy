@@ -33,11 +33,11 @@ export const WhatsAppSetupTab: React.FC = () => {
   // Connection Status State
   const [connectionStatus, setConnectionStatus] = useState<"Connected" | "Disconnected" | "Pending Verification">("Disconnected");
 
-  // Meta Credentials Form fields
-  const [phoneNumber, setPhoneNumber] = useState("+91 98765 43210");
-  const [businessAccountId, setBusinessAccountId] = useState("act_wa_849102481029410");
-  const [metaAppId, setMetaAppId] = useState("meta_app_48201481029");
-  const [metaAppSecret, setMetaAppSecret] = useState("••••••••••••••••••••••••••••");
+  // Meta Credentials Form fields — initialized empty for real tenant setup
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [businessAccountId, setBusinessAccountId] = useState("");
+  const [metaAppId, setMetaAppId] = useState("");
+  const [metaAppSecret, setMetaAppSecret] = useState("");
   const [revealSecret, setRevealSecret] = useState(false);
   const [verifyToken, setVerifyToken] = useState("autofy_webhook_secure_validation_token_2026");
   const webhookUrl = "https://server.autofy.ai/api/v1/whatsapp/webhook";
@@ -211,20 +211,32 @@ export const WhatsAppSetupTab: React.FC = () => {
     setTimeout(() => setter(false), 2000);
   };
 
-  // Connection Triggers
+  // Connection Triggers — requires all credentials and valid phone number
   const handleConnect = async () => {
+    if (!phoneNumber.trim() || !businessAccountId.trim() || !metaAppId.trim() || !metaAppSecret.trim()) {
+      setConnectionStatus("Disconnected");
+      addNewWebhookLog("Error Logs", "Connection rejected: All Meta Cloud API credential fields are required.", false);
+      return;
+    }
+    const { validatePhone } = await import("../lib/phoneValidation");
+    const pVal = validatePhone(phoneNumber);
+    if (!pVal.ok) {
+      setConnectionStatus("Disconnected");
+      addNewWebhookLog("Error Logs", `Connection rejected: ${pVal.error}`, false);
+      return;
+    }
     setConnectionStatus("Pending Verification");
-    addNewWebhookLog("Message Sent", "Meta API cloud line authorization request dispatched", true);
+    addNewWebhookLog("Message Sent", "Meta Cloud API authorization request dispatched", true);
     try {
       const { api, isAuthenticated } = await import("../lib/api");
       if (isAuthenticated()) {
         await api.get("/health");
       }
       setConnectionStatus("Connected");
-      addNewWebhookLog("Message Received", "Meta Webhook challenge verified. Port line open.", true);
+      addNewWebhookLog("Message Received", "Meta Webhook challenge verified. WhatsApp API Connected.", true);
     } catch {
       setConnectionStatus("Disconnected");
-      addNewWebhookLog("Error Logs", "Connection verification failed. Check backend status.", false);
+      addNewWebhookLog("Error Logs", "Connection verification failed. Check Meta credentials & backend status.", false);
     }
   };
 
@@ -266,7 +278,7 @@ export const WhatsAppSetupTab: React.FC = () => {
           {connectionStatus === "Connected" ? (
             <div className="px-4 py-2 bg-green-500/10 border border-green-500/25 rounded-2xl flex items-center gap-2 animate-pulse">
               <span className="w-2 h-2 rounded-full bg-green-400" />
-              <span className="text-xs font-black text-green-400 uppercase tracking-wider">Line Connected</span>
+              <span className="text-xs font-black text-green-400 uppercase tracking-wider">API Connected</span>
             </div>
           ) : connectionStatus === "Pending Verification" ? (
             <div className="px-4 py-2 bg-amber-500/10 border border-amber-500/25 rounded-2xl flex items-center gap-2 animate-pulse">
@@ -276,7 +288,7 @@ export const WhatsAppSetupTab: React.FC = () => {
           ) : (
             <div className="px-4 py-2 bg-red-500/10 border border-red-500/25 rounded-2xl flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-red-400" />
-              <span className="text-xs font-black text-red-400 uppercase tracking-wider">Line Disconnected</span>
+              <span className="text-xs font-black text-red-400 uppercase tracking-wider">API Disconnected</span>
             </div>
           )}
         </div>

@@ -80,18 +80,30 @@ def test_onboarding_phone_normalization_edge_cases(client: TestClient, auth_head
     assert res2.json()["phone"] == "+916360254763"
 
 def test_onboarding_invalid_phone_rejection(client: TestClient, auth_headers_a):
-    # Test invalid string phone "abc"
-    res1 = client.post("/api/v1/business/complete-onboarding", json={
-        "name": "Apex Fitness Hub",
-        "classification": "Gym",
-        "phone": "abc"
-    }, headers=auth_headers_a)
-    assert res1.status_code == 422
+    invalid_phones = [
+        "abc",
+        "123",
+        "123456",
+        "1234567",
+        "123456789",
+        "1234567890123",
+        "abc1234567",
+        "+91",
+        "+91123456"
+    ]
+    for bad_phone in invalid_phones:
+        res = client.post("/api/v1/business/complete-onboarding", json={
+            "name": "Apex Fitness Hub",
+            "classification": "Gym",
+            "phone": bad_phone
+        }, headers=auth_headers_a)
+        assert res.status_code == 422, f"Expected 422 for phone: {bad_phone}, got {res.status_code}"
 
-    # Test too short phone "123"
-    res2 = client.post("/api/v1/business/complete-onboarding", json={
-        "name": "Apex Fitness Hub",
-        "classification": "Gym",
-        "phone": "123"
-    }, headers=auth_headers_a)
-    assert res2.status_code == 422
+def test_onboarding_valid_phone_normalization(client: TestClient, auth_headers_a):
+    from routers.business import normalize_and_validate_phone
+    assert normalize_and_validate_phone("6360254763") == "+916360254763"
+    assert normalize_and_validate_phone("06360254763") == "+916360254763"
+    assert normalize_and_validate_phone("916360254763") == "+916360254763"
+    assert normalize_and_validate_phone("+916360254763") == "+916360254763"
+    assert normalize_and_validate_phone("+91916360254763") == "+916360254763"
+    assert normalize_and_validate_phone("+18005551234") == "+18005551234"

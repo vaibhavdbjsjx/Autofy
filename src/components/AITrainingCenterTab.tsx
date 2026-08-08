@@ -57,92 +57,21 @@ export const AITrainingCenterTab: React.FC<AITrainingCenterTabProps> = ({
   const [isLoading, setIsLoading] = useState(false);
 
   // Core Data Lists
-  const [logs, setLogs] = useState<AILog[]>([
-    {
-      id: "log-1",
-      user_query: "Do you build custom titanium chambers for exhausts?",
-      ai_response: "I'm sorry, we only stock stainless steel single-core silencers listed in our inventory.",
-      confidence: 0.45,
-      status: "raw",
-      created_at: "2026-06-20 09:12"
-    },
-    {
-      id: "log-2",
-      user_query: "Can I return my helmet if the size is too small?",
-      ai_response: "I don't have information on the refund policy of our shop. Let me check with our manager.",
-      confidence: 0.52,
-      status: "raw",
-      created_at: "2026-06-20 08:44"
-    },
-    {
-      id: "log-3",
-      user_query: "What is the db level of Red Rooster for Meteor 350?",
-      ai_response: "The Red Rooster Exhaust is designed inside standard government-approved db limits.",
-      confidence: 0.88,
-      status: "reviewed",
-      created_at: "2026-06-19 18:20"
-    },
-    {
-      id: "log-4",
-      user_query: "Are you open on Sundays for installation?",
-      ai_response: "Our support team is active from 9 AM to 6 PM Monday through Friday. I cannot confirm weekend installs.",
-      confidence: 0.38,
-      status: "raw",
-      created_at: "2026-06-19 14:15"
-    }
-  ]);
+  // Training logs — loaded from backend API, initialized empty for fresh accounts
+  const [logs, setLogs] = useState<AILog[]>([]);
 
-  const [gaps, setGaps] = useState<AIKnowledgeGap[]>([
-    {
-      id: "gap-1",
-      topic: "Custom Titanium Fabrication",
-      unanswered_query: "Do you manufacture custom titanium pipes?",
-      hit_count: 14,
-      suggested_faq_question: "Do you manufacture custom titanium exhaust pipes?",
-      suggested_faq_answer: "We specialize in premium stainless steel slip-ons but can arrange titanium custom works via advanced pre-orders. Contact our custom lab desk.",
-      status: "detected"
-    },
-    {
-      id: "gap-2",
-      topic: "Weekend Fitting Lab Hours",
-      unanswered_query: "Are you open on Sundays for installation?",
-      hit_count: 9,
-      suggested_faq_question: "Can I book custom exhaust fitting on weekends?",
-      suggested_faq_answer: "Our mechanic workshop operates 10:00 AM to 5:00 PM on Saturdays. Sundays are closed except by exclusive club appointments.",
-      status: "detected"
-    },
-    {
-      id: "gap-3",
-      topic: "International Customs Carrier Duties",
-      unanswered_query: "Do you ship to UAE and handle duty clearance?",
-      hit_count: 6,
-      suggested_faq_question: "Do you ship to international regions?",
-      suggested_faq_answer: "Yes, we support global shipping via DHL Express. Buyers are responsible for localized import customs clearances.",
-      status: "detected"
-    }
-  ]);
+  // Knowledge gaps — loaded from backend API, initialized empty for fresh accounts
+  const [gaps, setGaps] = useState<AIKnowledgeGap[]>([]);
 
-  const [trainedAnswers, setTrainedAnswers] = useState<AITrainedAnswer[]>([
-    {
-      id: "tr-1",
-      trigger_phrase: "Heavy duty engine warranty details",
-      trained_response: "All standard performance exhausts carry an official 12-month manufacturer replacement warranty covering structural leaks and baffle cracks.",
-      created_at: "2026-06-18 11:30"
-    },
-    {
-      id: "tr-2",
-      trigger_phrase: "Can we install baffle cores manually",
-      trained_response: "Yes, all our single slip-on exhausts come with standard inner hex-bolts. You can slide in the dB-killer baffle manually using standard 4mm Allen keys.",
-      created_at: "2026-06-15 15:44"
-    }
-  ]);
+  // Trained answers — loaded from backend API, initialized empty for fresh accounts
+  const [trainedAnswers, setTrainedAnswers] = useState<AITrainedAnswer[]>([]);
 
-  // Analytics State
+  // Analytics State — loaded from backend API, initialized zeroed for fresh accounts
   const [stats, setStats] = useState({
-    totalQueries: 1420,
-    lowConfidenceCount: 14,
-    correctedCount: 38,
-    avgConfidence: 0.86
+    totalQueries: 0,
+    lowConfidenceCount: 0,
+    correctedCount: 0,
+    avgConfidence: 0
   });
 
   // Action States

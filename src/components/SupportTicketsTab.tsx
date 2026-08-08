@@ -55,53 +55,8 @@ interface SupportTicketsTabProps {
 export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
   triggerNotification = (msg) => console.log(msg)
 }) => {
-  const [tickets, setTickets] = useState<TicketData[]>([
-    {
-      id: "TKT-1921",
-      customer_name: "Rahul Sharma",
-      customer_email: "rahul.sharma@gmail.com",
-      customer_phone: "+91 98765 43210",
-      title: "Slight fitting rattle noise on Royal Enfield AEW",
-      description: "Since getting my custom AEW single exhaust fitted yesterday, I hear a high-vibration metallic tin rattle around 3000 RPM. Can a slot be booked for retightening?",
-      status: "Open",
-      priority: "High",
-      assigned_agent_id: "agent-1",
-      assigned_agent_name: "Aman Sen (Workshop Lead)",
-      sla_deadline: "2026-06-21 17:00",
-      sla_status: "Within Limit",
-      created_at: "2026-06-20 10:14"
-    },
-    {
-      id: "TKT-8241",
-      customer_name: "John Doe",
-      customer_email: "john.doe@example.com",
-      customer_phone: "+1 (555) 019-2834",
-      title: "Premium gloves carbon seam cracking",
-      description: "I bought Carbon Dual-Ring Riding Gloves. On the outer left knuckle shield padding, the double seams are stretching out under pressure. Please arrange size exchange.",
-      status: "Pending",
-      priority: "Medium",
-      assigned_agent_id: "agent-2",
-      assigned_agent_name: "John Mercer (Store Specialist)",
-      sla_deadline: "2026-06-22 17:00",
-      sla_status: "Within Limit",
-      created_at: "2026-06-19 14:15"
-    },
-    {
-      id: "TKT-3112",
-      customer_name: "Gurpreet Singh",
-      customer_email: "gurpreet.customs@gmail.com",
-      customer_phone: null,
-      title: "Damaged shipping package container",
-      description: "The core box delivered was heavily smashed on the top corners. Thankfully the internal exhaust core was heavily bubblewrapped and sustained no scratches.",
-      status: "Resolved",
-      priority: "Low",
-      assigned_agent_id: "agent-1",
-      assigned_agent_name: "Aman Sen (Workshop Lead)",
-      sla_deadline: "2026-06-19 11:30",
-      sla_status: "Met",
-      created_at: "2026-06-18 11:30"
-    }
-  ]);
+  // Support tickets — loaded from backend API, initialized empty for fresh accounts
+  const [tickets, setTickets] = useState<TicketData[]>([]);
 
   const [agents, setAgents] = useState<SupportAgent[]>([
     { id: "agent-1", name: "Aman Sen", role: "Workshop Lead" },

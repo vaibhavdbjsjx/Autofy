@@ -37,57 +37,8 @@ import {
   WifiOff
 } from "lucide-react";
 
-// ─── E.164 phone validation & normalization ──────────────────
-function validatePhone(raw: string): { ok: boolean; normalized: string; error: string } {
-  if (!raw || !raw.trim()) {
-    return { ok: false, normalized: "", error: "Phone number is required." };
-  }
+import { validatePhone } from "../lib/phoneValidation";
 
-  // Check for invalid characters (letters or forbidden special symbols)
-  if (/[a-zA-Z]/.test(raw) || /[^\d\s\-()+]/.test(raw)) {
-    return { ok: false, normalized: "", error: "Phone number must contain only digits, spaces, +, and hyphens." };
-  }
-
-  let cleaned = raw.replace(/[\s\-()]/g, "").trim();
-
-  // If starts with +, handle international and double-prefix (+9191...)
-  if (cleaned.startsWith("+")) {
-    let digits = cleaned.slice(1);
-    // Fix double prefix like +91916360254763 -> +916360254763
-    if (digits.startsWith("9191") && digits.length === 14) {
-      digits = digits.slice(2);
-    }
-    if (digits.length < 7 || digits.length > 15) {
-      return { ok: false, normalized: "", error: "Phone number must have 7–15 digits after country code." };
-    }
-    return { ok: true, normalized: "+" + digits, error: "" };
-  }
-
-  // If does not start with +, extract digits
-  let digitsOnly = cleaned.replace(/\D/g, "");
-
-  // Handle leading 0 (e.g. 06360254763 -> 6360254763)
-  if (digitsOnly.startsWith("0") && digitsOnly.length === 11) {
-    digitsOnly = digitsOnly.slice(1);
-  }
-
-  // If 10 digits (standard Indian mobile without prefix, e.g. 6360254763) -> default to +91
-  if (digitsOnly.length === 10) {
-    return { ok: true, normalized: "+91" + digitsOnly, error: "" };
-  }
-
-  // If 12 digits starting with 91 (e.g. 916360254763) -> +916360254763
-  if (digitsOnly.length === 12 && digitsOnly.startsWith("91")) {
-    return { ok: true, normalized: "+" + digitsOnly, error: "" };
-  }
-
-  // General fallback: if 7 to 15 digits
-  if (digitsOnly.length >= 7 && digitsOnly.length <= 15) {
-    return { ok: true, normalized: "+91" + digitsOnly, error: "" };
-  }
-
-  return { ok: false, normalized: "", error: "Please enter a valid 10-digit phone number (e.g. 6360254763 or +91 6360254763)." };
-}
 
 // ─── Industry-aware knowledge placeholders ───────────────────
 type IndustryKey = "Gym" | "Salon" | "Clinic" | "Restaurant" | "Coaching" | "Retail" | "Real Estate" | "Other";
@@ -749,7 +700,7 @@ export const OnboardingWizard: React.FC<OnboardingWizardProps> = ({
                         <textarea
                           value={data.knowledgeText.memberships}
                           onChange={(e) => updateKnowledgeField("memberships", e.target.value)}
-                          placeholder="e.g.&#10;1 Month AC — ₹2,000&#10;3 Month AC — ₹5,000&#10;Yearly Non-AC — ₹10,000"
+                          placeholder={industryExamples.memberships}
                           rows={3}
                           className="w-full bg-[var(--input-bg)] border border-[var(--border)] rounded-[14px] px-4 py-3 text-[14px] text-[var(--text)] focus:outline-none focus:border-[var(--border-strong)] placeholder-[var(--text-subtle)] font-sans resize-none"
                         />

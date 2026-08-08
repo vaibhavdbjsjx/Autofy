@@ -31,6 +31,7 @@ import {
   Check
 } from "lucide-react";
 import { api } from "../lib/api";
+import { validatePhone } from "../lib/phoneValidation";
 
 interface OrderItem {
   id: string;
@@ -314,10 +315,21 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
         quantity: item.quantity,
         price: item.price
       })));
+      let normPhone: string | null = billingPhone.trim() || null;
+      if (normPhone) {
+        const pVal = validatePhone(normPhone);
+        if (!pVal.ok) {
+          triggerNotification(`Invalid phone: ${pVal.error}`);
+          setIsSubmittingOrder(false);
+          return;
+        }
+        normPhone = pVal.normalized;
+      }
+
       await api.post("/api/v1/orders", {
         customer_name: billingName.trim(),
         customer_email: billingEmail.trim() || "unknown@example.com",
-        customer_phone: billingPhone.trim() || null,
+        customer_phone: normPhone,
         shipping_address: billingAddress.trim(),
         items_json,
         total_price: 0,

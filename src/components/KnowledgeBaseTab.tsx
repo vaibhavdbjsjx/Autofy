@@ -97,108 +97,59 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
     "services" | "products" | "memberships" | "faqs" | "policies" | "documents"
   >("services");
 
-  // Initial Services List
-  const [services, setServices] = useState<ServiceItem[]>([
-    { id: "s-1", name: "Personal Training Session", price: "₹2,500", duration: "Monthly", status: "Active" },
-    { id: "s-2", name: "Elite Group Crossfit", price: "₹4,500", duration: "Quarterly", status: "Active" },
-    { id: "s-3", name: "Yoga & Guided Meditation", price: "₹1,200", duration: "Monthly", status: "Active" },
-    { id: "s-4", name: "Nutrition Counseling Session", price: "₹800", duration: "Per Hour", status: "Inactive" }
-  ]);
-
-  // Products Section
-  const [products, setProducts] = useState<ProductItem[]>([
-    {
-      id: "p-1",
-      name: "AEW Exhaust V3",
-      category: "Motorcycle Accessories",
-      price: "₹6,500",
-      stockQuantity: 12,
-      isAvailable: true,
-      description: "Premium mild-steel sound exhaust specifically designed for Royal Enfield Meteor and GT 650.",
-      imagesCount: 4
-    },
-    {
-      id: "p-2",
-      name: "Organic Whey Isolate",
-      category: "Supplements",
-      price: "₹3,900",
-      stockQuantity: 28,
-      isAvailable: true,
-      description: "Ultra-pure fast absorbing protein isolate to enhance muscle protein synthesis.",
-      imagesCount: 2
-    },
-    {
-      id: "p-3",
-      name: "Autofit Resistance Loop",
-      category: "Gym Gear",
-      price: "₹450",
-      stockQuantity: 150,
-      isAvailable: true,
-      description: "Heavy-duty latex resistance belt for lower-body dynamic warmups.",
-      imagesCount: 1
+  // Initial Services List — populated from onboarding or user input, initialized empty for fresh accounts
+  const [services, setServices] = useState<ServiceItem[]>(() => {
+    if (onboardingData?.knowledgeText?.services) {
+      return onboardingData.knowledgeText.services.split("\n").filter((s: string) => s.trim()).map((line: string, i: number) => ({
+        id: `s-onboard-${i}`,
+        name: line.split("—")[0]?.trim() || line,
+        price: line.split("—")[1]?.trim() || "Contact for pricing",
+        duration: "Standard",
+        status: "Active" as const
+      }));
     }
-  ]);
+    return [];
+  });
 
-  // Membership Plans
-  const [memberships, setMemberships] = useState<MembershipPlan[]>([
-    {
-      id: "m-1",
-      name: "3 Month Premium AC Membership",
-      duration: "3 Months",
-      price: "₹5,000",
-      benefits: "Unlimited Gym Access, Fully Air Conditioned, 3 Free Coach Reviews",
-      isAvailable: true
-    },
-    {
-      id: "m-2",
-      name: "6 Month Elite Membership",
-      duration: "6 Months",
-      price: "₹9,000",
-      benefits: "All Standard Privileges, Locker Access, Complimentary Hydration Package",
-      isAvailable: true
-    },
-    {
-      id: "m-3",
-      name: "Annual VIP Pass",
-      duration: "1 Year",
-      price: "₹16,000",
-      benefits: "Locker, Free Personal Training 10 sessions, Steam Sauna and Spa access",
-      isAvailable: false
+  // Products Section — initialized empty for fresh accounts
+  const [products, setProducts] = useState<ProductItem[]>([]);
+
+  // Membership Plans — populated from onboarding or user input, initialized empty for fresh accounts
+  const [memberships, setMemberships] = useState<MembershipPlan[]>(() => {
+    if (onboardingData?.knowledgeText?.memberships) {
+      return onboardingData.knowledgeText.memberships.split("\n").filter((s: string) => s.trim()).map((line: string, i: number) => ({
+        id: `m-onboard-${i}`,
+        name: line.split("—")[0]?.trim() || line,
+        duration: "Standard",
+        price: line.split("—")[1]?.trim() || "Contact for pricing",
+        benefits: "Configured during onboarding",
+        isAvailable: true
+      }));
     }
-  ]);
+    return [];
+  });
 
-  // FAQs
-  const [faqs, setFaqs] = useState<FAQItem[]>([
-    {
-      id: "f-1",
-      question: "What are your gym timings?",
-      answer: "We are open from 6:00 AM to 10:00 PM, Monday through Saturday. Sunday matches holiday hours of 8:00 AM to 1:00 PM.",
-      category: "Timings",
-      priority: "High"
-    },
-    {
-      id: "f-2",
-      question: "Do you offer personal training?",
-      answer: "Yes, we have certified fitness professionals available for custom personal coaching starting at ₹2,500 monthly.",
-      category: "Services",
-      priority: "High"
-    },
-    {
-      id: "f-3",
-      question: "Do you provide parking?",
-      answer: "We have dedicated basement parking space for up to 30 two-wheelers and 8 cars. Parking is free for all active members.",
-      category: "Rules",
-      priority: "Medium"
+  // FAQs — populated from onboarding or user input, initialized empty for fresh accounts
+  const [faqs, setFaqs] = useState<FAQItem[]>(() => {
+    if (onboardingData?.knowledgeText?.faqs) {
+      return [{
+        id: "f-onboard-1",
+        question: "Frequently Asked Questions",
+        answer: onboardingData.knowledgeText.faqs,
+        category: "General",
+        priority: "High" as const
+      }];
     }
-  ]);
+    return [];
+  });
 
-  // Business Policies
+  // Business Policies — populated from onboarding or initialized empty for fresh accounts
   const [policies, setPolicies] = useState<BusinessPolicies>({
-    refundPolicy: onboardingData.knowledgeText.pricing || "Refund is offered within 7 days of subscription, subject to non-consumption of sessions.",
-    cancellationPolicy: "Appointments can be cancelled or rescheduled up to 4 hours in advance with zero penalty fees.",
-    workingHours: "Monday - Saturday: 6:00 AM to 10:00 PM. Sundays: 8:00 AM to 1:00 PM.",
-    deliveryPolicy: "Accessories and gears are packaged and dispatched within 24 hours. Local deliveries in Bengaluru completed same-day.",
-    shippingPolicy: "We ship AEW exhaust options PAN-India with free shipping. Transit takes approximately 3-5 business days."
+    refundPolicy: onboardingData?.knowledgeText?.policies || "",
+    cancellationPolicy: "",
+    workingHours: "",
+    deliveryPolicy: "",
+    shippingPolicy: ""
   });
 
   // Uploaded Documents List
@@ -1312,7 +1263,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                 <Clock className="w-4 h-4 text-amber-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-bold text-[var(--text)]">Outdated Information</p>
-                  <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug">AEW Exhaust pricing was last indexed yesterday. Ensure available stocks match current shop manual.</p>
+                  <p className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug">Knowledge base records were indexed recently. Keep prices and inventory levels up to date for maximum AI accuracy.</p>
                 </div>
               </div>
 

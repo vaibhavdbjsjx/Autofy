@@ -133,42 +133,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [data, setData] = useState<OnboardingData>(onboardingData);
   const { theme, toggleTheme } = useTheme();
 
-  // States for shared knowledge items to sync across sub-components live
-  const [servicesList, setServicesList] = useState<any[]>([
-    { id: "svc-1", name: "Personal Training Session", price: "₹2,500", duration: "Monthly", status: "Active" },
-    { id: "svc-2", name: "Elite Strength & Conditioning", price: "₹4,500", duration: "Bi-Monthly", status: "Active" },
-    { id: "svc-3", name: "Yoga Masterclass Passes", price: "₹3,500", duration: "Quarterly", status: "Active" }
-  ]);
-
-  const [productsList, setProductsList] = useState<any[]>([
-    { id: "p-1", name: "AEW Exhaust", category: "Exhausts", price: "₹6,500", stockQuantity: 12, isAvailable: true, description: "Genuine premium stainless steel free-flow exhaust with dB killer.", imagesCount: 4 },
-    { id: "p-2", name: "Heavy Duty Knee Wraps", category: "Accessories", price: "₹1,200", stockQuantity: 34, isAvailable: true, description: "Professional powerlifting knee wraps approved for local lifting tournaments.", imagesCount: 2 },
-    { id: "p-3", name: "Premium Whey HydroIsolate", category: "Suits & Apparel", price: "₹5,400", stockQuantity: 8, isAvailable: true, description: "Elite level muscle synthesis protein loaded with natural BCAAs.", imagesCount: 1 }
-  ]);
-
-  const [membershipPlans, setMembershipPlans] = useState<any[]>([
-    { id: "plan-1", name: "3 Month AC Membership", duration: "3 Months", price: "₹5,000", benefits: "Full floor access, steam room, 4 guidance cards", availability: "Available" },
-    { id: "plan-2", name: "Annual Premium Pass", duration: "12 Months", price: "₹18,000", benefits: "Locker key, personalized plans, free supplements kit", availability: "Available" }
-  ]);
-
-  const [faqsList, setFaqsList] = useState<any[]>([
-    { id: "f-1", q: "What are your standard studio fitness timings?", a: "We operate 6:00 AM - 10:00 PM Monday-Saturday, Sunday Closed.", category: "Timing", priority: "High" },
-    { id: "f-2", q: "Do you offer direct personal training options?", a: "Yes absolutely! Our personal trainers charge ₹2,500/month for complete guidance.", category: "Coaching", priority: "High" },
-    { id: "f-3", q: "Is there vehicle parking facilities?", a: "Yes, we offer complimentary 2-wheeler and 4-wheeler parking for our active members.", category: "Facility", priority: "Medium" }
-  ]);
+  // States for shared knowledge items — initialized empty, populated by sub-components or backend
+  const [servicesList, setServicesList] = useState<any[]>([]);
+  const [productsList, setProductsList] = useState<any[]>([]);
+  const [membershipPlans, setMembershipPlans] = useState<any[]>([]);
+  const [faqsList, setFaqsList] = useState<any[]>([]);
 
   const [policies, setPolicies] = useState<any>({
-    refund: "Standard cancellations / refunds are fully processed inside 24 hours of first session booking.",
-    cancellation: "Please provide a minimum 6-hour warning notice ahead of scheduling changes to avoid seat fee locks.",
-    hours: "6:00 AM - 10:00 PM Monday through Saturday.",
-    delivery: "Pan-India shipping occurs inside 3 to 5 business days matching BlueDart freight guidelines.",
-    shipping: "Standard freight charges calculated dynamically at checkout check. Active promotions apply."
+    refund: "",
+    cancellation: "",
+    hours: "",
+    delivery: "",
+    shipping: ""
   });
 
-  const [uploadedDocs, setUploadedDocs] = useState<any[]>([
-    { name: "Gym_Facility_Guide.pdf", size: "1.2 MB", uploadDate: "Today, 10:02 AM", pages: 4, extracted: 14 },
-    { name: "Supplements_Catalog.docx", size: "380 KB", uploadDate: "Yesterday, 3:12 PM", pages: 2, extracted: 8 }
-  ]);
+  const [uploadedDocs, setUploadedDocs] = useState<any[]>([]);
 
   // Dashboard state to push alerts
   const [dashboardAlert, setDashboardAlert] = useState<string | null>(null);
@@ -179,83 +158,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
       setDashboardAlert(null);
     }, 4000);
   };
-  
-  // Mock Conversations (WhatsApp style previews)
-  const [conversations, setConversations] = useState<any[]>([
-    {
-      id: "c1",
-      name: "Priya Patel",
-      phone: "+91 98765 01234",
-      lastMessage: "Sounds perfect. Scheduled for tomorrow 4:00 PM",
-      time: "10:14 AM",
-      status: "Replied",
-      unread: false,
-      history: [
-        { sender: "user", text: "Hey! Do you have slots open tomorrow?", time: "10:10 AM" },
-        { sender: "bot", text: "Yes Priya! We have slots open at 11:30 AM and 4:00 PM. Would you like to lock tomorrow 4:00 PM?", time: "10:11 AM" },
-        { sender: "user", text: "Yes please lock that slot for me.", time: "10:13 AM" },
-        { sender: "bot", text: "Fantastic! Your appointment is successfully locked and synced. Looking forward to hosting you!", time: "10:14 AM" }
-      ]
-    },
-    {
-      id: "c2",
-      name: "Rahul Sharma",
-      phone: "+91 91234 56789",
-      lastMessage: "Is there any direct UPI pay option available?",
-      time: "09:42 AM",
-      status: "Waiting",
-      unread: true,
-      history: [
-        { sender: "user", text: "Hello, looking to register for the Premium Membership.", time: "09:40 AM" },
-        { sender: "bot", text: "Awesome choice! We support instant enrollment. Our plan is ₹4,999 per quarter.", time: "09:41 AM" },
-        { sender: "user", text: "Is there any direct UPI pay option available?", time: "09:42 AM" }
-      ]
-    },
-    {
-      id: "c3",
-      name: "Amit Verma",
-      phone: "+91 85544 32109",
-      lastMessage: "Can a human agent escalate my request?",
-      time: "Yesterday",
-      status: "Escalated",
-      unread: false,
-      history: [
-        { sender: "user", text: "I need to request a complete change structure for my corporate plan.", time: "4:30 PM" },
-        { sender: "bot", text: "I can assist you with our list of custom services! What specific packages are you looking to replace?", time: "4:31 PM" },
-        { sender: "user", text: "Can a human agent escalate my request?", time: "4:52 PM" },
-        { sender: "bot", text: "Understood. I have flagged your chat for urgent manual review. A human manager will ping you on WhatsApp soon.", time: "4:53 PM" }
-      ]
-    },
-    {
-      id: "c4",
-      name: "Ananya Saxena",
-      phone: "+91 74011 22334",
-      lastMessage: "Thank you, that answers all my queries!",
-      time: "Yesterday",
-      status: "Replied",
-      unread: false,
-      history: [
-        { sender: "user", text: "Where can I park my vehicle?", time: "11:10 AM" },
-        { sender: "bot", text: "We have dedicated, free basement parking for all our clients. Just tell the gate operator you are visiting our office!", time: "11:12 AM" },
-        { sender: "user", text: "Thank you, that answers all my queries!", time: "11:15 AM" }
-      ]
-    }
-  ]);
 
-  // Lead Pipeline Registry
-  const [leads, setLeads] = useState<any[]>([
-    { id: "l1", name: "Rahul Sharma", phone: "+91 91234 56789", source: "WhatsApp Chat", status: "Interested", date: "June 20, 10:14 AM" },
-    { id: "l2", name: "Priya Patel", phone: "+91 98765 01234", source: "Direct Link", status: "Converted", date: "June 20, 08:30 AM" },
-    { id: "l3", name: "Amit K. Verma", phone: "+91 85544 32109", source: "Instagram DM", status: "Contacted", date: "June 19, 04:52 PM" },
-    { id: "l4", name: "Ananya Saxena", phone: "+91 74011 22334", source: "WhatsApp Chat", status: "Interested", date: "June 19, 11:15 AM" }
-  ]);
+  // Conversations — loaded from backend, starts empty
+  const [conversations, setConversations] = useState<any[]>([]);
 
-  // Appointments Agenda state
-  const [appointments, setAppointments] = useState<any[]>([
-    { id: "a1", client: "Priya Patel", phone: "+91 98765 01234", service: "Premium Consultation", time: "Today, 4:00 PM", status: "Today" },
-    { id: "a2", client: "Rohit Grover", phone: "+91 90245 11122", service: "Standard Membership Kickoff", time: "June 22, 11:30 AM", status: "Upcoming" },
-    { id: "a3", client: "Ananya Saxena", phone: "+91 74011 22334", service: "Trial Session", time: "Yesterday, 3:00 PM", status: "Completed" }
-  ]);
+  // Lead Pipeline — loaded from backend, starts empty
+  const [leads, setLeads] = useState<any[]>([]);
+
+  // Appointments — loaded from backend via AppointmentsTab, starts empty
+  const [appointments, setAppointments] = useState<any[]>([]);
 
   // Tab routing
   const navigate = useNavigate();
@@ -413,29 +324,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
     }
   };
 
-  const [selectedChatId, setSelectedChatId] = useState<string>("c1");
+  const [selectedChatId, setSelectedChatId] = useState<string>("");
   const [chatInput, setChatInput] = useState("");
   const [isBotResponding, setIsBotResponding] = useState(false);
 
   // Active conversations state lookup
-  const activeChat = conversations.find(c => c.id === selectedChatId) || conversations[0];
+  const activeChat = conversations.find(c => c.id === selectedChatId) || conversations[0] || null;
 
-  // Simulated AI Feed events list
-  const [activityFeed, setActivityFeed] = useState([
-    { id: 1, type: "response", text: "AI answered Priya Patel on WhatsApp regarding parking space", time: "2 mins ago" },
-    { id: 2, type: "payment", text: "Payment received from Rahul Sharma (₹4,999) on UPI", time: "12 mins ago" },
-    { id: 3, type: "lead", text: "New lead captured: Amit Verma (+91 85544 32109)", time: "1 hr ago" },
-    { id: 4, type: "appointment", text: "Appointment booked automatically for tomorrow: Priya Patel", time: "2 hrs ago" },
-    { id: 5, type: "kb", text: "Knowledge source updated with 2 additional custom services", time: "4 hrs ago" }
-  ]);
+  // Activity feed — populated by real events, starts empty
+  const [activityFeed, setActivityFeed] = useState<any[]>([]);
 
   // Notifications bell toggle
   const [notificationOpen, setNotificationOpen] = useState(false);
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: "New customer lead captured from +91 91234 56789", unread: true },
-    { id: 2, text: "UPI Payment of ₹4,999 synchronized securely", unread: true },
-    { id: 3, text: "CalSync auto-allotted tomorrow 4:00 PM time slot", unread: false }
-  ]);
+  const [notifications, setNotifications] = useState<any[]>([]);
 
   const [userProfile, setUserProfile] = useState<{ name: string; email: string; businessName: string } | null>(null);
 
