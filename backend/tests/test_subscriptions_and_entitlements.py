@@ -24,7 +24,7 @@ def test_new_business_subscription_initial_state(db_session: Session):
 
 def test_start_trial_flow_monthly_and_yearly(db_session: Session):
     """
-    Verify monthly trial (7 days, ₹999) and yearly trial (14 days, ₹8,999) setup.
+    Verify monthly trial (7 days, ₹699) and yearly trial (14 days, ₹6,899) setup.
     Verify when trial_ends_at is in the past, evaluate_subscription_state marks status EXPIRED.
     """
     biz_m = Business(id="biz-sub-m", name="Monthly Biz", email="m@test.com", classification="Retail")
@@ -36,14 +36,14 @@ def test_start_trial_flow_monthly_and_yearly(db_session: Session):
     state_m = EntitlementService.start_trial(db_session, "biz-sub-m", "monthly")
     assert state_m["status"] == "TRIAL_ACTIVE"
     assert state_m["pricing"]["billing_interval"] == "monthly"
-    assert state_m["pricing"]["price"] == 999.0
+    assert state_m["pricing"]["price"] == 699.0
     assert state_m["trial"]["days_remaining"] <= 7
 
     # Yearly Trial
     state_y = EntitlementService.start_trial(db_session, "biz-sub-y", "yearly")
     assert state_y["status"] == "TRIAL_ACTIVE"
     assert state_y["pricing"]["billing_interval"] == "yearly"
-    assert state_y["pricing"]["price"] == 8999.0
+    assert state_y["pricing"]["price"] == 6899.0
     assert state_y["trial"]["days_remaining"] <= 14
 
     # Expiry Simulation
@@ -77,8 +77,8 @@ def test_subscription_plans_endpoint(client: TestClient, auth_headers_a):
     assert "plans" in data
     assert "monthly" in data["plans"]
     assert "yearly" in data["plans"]
-    assert data["plans"]["monthly"]["price"] == 999.0
-    assert data["plans"]["yearly"]["price"] == 8999.0
+    assert data["plans"]["monthly"]["price"] == 699.0
+    assert data["plans"]["yearly"]["price"] == 6899.0
 
 def test_autofy_pro_entitlements(db_session: Session):
     """

@@ -76,8 +76,8 @@ def create_subscription_checkout(
 ):
     """
     Generates Razorpay Subscription configuration for Autofy Pro recurring mandate.
-    Monthly: ₹999/mo after 7-day trial.
-    Yearly:  ₹8,999/yr after 14-day trial.
+    Monthly: ₹699/mo after 7-day trial.
+    Yearly:  ₹6,899/yr after 14-day trial.
     """
     interval_key = "yearly" if "year" in str(payload.billing_interval or payload.plan_id).lower() else "monthly"
     plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])

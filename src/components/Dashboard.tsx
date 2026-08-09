@@ -702,21 +702,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   function SidebarContent() {
     return (
-      <div className="flex h-full flex-col justify-between gap-4">
-        <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto pr-1 scrollbar-none">
+      <div className="flex h-full flex-col justify-between gap-5">
+        <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pr-1 scrollbar-none">
           {/* Brand */}
-          <div className="flex items-center gap-2.5 px-2 pt-1">
-            <div
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-white shadow-sm"
-              style={{ background: "var(--brand-gradient)" }}
-            >
-              <Logo size={20} />
-            </div>
+          <div className="flex items-center gap-3.5 px-1 py-1">
+            <Logo size={46} className="shrink-0 filter drop-shadow-md transition-transform duration-200 hover:scale-105" />
             <div className="min-w-0 text-left">
-              <span className="block truncate font-display text-[16px] font-black leading-none tracking-tight text-gradient-brand">
+              <span className="block truncate font-display text-[18px] font-black leading-tight tracking-tight text-gradient-brand">
                 Autofy OS
               </span>
-              <span className="mt-1 block text-[8.5px] font-extrabold uppercase tracking-widest text-[var(--brand)]">
+              <span className="mt-0.5 block text-[9px] font-extrabold uppercase tracking-widest text-[var(--brand)]">
                 Enterprise AI Suite
               </span>
             </div>
@@ -744,7 +739,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         handleTabChange(item.id);
                         setIsMobileSidebarOpen(false);
                       }}
-                      className={`group relative flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[13px] font-medium tracking-tight transition-all duration-200 ${
+                      className={`group relative flex w-full items-center gap-3 rounded-xl px-3.5 py-2.5 text-left text-[13.5px] font-medium tracking-tight transition-all duration-200 ${
                         isActive ? "font-bold" : "hover:bg-[var(--input-bg)]"
                       }`}
                       style={
@@ -784,39 +779,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Account footer */}
-        <div className="flex flex-col gap-2 border-t pt-3" style={{ borderColor: "var(--border)" }}>
+        <div className="flex flex-col gap-3 border-t pt-4" style={{ borderColor: "var(--border)" }}>
           <div
             onClick={() => handleTabChange("subscription")}
-            className="flex items-center justify-between rounded-2xl p-3 cursor-pointer hover:border-[var(--brand)] transition group"
-            style={{
-              background: "var(--bg-card)",
-              border: "1px solid var(--border)",
-              boxShadow: "0 2px 8px var(--shadow)",
-            }}
+            className="surface-a flex items-center justify-between rounded-2xl p-3.5 cursor-pointer border border-[var(--border)] shadow-md hover:border-[var(--brand)]/50 transition duration-200 group"
             title="Manage Subscription & Plans"
           >
-            <div className="flex min-w-0 items-center gap-2.5">
+            <div className="flex min-w-0 items-center gap-3">
               <div
-                className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-black text-white shadow-sm"
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-xs font-black text-white shadow-sm"
                 style={{ background: "var(--brand-gradient)" }}
               >
                 {userProfile?.name ? userProfile.name[0].toUpperCase() : (userProfile?.businessName ? userProfile.businessName[0].toUpperCase() : (data.businessName ? data.businessName[0].toUpperCase() : "A"))}
               </div>
               <div className="min-w-0 flex-1 text-left">
-                <p className="truncate text-xs font-bold group-hover:text-[var(--brand)] transition" style={{ color: "var(--text)" }}>
+                <p className="truncate text-xs font-bold text-[var(--text)] group-hover:text-[var(--brand)] transition">
                   {userProfile?.businessName || data.businessName || "My Business"}
                 </p>
-                <span className="mt-0.5 inline-block rounded-full bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-emerald-500 hover:bg-emerald-500/20 transition">
+                <span className="mt-1 inline-block rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 text-[8.5px] font-extrabold uppercase tracking-wider text-emerald-400">
                   {subStatus?.status === "TRIAL_ACTIVE" ? `Trial (Autofy Pro) ⚡` : (subStatus?.plan_name || "Autofy Pro")}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between px-2 pt-1">
+          <div className="flex items-center justify-between px-1">
             <button
               onClick={toggleTheme}
-              className="cursor-pointer rounded-lg p-1.5 text-[var(--text-muted)] transition hover:text-[var(--text)]"
+              className="cursor-pointer rounded-xl p-2 text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--input-bg)] transition duration-200"
               title="Toggle theme"
             >
               {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -826,7 +816,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               onClick={() => {
                 if (window.confirm("Sign out of Autofy?")) onLogout();
               }}
-              className="flex cursor-pointer items-center gap-1.5 text-[11px] font-bold text-[var(--text-muted)] transition hover:text-red-500"
+              className="flex cursor-pointer items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-[var(--text-muted)] hover:text-red-400 hover:bg-red-500/10 transition duration-200"
             >
               <LogOut className="h-3.5 w-3.5" />
               <span>Sign out</span>
@@ -861,14 +851,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsMobileSidebarOpen(false)}
-              className="fixed inset-0 z-40 bg-black/50 backdrop-blur-md md:hidden"
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-md md:hidden"
             />
             <motion.aside
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ duration: 0.28, ease: "easeOut" }}
-              className="fixed inset-y-0 left-0 z-50 flex w-[268px] max-w-[85vw] flex-col p-5 md:hidden"
+              className="fixed inset-y-0 left-0 z-50 flex w-[280px] max-w-[80vw] flex-col p-6 md:hidden"
               style={{
                 background: "var(--sidebar)",
                 backdropFilter: "blur(24px)",
@@ -883,7 +873,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* DESKTOP FIXED SIDEBAR */}
       <aside
-        className="sticky top-0 z-40 hidden h-screen w-[248px] shrink-0 flex-col p-5 md:flex lg:w-[268px]"
+        className="sticky top-0 z-40 hidden h-screen w-[280px] shrink-0 flex-col p-6 md:flex lg:w-[300px]"
         style={{
           background: "var(--sidebar)",
           backdropFilter: "blur(24px)",

@@ -5,8 +5,8 @@ from typing import Dict, Any
 # ------------------------------------------------------------
 # Product: Autofy Pro
 # Options:
-#   • Monthly: ₹999 / month  (7-day free trial)
-#   • Yearly:  ₹8,999 / year (14-day free trial)
+#   • Monthly: ₹699 / month  (7-day free trial)
+#   • Yearly:  ₹6,899 / year (14-day free trial)
 # Both options share the exact same features & entitlements.
 # ════════════════════════════════════════════════════════════
 
@@ -34,8 +34,8 @@ SUBSCRIPTION_PLANS: Dict[str, Dict[str, Any]] = {
         "id": "monthly",
         "product_name": "Autofy Pro",
         "name": "Autofy Pro Monthly",
-        "price": 999.0,
-        "normal_price": 999.0,
+        "price": 699.0,
+        "normal_price": 699.0,
         "currency": "INR",
         "billing_interval": "monthly",
         "trial_days": 7,
@@ -46,14 +46,14 @@ SUBSCRIPTION_PLANS: Dict[str, Dict[str, Any]] = {
         "id": "yearly",
         "product_name": "Autofy Pro",
         "name": "Autofy Pro Yearly",
-        "price": 8999.0,
-        "normal_price": 8999.0,
+        "price": 6899.0,
+        "normal_price": 6899.0,
         "currency": "INR",
         "billing_interval": "yearly",
         "trial_days": 14,
-        "savings_amount": 2989.0,
-        "monthly_equivalent": 750.0,
-        "discount_percent": 25,
+        "savings_amount": 1499.0,
+        "monthly_equivalent": 575.0,
+        "discount_percent": 18,
         "features": AUTOFY_PRO_FEATURES,
         "entitlements": AUTOFY_PRO_ENTITLEMENTS
     }

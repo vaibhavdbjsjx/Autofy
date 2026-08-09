@@ -25,8 +25,8 @@ class Subscription(Base):
     promo_first_cycle_used = Column(Boolean, default=False, nullable=False)
 
     # Pricing & Currency snapshot
-    normal_price = Column(Numeric(10, 2), nullable=False, default=999.00)
-    first_cycle_price = Column(Numeric(10, 2), nullable=False, default=999.00)
+    normal_price = Column(Numeric(10, 2), nullable=False, default=699.00)
+    first_cycle_price = Column(Numeric(10, 2), nullable=False, default=699.00)
     currency = Column(String(10), default="INR", nullable=False)
     billing_interval = Column(String(20), default="monthly", nullable=False)
 

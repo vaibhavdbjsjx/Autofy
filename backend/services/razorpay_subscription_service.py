@@ -87,8 +87,8 @@ class RazorpaySubscriptionService:
     ) -> Dict[str, Any]:
         """
         Creates an official Razorpay Subscription object via API for Autofy Pro.
-        Monthly: ₹999/mo, 7-day free trial (start_at = now + 7 days)
-        Yearly:  ₹8,999/yr, 14-day free trial (start_at = now + 14 days)
+        Monthly: ₹699/mo, 7-day free trial (start_at = now + 7 days)
+        Yearly:  ₹6,899/yr, 14-day free trial (start_at = now + 14 days)
         """
         interval_key = "yearly" if str(billing_interval).lower() == "yearly" else "monthly"
         plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])

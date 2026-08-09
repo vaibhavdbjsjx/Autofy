@@ -21,8 +21,8 @@ class EntitlementService:
                 plan_id="pro",
                 provider="razorpay",
                 status="EXPLORING",
-                normal_price=999.00,
-                first_cycle_price=999.00,
+                normal_price=699.00,
+                first_cycle_price=699.00,
                 currency="INR",
                 billing_interval="monthly",
                 promo_eligible_at_signup=False,
@@ -111,8 +111,8 @@ class EntitlementService:
     def start_trial(db: Session, business_id: str, plan_id_or_interval: str = "monthly") -> Dict[str, Any]:
         """
         Activates free trial for Autofy Pro.
-        Monthly: 7-day free trial (₹999/mo after trial)
-        Yearly:  14-day free trial (₹8,999/yr after trial)
+        Monthly: 7-day free trial (₹699/mo after trial)
+        Yearly:  14-day free trial (₹6,899/yr after trial)
         """
         interval_key = "yearly" if "year" in str(plan_id_or_interval).lower() or str(plan_id_or_interval).lower() == "enterprise" else "monthly"
         plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])

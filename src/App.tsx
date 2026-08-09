@@ -100,11 +100,7 @@ function Navbar() {
           {/* Logo */}
           <Link to="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}
             onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
-            <div style={{ width: 32, height: 32, borderRadius: 10,
-              background: "var(--brand-subtle)", border: "1px solid var(--border)",
-              display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Logo size={20} />
-            </div>
+            <Logo size={32} />
             <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.03em",
               fontFamily: "'Plus Jakarta Sans',sans-serif", color: "var(--text)" }}>Autofy</span>
           </Link>
@@ -1206,7 +1202,7 @@ function PricingSection() {
 
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                 <span className="text-gradient-primary" style={{ fontSize: 48, fontWeight: 900, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                  {annual ? "₹8,999" : "₹999"}
+                  {annual ? "₹6,899" : "₹699"}
                 </span>
                 <span style={{ fontSize: 15, color: "var(--text-muted)", fontWeight: 600 }}>
                   /{annual ? "year" : "month"}
@@ -1215,7 +1211,7 @@ function PricingSection() {
 
               {annual ? (
                 <div style={{ fontSize: 13, color: "#10B981", fontWeight: 600, marginTop: 4 }}>
-                  ₹750/month equivalent • Save ₹2,989/year
+                  Save ₹1,499 every year (~₹575/month equivalent)
                 </div>
               ) : (
                 <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500, marginTop: 4 }}>
@@ -1226,10 +1222,10 @@ function PricingSection() {
 
             <div style={{ background: "rgba(0,0,0,0.3)", padding: "14px 20px", borderRadius: 16, border: "1px solid rgba(139,92,246,0.2)" }}>
               <div style={{ color: "#FBBF24", fontSize: 12, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
-                <span>{annual ? "14 DAYS FREE TRIAL" : "7 DAYS FREE TRIAL"}</span>
+                <span>{annual ? "14-DAY FREE TRIAL" : "7-DAY FREE TRIAL"}</span>
               </div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "monospace", marginTop: 2 }}>
-                ₹0 charged today
+                Start free today.
               </div>
             </div>
           </div>
@@ -1239,15 +1235,13 @@ function PricingSection() {
             <div style={{ fontWeight: 700, color: "#fff", marginBottom: 6 }}>Automatic Billing Disclosure</div>
             {annual ? (
               <>
-                <div>• <strong>14-day free trial — ₹0 today</strong></div>
-                <div>• <strong>₹8,999</strong> automatically charged after 14-day trial</div>
-                <div>• Then <strong>₹8,999/year</strong> until cancelled</div>
+                <div>• <strong>Start free today. You won't be charged today.</strong></div>
+                <div>• After your 14-day free trial, <strong>₹6,899/year</strong> will automatically renew until cancelled.</div>
               </>
             ) : (
               <>
-                <div>• <strong>7-day free trial — ₹0 today</strong></div>
-                <div>• <strong>₹999</strong> automatically charged after 7-day trial</div>
-                <div>• Then <strong>₹999/month</strong> until cancelled</div>
+                <div>• <strong>Start free today. You won't be charged today.</strong></div>
+                <div>• After your 7-day free trial, <strong>₹699/month</strong> will automatically renew until cancelled.</div>
               </>
             )}
           </div>

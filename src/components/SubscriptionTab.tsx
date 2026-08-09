@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Check, Sparkles, ShieldCheck, CreditCard, ArrowRight, Clock, AlertCircle, Zap, Lock, RefreshCw } from "lucide-react";
+import { Check, Sparkles, ShieldCheck, CreditCard, ArrowRight, Clock, Lock, Zap } from "lucide-react";
 import { api } from "../lib/api";
 import { isAuthenticated } from "../lib/auth";
 import { loadRazorpayScript } from "../lib/razorpayLoader";
@@ -73,11 +73,11 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
           pricing: {
             currency: "INR",
             billing_interval: "yearly",
-            price: 8999,
-            normal_price: 8999,
-            monthly_equivalent: 750,
-            savings_amount: 2989,
-            discount_percent: 25,
+            price: 6899,
+            normal_price: 6899,
+            monthly_equivalent: 575,
+            savings_amount: 1499,
+            discount_percent: 18,
           },
           trial: {
             active: false,
@@ -111,72 +111,79 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
   }, []);
 
   const handleStartTrial = async (interval: "monthly" | "yearly") => {
-    setIsSubmitting(true);
-    try {
-      if (isAuthenticated()) {
-        const res = await api.post<any>("/api/v1/subscriptions/start-trial", { billing_interval: interval });
-        setSubState(res.subscription);
-        const trialDays = interval === "yearly" ? 14 : 7;
-        triggerNotification?.(`${trialDays}-Day Free Trial for Autofy Pro (${interval}) activated!`);
-      } else {
-        triggerNotification?.("Please sign in to activate your free trial.");
-      }
-    } catch (err: any) {
-      triggerNotification?.("Trial activation error. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Open real Razorpay Standard Checkout mandate setup for trial
+    await handleCreateCheckout(interval);
   };
 
   const handleCreateCheckout = async (interval: "monthly" | "yearly") => {
     setIsSubmitting(true);
     try {
-      if (isAuthenticated()) {
-        const loaded = await loadRazorpayScript();
-        if (!loaded) {
-          triggerNotification?.("Unable to load Razorpay SDK. Please check your network connection.");
-          return;
-        }
+      if (!isAuthenticated()) {
+        triggerNotification?.("Please sign in to authorize your trial mandate.");
+        return;
+      }
 
-        const res = await api.post<any>("/api/v1/subscriptions/create-checkout", { billing_interval: interval });
-        if (res.razorpay_subscription_id && (window as any).Razorpay) {
-          const options = {
-            key: res.razorpay_key_id,
-            subscription_id: res.razorpay_subscription_id,
-            name: "Autofy Pro",
-            description: `Recurring Mandate — ${interval === "yearly" ? "₹8,999/year after 14-day trial" : "₹999/month after 7-day trial"}`,
-            handler: async function (response: any) {
-              try {
-                await api.post("/api/v1/payments/verify", {
-                  razorpay_payment_id: response.razorpay_payment_id || `pay_mandate_${Date.now()}`,
-                  razorpay_subscription_id: response.razorpay_subscription_id || res.razorpay_subscription_id,
-                  razorpay_signature: response.razorpay_signature || "signature_mandate_authorized",
-                });
+      const loaded = await loadRazorpayScript();
+      if (!loaded) {
+        triggerNotification?.("Unable to load Razorpay SDK. Please check your network connection.");
+        return;
+      }
+
+      const res = await api.post<any>("/api/v1/subscriptions/create-checkout", { billing_interval: interval });
+
+      if (!res?.razorpay_subscription_id) {
+        triggerNotification?.("Unable to generate subscription checkout payload. Please retry.");
+        return;
+      }
+
+      if ((window as any).Razorpay) {
+        const options = {
+          key: res.razorpay_key_id,
+          subscription_id: res.razorpay_subscription_id,
+          name: "Autofy Pro",
+          description: `Mandate Setup — ${interval === "yearly" ? "14-Day Free Trial (₹6,899/yr after trial)" : "7-Day Free Trial (₹699/mo after trial)"}`,
+          handler: async function (response: any) {
+            try {
+              setIsSubmitting(true);
+              const verifyRes = await api.post<any>("/api/v1/payments/verify", {
+                razorpay_payment_id: response.razorpay_payment_id || `pay_mandate_${Date.now()}`,
+                razorpay_subscription_id: response.razorpay_subscription_id || res.razorpay_subscription_id,
+                razorpay_signature: response.razorpay_signature || "signature_mandate_authorized",
+              });
+              
+              if (verifyRes && verifyRes.status === "success") {
+                await fetchStatus();
                 triggerNotification?.("Payment mandate authorized successfully! Your Autofy Pro subscription is active.");
-              } catch (verifyErr: any) {
-                triggerNotification?.(`Mandate authorized: ${verifyErr?.message || "Verification received"}`);
-              } finally {
-                fetchStatus();
+              } else {
+                triggerNotification?.("Payment verification failed. Please try again.");
               }
-            },
-            notes: {
-              business_id: res.business_id,
-              billing_interval: interval,
-            },
-            theme: {
-              color: "#8B5CF6",
-            },
-          };
-          const rzp = new (window as any).Razorpay(options);
-          rzp.open();
-        } else {
-          triggerNotification?.(`Razorpay mandate generated: ${res.razorpay_subscription_id}`);
-        }
+            } catch (verifyErr: any) {
+              triggerNotification?.(`Verification failed: ${verifyErr?.message || "Please contact support"}`);
+            } finally {
+              setIsSubmitting(false);
+            }
+          },
+          modal: {
+            ondismiss: function () {
+              triggerNotification?.("Checkout cancelled. Trial mandate authorization was not completed.");
+              setIsSubmitting(false);
+            }
+          },
+          notes: {
+            business_id: res.business_id,
+            billing_interval: interval,
+          },
+          theme: {
+            color: "#8B5CF6",
+          },
+        };
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
       } else {
-        triggerNotification?.("Please sign in to authorize recurring payment.");
+        triggerNotification?.("Razorpay SDK unavailable. Please refresh and try again.");
       }
     } catch (err: any) {
-      triggerNotification?.("Checkout creation error. Please retry.");
+      triggerNotification?.("Checkout generation error. Please retry.");
     } finally {
       setIsSubmitting(false);
     }
@@ -317,7 +324,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
               >
                 <span>YEARLY</span>
                 <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-extrabold text-[10px] uppercase border border-amber-400/30">
-                  SAVE ~25%
+                  BEST VALUE
                 </span>
               </button>
             </div>
@@ -332,7 +339,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
               <div className="flex items-center gap-3">
                 <h4 className="text-2xl font-black font-display text-[var(--text)]">Autofy Pro</h4>
                 {billingInterval === "yearly" ? (
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-wider">
+                  <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-black uppercase tracking-wider">
                     BEST VALUE
                   </span>
                 ) : (
@@ -345,12 +352,12 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
               <div className="flex items-baseline gap-2 pt-1">
                 {billingInterval === "yearly" ? (
                   <>
-                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹8,999</span>
+                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹6,899</span>
                     <span className="text-sm font-semibold text-[var(--text-muted)]">/ year</span>
                   </>
                 ) : (
                   <>
-                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹999</span>
+                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹699</span>
                     <span className="text-sm font-semibold text-[var(--text-muted)]">/ month</span>
                   </>
                 )}
@@ -358,9 +365,9 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
 
               {billingInterval === "yearly" ? (
                 <div className="text-xs font-medium text-emerald-400 flex items-center gap-2 pt-0.5">
-                  <span>₹750/month equivalent</span>
+                  <span>Save ₹1,499 every year</span>
                   <span>•</span>
-                  <span>Save ₹2,989/year compared to monthly</span>
+                  <span>(~₹575/month equivalent)</span>
                 </div>
               ) : (
                 <div className="text-xs font-medium text-[var(--text-muted)] pt-0.5">
@@ -373,10 +380,10 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
             <div className="shrink-0 p-4 rounded-2xl bg-black/40 border border-purple-500/30 space-y-1">
               <div className="flex items-center gap-2 text-amber-300 font-black text-xs uppercase tracking-widest">
                 <Clock className="w-4 h-4 text-amber-400" />
-                <span>{billingInterval === "yearly" ? "14 DAYS FREE TRIAL" : "7 DAYS FREE TRIAL"}</span>
+                <span>{billingInterval === "yearly" ? "14-DAY FREE TRIAL" : "7-DAY FREE TRIAL"}</span>
               </div>
               <p className="text-[11px] text-[var(--text-subtle)] font-mono">
-                ₹0 charged today
+                Start free today.
               </p>
             </div>
           </div>
@@ -389,15 +396,13 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
             </div>
             {billingInterval === "yearly" ? (
               <>
-                <p>• <strong>14-day free trial — ₹0 today</strong></p>
-                <p>• <strong>₹8,999</strong> will be automatically charged after your trial ends.</p>
-                <p>• Then <strong>₹8,999/year</strong> until cancelled.</p>
+                <p>• <strong>Start free today. You won't be charged today.</strong></p>
+                <p>• After your 14-day free trial, <strong>₹6,899/year</strong> will automatically renew until cancelled.</p>
               </>
             ) : (
               <>
-                <p>• <strong>7-day free trial — ₹0 today</strong></p>
-                <p>• <strong>₹999</strong> will be automatically charged after your trial ends.</p>
-                <p>• Then <strong>₹999/month</strong> until cancelled.</p>
+                <p>• <strong>Start free today. You won't be charged today.</strong></p>
+                <p>• After your 7-day free trial, <strong>₹699/month</strong> will automatically renew until cancelled.</p>
               </>
             )}
           </div>
@@ -446,7 +451,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
             </div>
 
             <div className="space-y-0.5 pt-1">
-              <p className="text-xs font-bold text-[var(--text)]">No charge today</p>
+              <p className="text-xs font-bold text-[var(--text)]">You won't be charged today.</p>
               <p className="text-[11px] text-[var(--text-subtle)]">
                 Cancel anytime before your trial ends to avoid the charge.
               </p>
