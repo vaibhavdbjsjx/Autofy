@@ -51,15 +51,9 @@ class Settings(BaseSettings):
     RAZORPAY_KEY_SECRET: str = ""
     RAZORPAY_WEBHOOK_SECRET: str = ""
 
-    # Razorpay Recurring Plan IDs (Normal Prices)
-    RAZORPAY_STARTER_PLAN_ID: str = ""
-    RAZORPAY_PRO_PLAN_ID: str = ""
-    RAZORPAY_ENTERPRISE_PLAN_ID: str = ""
-
-    # Razorpay Promotional First-Cycle Offer IDs
-    RAZORPAY_STARTER_OFFER_ID: str = ""
-    RAZORPAY_PRO_OFFER_ID: str = ""
-    RAZORPAY_ENTERPRISE_OFFER_ID: str = ""
+    # Razorpay Recurring Plan IDs (Autofy Pro Monthly & Yearly)
+    RAZORPAY_MONTHLY_PLAN_ID: str = ""
+    RAZORPAY_YEARLY_PLAN_ID: str = ""
 
     # SMTP Settings for Email Notifications
     # For Gmail: go to Google Account > Security > 2-Step Verification > App Passwords

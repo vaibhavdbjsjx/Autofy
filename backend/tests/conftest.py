@@ -65,6 +65,8 @@ def test_business_a(db_session: Session) -> Business:
     db_session.add(biz)
     db_session.commit()
     db_session.refresh(biz)
+    from services.entitlement_services import EntitlementService
+    EntitlementService.start_trial(db_session, biz.id, "pro")
     return biz
 
 @pytest.fixture
@@ -100,6 +102,8 @@ def test_business_b(db_session: Session) -> Business:
     db_session.add(biz)
     db_session.commit()
     db_session.refresh(biz)
+    from services.entitlement_services import EntitlementService
+    EntitlementService.start_trial(db_session, biz.id, "pro")
     return biz
 
 @pytest.fixture

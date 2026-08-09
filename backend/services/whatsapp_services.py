@@ -221,11 +221,58 @@ class WhatsAppService:
             lead.status = "Qualified"
         db.commit()
 
-        # 5. Process AI automated reply if AI capability is toggled ON
+        # 5. Process AI automated reply — enforce global and per-number controls
+        # Check 1: Global AI master switch on the business
+        import json as _json
+        if not getattr(target_business, 'ai_auto_reply_enabled', True):
+            logger.info(f"AI auto-reply globally disabled for Business {business_id}. Skipping AI reply.")
+            cust_msg_in = MessageCreate(
+                sender_type="Customer",
+                sender_id=from_phone,
+                message_type=msg_type,
+                content=message_content,
+                media_url=media_url,
+                whatsapp_message_id=msg_id,
+                status="read"
+            )
+            MessageCRUD.create(db, conv.id, cust_msg_in)
+            return {
+                "status": "ai_globally_disabled",
+                "conversation_id": conv.id,
+                "message": message_content
+            }
+
+        # Check 2: Per-number AI exceptions list
+        exception_phones = []
+        if getattr(target_business, 'ai_reply_exceptions', None):
+            try:
+                exception_phones = _json.loads(target_business.ai_reply_exceptions)
+            except (ValueError, TypeError):
+                exception_phones = []
+        if from_phone in exception_phones:
+            logger.info(f"AI reply skipped for excluded phone {from_phone} in Business {business_id}.")
+            cust_msg_in = MessageCreate(
+                sender_type="Customer",
+                sender_id=from_phone,
+                message_type=msg_type,
+                content=message_content,
+                media_url=media_url,
+                whatsapp_message_id=msg_id,
+                status="read"
+            )
+            MessageCRUD.create(db, conv.id, cust_msg_in)
+            return {
+                "status": "ai_exception_skipped",
+                "conversation_id": conv.id,
+                "excluded_phone": from_phone,
+                "message": message_content
+            }
+
+        # Check 3: Per-conversation AI toggle
         if conv.ai_enabled:
             # Generates reply using our ConversationalAIService with full business and memory context
             ai_data = ConversationalAIService.reply_with_ai(db, conv.id, message_content, whatsapp_message_id=msg_id)
-            
+
             # Retrieve phone ID and send actual outgoing REST WhatsApp message back
             phone_metadata = value.get("metadata", {})
             phone_number_id = phone_metadata.get("phone_number_id", "MOCK_PHONE_ID")

@@ -36,10 +36,12 @@ def get_all_appointments(
         "limit": limit
     }
 
+from auth.dependencies import get_current_active_user, FeatureChecker
+
 @router.post("", response_model=AppointmentResponse, status_code=status.HTTP_201_CREATED)
 def create_appointment(
     payload: AppointmentCreate,
-    current_user: User = Depends(get_current_active_user),
+    current_user: User = Depends(FeatureChecker("appointments_booking")),
     db: Session = Depends(get_db)
 ):
     """

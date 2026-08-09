@@ -51,7 +51,8 @@ import {
   Brain,
   Megaphone,
   LifeBuoy,
-  Smartphone
+  Smartphone,
+  Power
 } from "lucide-react";
 import { OnboardingData } from "../types";
 import { ConversationsTab } from "./ConversationsTab";
@@ -152,6 +153,11 @@ export const Dashboard: React.FC<DashboardProps> = ({
   // Dashboard state to push alerts
   const [dashboardAlert, setDashboardAlert] = useState<string | null>(null);
 
+  // Global AI Auto-Reply state (loaded from backend)
+  const [globalAiEnabled, setGlobalAiEnabled] = useState(true);
+  const [aiKillConfirmOpen, setAiKillConfirmOpen] = useState(false);
+  const [aiToggleLoading, setAiToggleLoading] = useState(false);
+
   const triggerDashboardNotification = (txt: string) => {
     setDashboardAlert(txt);
     setTimeout(() => {
@@ -186,6 +192,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
     if (isAuthenticated()) {
       api.get("/api/v1/subscriptions/status")
         .then(res => setSubStatus(res))
+        .catch(() => {});
+      // Load AI auto-reply state
+      api.get("/api/v1/business/profile")
+        .then((res: any) => {
+          if (res?.ai_auto_reply_enabled !== undefined) {
+            setGlobalAiEnabled(res.ai_auto_reply_enabled);
+          }
+        })
         .catch(() => {});
     }
   }, []);
@@ -793,7 +807,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   {userProfile?.businessName || data.businessName || "My Business"}
                 </p>
                 <span className="mt-0.5 inline-block rounded-full bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 text-[8px] font-extrabold uppercase tracking-wider text-emerald-500 hover:bg-emerald-500/20 transition">
-                  {subStatus?.status === "TRIAL_ACTIVE" ? `Trial (${subStatus?.plan_name || "Pro"}) ⚡` : (subStatus?.plan_name || "Starter Plan")}
+                  {subStatus?.status === "TRIAL_ACTIVE" ? `Trial (Autofy Pro) ⚡` : (subStatus?.plan_name || "Autofy Pro")}
                 </span>
               </div>
             </div>
@@ -973,6 +987,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 )}
               </AnimatePresence>
             </div>
+
+            {/* AI Emergency Kill Switch Indicator */}
+            <button
+              onClick={() => setAiKillConfirmOpen(true)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
+                globalAiEnabled
+                  ? "bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500/20"
+                  : "bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 animate-pulse"
+              }`}
+              title={globalAiEnabled ? "AI Auto-Reply is active — click to disable" : "AI Auto-Reply is disabled — click to enable"}
+            >
+              <Power className="w-3 h-3" />
+              {globalAiEnabled ? "AI Active" : "AI Paused"}
+            </button>
 
             <button
               onClick={toggleTheme}
@@ -2128,6 +2156,80 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </div>
               )}
 
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* AI Emergency Kill Switch Modal */}
+      <AnimatePresence>
+        {aiKillConfirmOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-md bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 shadow-2xl space-y-4"
+            >
+              <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
+                <div className="flex items-center gap-2">
+                  <div className={`p-2 rounded-xl ${globalAiEnabled ? "bg-red-500/10 text-red-400" : "bg-blue-500/10 text-blue-400"}`}>
+                    <Power className="w-5 h-5" />
+                  </div>
+                  <h3 className="text-base font-black text-[var(--text)]">
+                    {globalAiEnabled ? "Disable Global AI Auto-Reply?" : "Enable Global AI Auto-Reply?"}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setAiKillConfirmOpen(false)}
+                  className="p-1 text-[var(--text-subtle)] hover:text-[var(--text)] rounded-lg cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                {globalAiEnabled
+                  ? "This will instantly pause ALL automated AI responses across all customer threads. Incoming messages will still be logged for human support representatives. Your WhatsApp connection remains active."
+                  : "This will re-enable automated AI replies for incoming customer inquiries on WhatsApp."}
+              </p>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  onClick={() => setAiKillConfirmOpen(false)}
+                  className="px-4 py-2 text-xs font-bold text-[var(--text-subtle)] hover:text-[var(--text)] rounded-xl border border-[var(--border)] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={async () => {
+                    setAiToggleLoading(true);
+                    const newState = !globalAiEnabled;
+                    try {
+                      if (isAuthenticated()) {
+                        await api.patch("/api/v1/business/ai-kill-switch", { enabled: newState });
+                      }
+                      setGlobalAiEnabled(newState);
+                      triggerDashboardNotification(
+                        newState ? "AI Auto-Reply enabled globally" : "🚨 EMERGENCY: AI Auto-Reply disabled globally"
+                      );
+                    } catch {
+                      triggerDashboardNotification("Failed to toggle AI status");
+                    } finally {
+                      setAiToggleLoading(false);
+                      setAiKillConfirmOpen(false);
+                    }
+                  }}
+                  disabled={aiToggleLoading}
+                  className={`px-4 py-2 text-xs font-black rounded-xl text-white shadow-lg transition-all cursor-pointer ${
+                    globalAiEnabled
+                      ? "bg-red-600 hover:bg-red-500 shadow-red-500/10"
+                      : "bg-blue-600 hover:bg-blue-500 shadow-blue-500/10"
+                  } ${aiToggleLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                >
+                  {aiToggleLoading ? "Updating..." : globalAiEnabled ? "Yes, Pause AI Auto-Reply" : "Yes, Enable AI Auto-Reply"}
+                </button>
+              </div>
             </motion.div>
           </div>
         )}

@@ -362,10 +362,12 @@ def get_all_documents(
     """
     return UploadedDocumentCRUD.list(db, current_user.business_id)
 
+from auth.dependencies import FeatureChecker
+
 @router.post("/documents", response_model=UploadedDocumentResponse, status_code=status.HTTP_201_CREATED)
 def create_document(
     payload: UploadedDocumentCreate,
-    current_user: User = Depends(owner_admin_roles),
+    current_user: User = Depends(FeatureChecker("custom_rag")),
     db: Session = Depends(get_db)
 ):
     """

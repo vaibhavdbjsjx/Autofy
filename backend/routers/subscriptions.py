@@ -12,10 +12,12 @@ from config import settings
 router = APIRouter(prefix="/subscriptions", tags=["Subscription & Entitlements Management"])
 
 class StartTrialSchema(BaseModel):
-    plan_id: str = "starter"
+    billing_interval: Optional[str] = "monthly"
+    plan_id: Optional[str] = "pro"
 
 class CreateCheckoutSchema(BaseModel):
-    plan_id: str = "starter"
+    billing_interval: Optional[str] = "monthly"
+    plan_id: Optional[str] = "pro"
 
 @router.get("/plans", response_model=Dict[str, Any])
 def list_subscription_plans(
@@ -23,12 +25,12 @@ def list_subscription_plans(
     db: Session = Depends(get_db)
 ):
     """
-    Returns available subscription plans, normal prices, promotional first-cycle prices, and features.
+    Returns available subscription plans (Autofy Pro Monthly & Yearly) and current subscription state.
     """
     state = EntitlementService.evaluate_subscription_state(db, current_user.business_id)
     return {
+        "product_name": "Autofy Pro",
         "plans": SUBSCRIPTION_PLANS,
-        "promo": state["promo"],
         "current_status": state
     }
 
@@ -39,7 +41,7 @@ def get_subscription_status(
 ):
     """
     Server-authoritative subscription state machine status.
-    Evaluates 15-day promo eligibility, 7-day free trial countdown, and entitlement flags.
+    Evaluates free trial countdown, period end expiry, and entitlement flags.
     """
     return EntitlementService.evaluate_subscription_state(db, current_user.business_id)
 
@@ -50,20 +52,18 @@ def start_free_trial(
     db: Session = Depends(get_db)
 ):
     """
-    Activates 7-Day Free Trial for specified plan.
-    Locks first-cycle promotional price if activated within 15-day promotional window.
+    Activates free trial for Autofy Pro.
+    Monthly: 7-day free trial.
+    Yearly:  14-day free trial.
     """
-    if payload.plan_id not in SUBSCRIPTION_PLANS:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid plan_id: {payload.plan_id}. Must be one of: starter, pro, enterprise."
-        )
+    interval_key = "yearly" if "year" in str(payload.billing_interval or payload.plan_id).lower() else "monthly"
 
-    updated_state = EntitlementService.start_trial(db, current_user.business_id, payload.plan_id)
+    updated_state = EntitlementService.start_trial(db, current_user.business_id, interval_key)
 
+    trial_days = updated_state["trial"]["days_remaining"] or (14 if interval_key == "yearly" else 7)
     return {
         "status": "success",
-        "message": f"7-Day Free Trial for {updated_state['plan_name']} activated successfully!",
+        "message": f"{trial_days}-Day Free Trial for Autofy Pro ({interval_key.capitalize()}) activated successfully!",
         "subscription": updated_state,
         "razorpay_key_id": settings.RAZORPAY_KEY_ID
     }
@@ -75,54 +75,72 @@ def create_subscription_checkout(
     db: Session = Depends(get_db)
 ):
     """
-    Generates Razorpay Subscription configuration for recurring mandate.
-    Creates a Razorpay Subscription tied to normal recurring plan (₹999/mo) with 7-day start_at and offer discount.
+    Generates Razorpay Subscription configuration for Autofy Pro recurring mandate.
+    Monthly: ₹999/mo after 7-day trial.
+    Yearly:  ₹8,999/yr after 14-day trial.
     """
-    plan_id = payload.plan_id if payload.plan_id in SUBSCRIPTION_PLANS else "starter"
-    state = EntitlementService.evaluate_subscription_state(db, current_user.business_id)
-
-    plan_config = SUBSCRIPTION_PLANS[plan_id]
-    pricing = state["pricing"]
-    is_promo_eligible = state["promo"]["eligible"]
+    interval_key = "yearly" if "year" in str(payload.billing_interval or payload.plan_id).lower() else "monthly"
+    plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])
 
     from services.razorpay_subscription_service import RazorpaySubscriptionService
     rzp_sub = RazorpaySubscriptionService.create_subscription(
         business_id=current_user.business_id,
-        plan_id=plan_id,
-        is_promo_eligible=is_promo_eligible,
-        trial_days=7
+        billing_interval=interval_key
     )
 
-    # Persist provider subscription ID on local database model
+    # Persist provider subscription ID & billing interval on local database model
     from models.subscription import Subscription
+    from models.payment import Payment
+    from datetime import datetime
+    import uuid
+
     sub_record = db.query(Subscription).filter(Subscription.business_id == current_user.business_id).first()
     if sub_record:
         sub_record.provider_subscription_id = rzp_sub["provider_subscription_id"]
-        sub_record.plan_id = plan_id
+        sub_record.plan_id = "pro"
+        sub_record.billing_interval = interval_key
+        sub_record.normal_price = plan_config["price"]
+        sub_record.first_cycle_price = plan_config["price"]
         db.commit()
+
+    # Log issued Payment record for SaaS subscription checkout
+    issued_payment = Payment(
+        id=str(uuid.uuid4()),
+        business_id=current_user.business_id,
+        amount=plan_config["price"],
+        currency=plan_config["currency"],
+        razorpay_subscription_id=rzp_sub["provider_subscription_id"],
+        status="issued",
+        billing_type="subscription",
+        description=f"Platform SaaS Subscription ({plan_config['name']})",
+        invoice_id=f"SUB-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+    )
+    db.add(issued_payment)
+    db.commit()
 
     import os
     key_id = os.environ.get("RAZORPAY_KEY_ID") or settings.RAZORPAY_KEY_ID
 
+    trial_days = plan_config["trial_days"]
+
     return {
         "status": "success",
         "business_id": current_user.business_id,
-        "plan_id": plan_id,
+        "product_name": "Autofy Pro",
+        "plan_id": "pro",
         "plan_name": plan_config["name"],
-        "charge_amount": pricing["effective_first_cycle_price"],
-        "is_promotional": is_promo_eligible,
-        "normal_recurring_price": plan_config["normal_price"],
+        "billing_interval": interval_key,
+        "charge_amount": plan_config["price"],
+        "normal_recurring_price": plan_config["price"],
+        "trial_days": trial_days,
         "razorpay_key_id": key_id,
         "razorpay_subscription_id": rzp_sub["provider_subscription_id"],
         "razorpay_plan_id": rzp_sub["razorpay_plan_id"],
-        "razorpay_offer_id": rzp_sub.get("razorpay_offer_id"),
         "disclosures": {
             "amount_today": 0,
-            "trial_days": 7,
-            "first_charge_date": state["trial"]["ends_at"],
-            "first_charge_amount": pricing["effective_first_cycle_price"],
-            "subsequent_recurring_amount": plan_config["normal_price"],
-            "billing_interval": "monthly"
+            "trial_days": trial_days,
+            "recurring_amount": plan_config["price"],
+            "billing_interval": interval_key
         }
     }
 

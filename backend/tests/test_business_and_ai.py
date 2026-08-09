@@ -99,6 +99,43 @@ def test_onboarding_invalid_phone_rejection(client: TestClient, auth_headers_a):
         }, headers=auth_headers_a)
         assert res.status_code == 422, f"Expected 422 for phone: {bad_phone}, got {res.status_code}"
 
+def test_ai_kill_switch_toggle(client: TestClient, auth_headers_a):
+    # Disable AI via kill switch
+    res1 = client.patch("/api/v1/business/ai-kill-switch", json={"enabled": False}, headers=auth_headers_a)
+    assert res1.status_code == 200
+    assert res1.json()["ai_auto_reply_enabled"] is False
+
+    # Check business profile reflects disabled status
+    prof_res = client.get("/api/v1/business/profile", headers=auth_headers_a)
+    assert prof_res.status_code == 200
+    assert prof_res.json()["ai_auto_reply_enabled"] is False
+
+    # Re-enable AI
+    res2 = client.patch("/api/v1/business/ai-kill-switch", json={"enabled": True}, headers=auth_headers_a)
+    assert res2.status_code == 200
+    assert res2.json()["ai_auto_reply_enabled"] is True
+
+def test_ai_exceptions_crud(client: TestClient, auth_headers_a):
+    # 1. Get empty exceptions initially
+    get1 = client.get("/api/v1/business/ai-exceptions", headers=auth_headers_a)
+    assert get1.status_code == 200
+    assert get1.json()["exceptions"] == []
+
+    # 2. Add phone exception (Indian 10-digit)
+    add1 = client.post("/api/v1/business/ai-exceptions", json={"phone": "9876543210"}, headers=auth_headers_a)
+    assert add1.status_code == 200
+    assert "+919876543210" in add1.json()["exceptions"]
+
+    # 3. Conflict on duplicate add
+    add_dup = client.post("/api/v1/business/ai-exceptions", json={"phone": "9876543210"}, headers=auth_headers_a)
+    assert add_dup.status_code == 409
+
+    # 4. Remove exception
+    del1 = client.delete("/api/v1/business/ai-exceptions?phone=9876543210", headers=auth_headers_a)
+    assert del1.status_code == 200
+    assert "+919876543210" not in del1.json()["exceptions"]
+
+
 def test_onboarding_valid_phone_normalization(client: TestClient, auth_headers_a):
     from routers.business import normalize_and_validate_phone
     assert normalize_and_validate_phone("6360254763") == "+916360254763"

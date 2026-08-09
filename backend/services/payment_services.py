@@ -279,8 +279,10 @@ class RazorpayService:
     ) -> Optional[Payment]:
         """
         Finalizes invoice and processes state transitions upon verification of payment.
+        Supports both tenant payment links and SaaS subscription checkouts.
         """
         query = db.query(Payment)
+        payment = None
         if razorpay_order_id:
             payment = query.filter(Payment.razorpay_order_id == razorpay_order_id).first()
         elif razorpay_subscription_id:
@@ -288,21 +290,57 @@ class RazorpayService:
         else:
             payment = query.filter(Payment.razorpay_payment_id == razorpay_payment_id).first()
 
+        # Update matching Subscription state if this is a SaaS subscription verification
+        from models.subscription import Subscription
+        sub_record = None
+        if razorpay_subscription_id:
+            sub_record = db.query(Subscription).filter(Subscription.provider_subscription_id == razorpay_subscription_id).first()
+
+        if sub_record:
+            sub_record.status = "ACTIVE"
+            sub_record.promo_first_cycle_used = True
+            sub_record.current_period_start = datetime.utcnow()
+            sub_record.current_period_end = datetime.utcnow() + timedelta(days=30)
+            sub_record.updated_at = datetime.utcnow()
+            db.commit()
+
         if payment:
             payment.status = status
             payment.razorpay_payment_id = razorpay_payment_id
             payment.updated_at = datetime.utcnow()
             db.commit()
 
-            # Boost Lead status to Converted on success paid billing
-            lead = db.query(Lead).filter(Lead.id == payment.lead_id).first()
-            if lead:
-                lead.status = "Converted"
-                lead.score = 100
-                db.commit()
+            # Boost Lead status to Converted on success paid billing if lead exists
+            if payment.lead_id:
+                lead = db.query(Lead).filter(Lead.id == payment.lead_id).first()
+                if lead:
+                    lead.status = "Converted"
+                    lead.score = 100
+                    db.commit()
 
             logger.info(f"Payment {payment.id} successfully updated to status: {status}")
             return payment
+        elif sub_record:
+            # Create a Payment record for SaaS subscription checkout when none exists
+            import uuid
+            new_payment = Payment(
+                id=str(uuid.uuid4()),
+                business_id=sub_record.business_id,
+                amount=sub_record.normal_price,
+                currency=sub_record.currency or "INR",
+                razorpay_payment_id=razorpay_payment_id,
+                razorpay_subscription_id=razorpay_subscription_id,
+                status=status,
+                billing_type="subscription",
+                description=f"Platform SaaS Subscription ({sub_record.plan_id.upper()})",
+                invoice_id=f"SUB-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+            )
+            db.add(new_payment)
+            db.commit()
+            db.refresh(new_payment)
+            logger.info(f"Created new Payment record {new_payment.id} for SaaS subscription verification: {status}")
+            return new_payment
+
         return None
 
     @staticmethod
@@ -336,11 +374,12 @@ class RazorpayService:
                 db.commit()
 
                 # Mark associated lead converted
-                lead = db.query(Lead).filter(Lead.id == payment.lead_id).first()
-                if lead:
-                    lead.status = "Converted"
-                    lead.score = 100
-                    db.commit()
+                if payment.lead_id:
+                    lead = db.query(Lead).filter(Lead.id == payment.lead_id).first()
+                    if lead:
+                        lead.status = "Converted"
+                        lead.score = 100
+                        db.commit()
                 return {"status": "success", "processed_record": payment.id, "action": "paid_link"}
 
         elif event in ["subscription.authenticated"]:
@@ -369,6 +408,7 @@ class RazorpayService:
             sub_id = sub_entities.get("id")
             pay_entities = payload.get("payload", {}).get("payment", {}).get("entity", {})
             razorpay_payment_id = pay_entities.get("id")
+            amount_paise = pay_entities.get("amount", 0)
 
             notes = sub_entities.get("notes", {}) or pay_entities.get("notes", {})
             biz_id = notes.get("business_id")
@@ -391,6 +431,40 @@ class RazorpayService:
                 sub_record.current_period_end = datetime.utcnow() + timedelta(days=30)
                 sub_record.updated_at = datetime.utcnow()
                 db.commit()
+
+                # Deduplication check & Payment record creation for SaaS billing ledger + invoice streaming
+                existing_payment = None
+                if razorpay_payment_id:
+                    existing_payment = db.query(Payment).filter(Payment.razorpay_payment_id == razorpay_payment_id).first()
+                if not existing_payment and sub_id:
+                    existing_payment = db.query(Payment).filter(
+                        Payment.razorpay_subscription_id == sub_id,
+                        Payment.status == "issued"
+                    ).first()
+
+                if existing_payment:
+                    existing_payment.status = "paid"
+                    if razorpay_payment_id:
+                        existing_payment.razorpay_payment_id = razorpay_payment_id
+                    existing_payment.updated_at = datetime.utcnow()
+                    db.commit()
+                else:
+                    import uuid
+                    charge_amount = Decimal(amount_paise) / Decimal(100) if amount_paise else sub_record.normal_price
+                    new_payment = Payment(
+                        id=str(uuid.uuid4()),
+                        business_id=sub_record.business_id,
+                        amount=charge_amount,
+                        currency=sub_record.currency or "INR",
+                        razorpay_payment_id=razorpay_payment_id,
+                        razorpay_subscription_id=sub_id,
+                        status="paid",
+                        billing_type="subscription",
+                        description=f"Platform SaaS Subscription ({sub_record.plan_id.upper()})",
+                        invoice_id=f"SUB-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:6].upper()}"
+                    )
+                    db.add(new_payment)
+                    db.commit()
 
                 return {"status": "success", "processed_subscription": sub_record.id, "action": "activated"}
 

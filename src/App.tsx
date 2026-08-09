@@ -1132,124 +1132,153 @@ function HowItWorksSection() {
 // ════════════════════════════════════════════════════════════
 function PricingSection() {
   const navigate = useNavigate();
-  const [annual, setAnnual] = useState(false);
-  const [usd, setUsd] = useState(false);
+  const [annual, setAnnual] = useState(true);
 
-  const plans = [
-    { name: "Starter Plan", priceINR: 999, priceUSD: 12, features: ["Up to 1,000 Messages / mo", "Standard AI Response Speed", "Basic WhatsApp Integration", "Manual Lead Export", "Email Support"],
-      accent: "#3B82F6", popular: false },
-    { name: "Pro Business Plan", priceINR: 2499, priceUSD: 29, features: ["Unlimited WhatsApp Messages", "24/7 Autonomous AI Employee", "Instant Live RAG Sync", "Auto Appointment & Booking", "UPI & Online Payment Links", "VIP Priority Support"],
-      accent: "#8B5CF6", popular: true },
-    { name: "Enterprise Plan", priceINR: 4999, priceUSD: 59, features: ["Everything in Pro +", "Custom Fine-tuned LLM Model", "Multi-Number WhatsApp Sync", "Dedicated Account Manager", "99.9% Uptime Guarantee SLA"],
-      accent: "#F59E0B", popular: false },
+  const features = [
+    "Unlimited WhatsApp Automation & AI Replies",
+    "24/7 Autonomous AI Employee Engine",
+    "Instant Live RAG Knowledge Base Indexing",
+    "Automated Appointment Booking & Reminders",
+    "UPI & Online Payment Links Collection",
+    "Lead CRM Capture & Inbox Management",
+    "VIP Priority Customer Support",
   ];
-
-  const getPrice = (plan: typeof plans[0]) => {
-    const base = usd ? plan.priceUSD : plan.priceINR;
-    const price = annual ? Math.round(base * 0.8) : base;
-    return usd ? `$${price}` : `₹${price.toLocaleString("en-IN")}`;
-  };
 
   return (
     <section id="pricing" style={{ background: "var(--bg)", padding: "120px 0", position: "relative" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 32px" }}>
+      <div style={{ maxWidth: 1000, margin: "0 auto", padding: "0 32px" }}>
         <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-80px" }}
-          style={{ textAlign: "center", marginBottom: 48 }}>
+          style={{ textAlign: "center", marginBottom: 40 }}>
           <span className="section-label text-gradient-primary">PRICING</span>
-          <h2 className="section-h2">Simple, Transparent <span className="text-gradient-primary">Pricing</span></h2>
+          <h2 className="section-h2">Everything you need to <span className="text-gradient-primary">automate your business.</span></h2>
+          <p style={{ color: "var(--text-muted)", fontSize: 15, marginTop: 8 }}>
+            Autofy Pro includes complete AI automation with zero feature lockouts.
+          </p>
         </motion.div>
 
-        {/* Toggles */}
-        <div style={{ display: "flex", justifyContent: "center", gap: 16, marginBottom: 48, flexWrap: "wrap" }}>
-          {/* Monthly/Annual */}
-          <div style={{ display: "flex", background: "var(--input-bg)", borderRadius: 100, padding: 3,
-            border: "1px solid var(--border)" }}>
+        {/* Billing Toggle */}
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 40 }}>
+          <div style={{ display: "flex", background: "var(--input-bg)", borderRadius: 100, padding: 4, border: "1px solid var(--border)", gap: 4 }}>
             <button onClick={() => setAnnual(false)} style={{
-              padding: "8px 20px", borderRadius: 100, border: "none", cursor: "pointer",
-              fontSize: 13, fontWeight: 600,
+              padding: "10px 24px", borderRadius: 100, border: "none", cursor: "pointer",
+              fontSize: 13, fontWeight: 700,
               background: !annual ? "var(--brand)" : "transparent",
               color: !annual ? "#fff" : "var(--text-muted)",
-            }}>Monthly</button>
+              transition: "all 0.2s ease"
+            }}>MONTHLY</button>
             <button onClick={() => setAnnual(true)} style={{
-              padding: "8px 20px", borderRadius: 100, border: "none", cursor: "pointer",
-              fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", gap: 6,
+              padding: "10px 24px", borderRadius: 100, border: "none", cursor: "pointer",
+              fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 8,
               background: annual ? "var(--brand)" : "transparent",
               color: annual ? "#fff" : "var(--text-muted)",
+              transition: "all 0.2s ease"
             }}>
-              Annual <span style={{ fontSize: 10, background: "rgba(34,197,94,0.2)", color: "#22C55E",
-                padding: "2px 6px", borderRadius: 100, fontWeight: 700 }}>−20%</span>
+              <span>YEARLY</span>
+              <span style={{ fontSize: 10, background: "rgba(251,191,36,0.2)", color: "#FBBF24",
+                padding: "2px 8px", borderRadius: 100, fontWeight: 800 }}>SAVE ~25%</span>
             </button>
-          </div>
-
-          {/* Currency */}
-          <div style={{ display: "flex", background: "var(--input-bg)", borderRadius: 100, padding: 3,
-            border: "1px solid var(--border)" }}>
-            <button onClick={() => setUsd(false)} style={{
-              padding: "8px 16px", borderRadius: 100, border: "none", cursor: "pointer",
-              fontSize: 13, fontWeight: 600,
-              background: !usd ? "var(--brand)" : "transparent",
-              color: !usd ? "#fff" : "var(--text-muted)",
-            }}> INR</button>
-            <button onClick={() => setUsd(true)} style={{
-              padding: "8px 16px", borderRadius: 100, border: "none", cursor: "pointer",
-              fontSize: 13, fontWeight: 600,
-              background: usd ? "var(--brand)" : "transparent",
-              color: usd ? "#fff" : "var(--text-muted)",
-            }}> USD</button>
           </div>
         </div>
 
-        {/* Cards */}
-        <motion.div variants={staggerContainer} initial="hidden" whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
-          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 24, maxWidth: 1000, margin: "0 auto" }}>
-          {plans.map((plan, i) => (
-            <motion.div key={i} variants={fadeUp}
-              className={plan.popular ? "gradient-border" : ""}
-              style={{
-                borderRadius: 20,
-                background: "var(--bg-card)",
-                border: plan.popular ? "none" : "1px solid var(--border)",
-                padding: 32,
-                transform: plan.popular ? "scale(1.04)" : "scale(1)",
-                position: "relative",
-                zIndex: plan.popular ? 2 : 1,
-              }}>
-              {plan.popular && (
-                <div style={{
-                  position: "absolute", top: -12, left: "50%", transform: "translateX(-50%)",
-                  background: "var(--brand)", color: "#fff",
-                  padding: "4px 16px", borderRadius: 100,
-                  fontSize: 11, fontWeight: 700, letterSpacing: "0.05em",
-                }}>
-                  MOST POPULAR
-                </div>
-              )}
-              <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8, color: "var(--text)",
-                fontFamily: "'Plus Jakarta Sans', sans-serif" }}>{plan.name}</h3>
-              <div style={{ marginBottom: 24 }}>
-                <span className="text-gradient-primary" style={{
-                  fontSize: 42, fontWeight: 900, fontFamily: "'Plus Jakarta Sans', sans-serif",
-                }}>{getPrice(plan)}</span>
-                <span style={{ fontSize: 14, color: "var(--text-muted)", marginLeft: 4 }}>/mo</span>
+        {/* Autofy Pro Card */}
+        <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }}
+          className="gradient-border"
+          style={{
+            borderRadius: 28,
+            background: "var(--bg-card)",
+            padding: "40px",
+            position: "relative",
+            maxWidth: 800,
+            margin: "0 auto"
+          }}>
+          <div style={{ display: "flex", flexWrap: "wrap", justifyBetween: "space-between", alignItems: "flex-end", gap: 24, paddingBottom: 28, borderBottom: "1px solid var(--border)" }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+                <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8B5CF6", background: "rgba(139,92,246,0.1)", padding: "4px 12px", borderRadius: 100 }}>
+                  Autofy Pro
+                </span>
+                {annual && (
+                  <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#10B981", background: "rgba(16,185,129,0.1)", padding: "4px 12px", borderRadius: 100 }}>
+                    Best Value
+                  </span>
+                )}
               </div>
 
-              <ul style={{ listStyle: "none", marginBottom: 28, display: "flex", flexDirection: "column", gap: 12 }}>
-                {plan.features.map(f => (
-                  <li key={f} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: "var(--text-muted)" }}>
-                    <Check size={16} style={{ color: plan.accent, flexShrink: 0 }} /> {f}
-                  </li>
-                ))}
-              </ul>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <span className="text-gradient-primary" style={{ fontSize: 48, fontWeight: 900, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  {annual ? "₹8,999" : "₹999"}
+                </span>
+                <span style={{ fontSize: 15, color: "var(--text-muted)", fontWeight: 600 }}>
+                  /{annual ? "year" : "month"}
+                </span>
+              </div>
 
-              <MagneticButton
-                onClick={() => navigate("/signup")}
-                className={plan.popular ? "btn-primary" : "btn-secondary"}
-              >
-                Get Started <ChevronRight size={16} />
-              </MagneticButton>
-            </motion.div>
-          ))}
+              {annual ? (
+                <div style={{ fontSize: 13, color: "#10B981", fontWeight: 600, marginTop: 4 }}>
+                  ₹750/month equivalent • Save ₹2,989/year
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500, marginTop: 4 }}>
+                  Full AI automation with monthly flexibility.
+                </div>
+              )}
+            </div>
+
+            <div style={{ background: "rgba(0,0,0,0.3)", padding: "14px 20px", borderRadius: 16, border: "1px solid rgba(139,92,246,0.2)" }}>
+              <div style={{ color: "#FBBF24", fontSize: 12, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+                <span>{annual ? "14 DAYS FREE TRIAL" : "7 DAYS FREE TRIAL"}</span>
+              </div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "monospace", marginTop: 2 }}>
+                ₹0 charged today
+              </div>
+            </div>
+          </div>
+
+          {/* Disclosure */}
+          <div style={{ margin: "24px 0", padding: 16, borderRadius: 16, background: "rgba(24,24,27,0.6)", border: "1px solid rgba(39,39,42,0.8)", fontSize: 12, color: "#D4D4D8", fontFamily: "monospace" }}>
+            <div style={{ fontWeight: 700, color: "#fff", marginBottom: 6 }}>Automatic Billing Disclosure</div>
+            {annual ? (
+              <>
+                <div>• <strong>14-day free trial — ₹0 today</strong></div>
+                <div>• <strong>₹8,999</strong> automatically charged after 14-day trial</div>
+                <div>• Then <strong>₹8,999/year</strong> until cancelled</div>
+              </>
+            ) : (
+              <>
+                <div>• <strong>7-day free trial — ₹0 today</strong></div>
+                <div>• <strong>₹999</strong> automatically charged after 7-day trial</div>
+                <div>• Then <strong>₹999/month</strong> until cancelled</div>
+              </>
+            )}
+          </div>
+
+          {/* Features */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 16, letterSpacing: "0.05em" }}>
+              Everything included in Autofy Pro
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
+              {features.map((f, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "var(--text)", background: "var(--input-bg)", padding: "10px 14px", borderRadius: 12, border: "1px solid var(--border)" }}>
+                  <Check size={16} style={{ color: "#8B5CF6", flexShrink: 0 }} />
+                  <span>{f}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* CTA */}
+          <div style={{ textAlign: "center" }}>
+            <MagneticButton
+              onClick={() => navigate("/signup")}
+              className="btn-primary"
+              style={{ width: "100%", padding: "16px", fontSize: 15, justifyContent: "center" }}
+            >
+              {annual ? "Start 14-Day Free Trial" : "Start 7-Day Free Trial"} <ChevronRight size={18} />
+            </MagneticButton>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", marginTop: 10 }}>No charge today</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Cancel anytime before your trial ends to avoid the charge.</div>
+          </div>
         </motion.div>
       </div>
     </section>

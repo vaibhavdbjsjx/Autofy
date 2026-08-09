@@ -28,6 +28,10 @@ class BusinessUpdateSchema(BaseModel):
     config_fallback_message: Optional[str] = None
     config_confidence_threshold: Optional[float] = None
 
+    # AI Auto-Reply Controls
+    ai_auto_reply_enabled: Optional[bool] = None
+    ai_reply_exceptions: Optional[str] = None  # JSON array of excluded phone numbers
+
 class BusinessResponseSchema(BaseModel):
     id: str
     name: str
@@ -44,6 +48,8 @@ class BusinessResponseSchema(BaseModel):
     config_welcome_message: Optional[str] = None
     config_fallback_message: Optional[str] = None
     config_confidence_threshold: float
+    ai_auto_reply_enabled: bool = True
+    ai_reply_exceptions: Optional[str] = None
 
 @router.get("/profile", response_model=BusinessResponseSchema)
 @router.get("/me", response_model=BusinessResponseSchema)
@@ -96,7 +102,88 @@ def update_business_profile(
     db.refresh(business)
     return business
 
+class AIKillSwitchRequest(BaseModel):
+    enabled: bool = Field(..., description="Set to false to disable all AI auto-replies globally")
+
+@router.patch("/ai-kill-switch")
+def toggle_ai_kill_switch(
+    payload: AIKillSwitchRequest,
+    current_user: User = Depends(RoleChecker(["Owner", "Admin"])),
+    db: Session = Depends(get_db)
+):
+    """
+    Emergency endpoint to instantly enable/disable all AI auto-replies for this business.
+    Does NOT disconnect WhatsApp — only controls whether AI generates automated responses.
+    """
+    business = db.query(Business).filter(Business.id == current_user.business_id).first()
+    if not business:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Business not found.")
+    business.ai_auto_reply_enabled = payload.enabled
+    db.commit()
+    db.refresh(business)
+    return {
+        "ai_auto_reply_enabled": business.ai_auto_reply_enabled,
+        "message": "AI auto-replies enabled." if payload.enabled else "AI auto-replies disabled globally. No automated messages will be sent."
+    }
+
+import json as _json
+
+class AIExceptionAddRequest(BaseModel):
+    phone: str = Field(..., min_length=5, description="Phone number to exclude from AI auto-replies")
+
+@router.get("/ai-exceptions")
+def get_ai_exceptions(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """Returns the list of phone numbers excluded from AI auto-replies."""
+    business = db.query(Business).filter(Business.id == current_user.business_id).first()
+    if not business:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Business not found.")
+    exceptions = _json.loads(business.ai_reply_exceptions) if business.ai_reply_exceptions else []
+    return {"exceptions": exceptions}
+
+@router.post("/ai-exceptions")
+def add_ai_exception(
+    payload: AIExceptionAddRequest,
+    current_user: User = Depends(RoleChecker(["Owner", "Admin"])),
+    db: Session = Depends(get_db)
+):
+    """Add a phone number to the AI reply exceptions list."""
+    business = db.query(Business).filter(Business.id == current_user.business_id).first()
+    if not business:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Business not found.")
+    exceptions = _json.loads(business.ai_reply_exceptions) if business.ai_reply_exceptions else []
+    # Normalize and validate phone
+    normalized = normalize_and_validate_phone(payload.phone)
+    if normalized in exceptions:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=f"{normalized} is already in the exceptions list.")
+    exceptions.append(normalized)
+    business.ai_reply_exceptions = _json.dumps(exceptions)
+    db.commit()
+    return {"exceptions": exceptions, "added": normalized}
+
+@router.delete("/ai-exceptions")
+def remove_ai_exception(
+    phone: str = Query(..., description="Phone number to remove from exceptions"),
+    current_user: User = Depends(RoleChecker(["Owner", "Admin"])),
+    db: Session = Depends(get_db)
+):
+    """Remove a phone number from the AI reply exceptions list."""
+    business = db.query(Business).filter(Business.id == current_user.business_id).first()
+    if not business:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Business not found.")
+    exceptions = _json.loads(business.ai_reply_exceptions) if business.ai_reply_exceptions else []
+    normalized = normalize_and_validate_phone(phone)
+    if normalized not in exceptions:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{normalized} is not in the exceptions list.")
+    exceptions.remove(normalized)
+    business.ai_reply_exceptions = _json.dumps(exceptions)
+    db.commit()
+    return {"exceptions": exceptions, "removed": normalized}
+
 import re
+
 
 def normalize_and_validate_phone(raw: str) -> str:
     """

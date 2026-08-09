@@ -1,62 +1,43 @@
 export interface PlanConfig {
-  id: "starter" | "pro" | "enterprise";
+  id: "monthly" | "yearly" | "pro";
+  productName: string;
   name: string;
-  normalPrice: number;
-  promoFirstCyclePrice: number;
+  price: number;
   currency: string;
-  interval: string;
+  interval: "monthly" | "yearly";
   trialDays: number;
   features: string[];
 }
 
+export const AUTOFY_PRO_FEATURES = [
+  "Unlimited WhatsApp Automation & AI Replies",
+  "24/7 Autonomous AI Employee Engine",
+  "Instant Live RAG Knowledge Base Indexing",
+  "Automated Appointment Booking & Reminders",
+  "UPI & Online Payment Links Collection",
+  "Lead CRM Capture & Inbox Management",
+  "VIP Priority Customer Support",
+];
+
 export const PLAN_CONFIGS: Record<string, PlanConfig> = {
-  starter: {
-    id: "starter",
-    name: "Starter Plan",
-    normalPrice: 999,
-    promoFirstCyclePrice: 300,
+  monthly: {
+    id: "monthly",
+    productName: "Autofy Pro",
+    name: "Autofy Pro Monthly",
+    price: 999,
     currency: "INR",
     interval: "monthly",
     trialDays: 7,
-    features: [
-      "Up to 1,000 Messages / mo",
-      "Standard AI Response Speed",
-      "Basic WhatsApp Integration",
-      "Manual Lead Export",
-      "Email Support",
-    ],
+    features: AUTOFY_PRO_FEATURES,
   },
-  pro: {
-    id: "pro",
-    name: "Pro Business Plan",
-    normalPrice: 2499,
-    promoFirstCyclePrice: 1000,
+  yearly: {
+    id: "yearly",
+    productName: "Autofy Pro",
+    name: "Autofy Pro Yearly",
+    price: 8999,
     currency: "INR",
-    interval: "monthly",
-    trialDays: 7,
-    features: [
-      "Unlimited WhatsApp Messages",
-      "24/7 Autonomous AI Employee",
-      "Instant Live RAG Sync",
-      "Auto Appointment & Booking",
-      "UPI & Online Payment Links",
-      "VIP Priority Support",
-    ],
-  },
-  enterprise: {
-    id: "enterprise",
-    name: "Enterprise Plan",
-    normalPrice: 4999,
-    promoFirstCyclePrice: 2000,
-    currency: "INR",
-    interval: "monthly",
-    trialDays: 7,
-    features: [
-      "Everything in Pro +",
-      "Custom Fine-tuned LLM Model",
-      "Multi-Number WhatsApp Sync",
-      "Dedicated Account Manager",
-      "99.9% Uptime Guarantee SLA",
-    ],
+    interval: "yearly",
+    trialDays: 14,
+    features: AUTOFY_PRO_FEATURES,
   },
 };

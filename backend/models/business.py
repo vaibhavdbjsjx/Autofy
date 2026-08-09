@@ -28,6 +28,10 @@ class Business(Base):
     config_fallback_message = Column(Text, nullable=True)
     config_confidence_threshold = Column(Float, default=0.78)
 
+    # AI Auto-Reply Global Controls
+    ai_auto_reply_enabled = Column(Boolean, default=True, nullable=False)  # Global master switch for all AI replies
+    ai_reply_exceptions = Column(Text, nullable=True)  # JSON array of phone numbers excluded from AI replies
+
     # 15-Day Account Promotional Tracking
     promo_started_at = Column(DateTime, default=datetime.utcnow)
     promo_expires_at = Column(DateTime, default=lambda: datetime.utcnow() + timedelta(days=15))

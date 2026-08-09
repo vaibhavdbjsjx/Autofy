@@ -14,24 +14,18 @@ class EntitlementService:
         Defaults to EXPLORING status for new accounts.
         """
         sub = db.query(Subscription).filter(Subscription.business_id == business_id).first()
-        biz = db.query(Business).filter(Business.id == business_id).first()
-
-        # Ensure business has promo_expires_at set
-        if biz and not biz.promo_expires_at:
-            created = biz.created_at or datetime.utcnow()
-            biz.promo_expires_at = created + timedelta(days=15)
-            biz.promo_started_at = created
-            db.commit()
 
         if not sub:
             sub = Subscription(
                 business_id=business_id,
-                plan_id="starter",
+                plan_id="pro",
                 provider="razorpay",
                 status="EXPLORING",
                 normal_price=999.00,
-                first_cycle_price=300.00,
-                promo_eligible_at_signup=True,
+                first_cycle_price=999.00,
+                currency="INR",
+                billing_interval="monthly",
+                promo_eligible_at_signup=False,
                 promo_first_cycle_locked=False,
                 promo_first_cycle_used=False
             )
@@ -45,30 +39,19 @@ class EntitlementService:
     def evaluate_subscription_state(db: Session, business_id: str) -> Dict[str, Any]:
         """
         Server-authoritative state machine evaluator.
-        Validates 15-day promotional window, 7-day trial expiry, active entitlements, and pricing transitions.
+        Evaluates trial countdown, subscription period expiry, active entitlements, and pricing disclosures.
         """
-        biz = db.query(Business).filter(Business.id == business_id).first()
         sub = EntitlementService.get_or_create_subscription(db, business_id)
-
         now = datetime.utcnow()
 
-        # 1. Evaluate 15-Day Promotional Expiry
-        promo_expires_at = biz.promo_expires_at if biz and biz.promo_expires_at else (biz.created_at + timedelta(days=15) if biz else now)
-        is_promo_time_valid = now < promo_expires_at
-        
-        # PROMO LOCKING RULE:
-        # If user locked promo during trial start or time is valid and first cycle not used:
-        promo_eligible = (is_promo_time_valid or sub.promo_first_cycle_locked) and not sub.promo_first_cycle_used
-        remaining_seconds = max(0, int((promo_expires_at - now).total_seconds()))
-
-        # 2. Evaluate 7-Day Trial Expiry
+        # 1. Evaluate Trial Expiry
         if sub.status == "TRIAL_ACTIVE":
             if sub.trial_ends_at and now >= sub.trial_ends_at:
                 # Trial expired without active payment: transition status to EXPIRED
                 sub.status = "EXPIRED"
                 db.commit()
 
-        # 3. Evaluate Active Subscription Period Expiry
+        # 2. Evaluate Active Subscription Period Expiry
         if sub.status in ["ACTIVE", "CANCEL_AT_PERIOD_END"]:
             if sub.current_period_end and now >= sub.current_period_end:
                 if sub.cancel_at_period_end:
@@ -78,14 +61,11 @@ class EntitlementService:
                     sub.status = "PAST_DUE"
                 db.commit()
 
-        # 4. Resolve Active Plan Configuration
-        plan_config = SUBSCRIPTION_PLANS.get(sub.plan_id, SUBSCRIPTION_PLANS["starter"])
+        # 3. Resolve Active Plan Configuration
+        interval_key = "yearly" if str(sub.billing_interval).lower() == "yearly" else "monthly"
+        plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])
 
-        # Determine effective first-cycle charge and effective recurring price
-        effective_first_cycle_price = plan_config["promo_first_cycle_price"] if promo_eligible else plan_config["normal_price"]
-        effective_recurring_price = plan_config["normal_price"]
-
-        # 5. Access Control Entitlement Decision
+        # 4. Access Control Entitlement Decision
         is_live_accessible = sub.status in ["TRIAL_ACTIVE", "ACTIVE", "CANCEL_AT_PERIOD_END"]
         is_paid = sub.status in ["ACTIVE", "CANCEL_AT_PERIOD_END"]
 
@@ -96,7 +76,8 @@ class EntitlementService:
         return {
             "business_id": business_id,
             "status": sub.status,
-            "plan_id": sub.plan_id,
+            "plan_id": "pro",
+            "product_name": "Autofy Pro",
             "plan_name": plan_config["name"],
             "provider": sub.provider,
             "provider_subscription_id": sub.provider_subscription_id,
@@ -104,19 +85,12 @@ class EntitlementService:
             "is_paid": is_paid,
             "pricing": {
                 "currency": sub.currency,
-                "billing_interval": sub.billing_interval,
-                "normal_price": plan_config["normal_price"],
-                "promo_first_cycle_price": plan_config["promo_first_cycle_price"],
-                "effective_first_cycle_price": effective_first_cycle_price,
-                "effective_recurring_price": effective_recurring_price,
-                "promo_first_cycle_locked": sub.promo_first_cycle_locked,
-                "promo_first_cycle_used": sub.promo_first_cycle_used,
-            },
-            "promo": {
-                "eligible": promo_eligible,
-                "expires_at": promo_expires_at.isoformat(),
-                "remaining_seconds": remaining_seconds,
-                "started_at": biz.promo_started_at.isoformat() if biz and biz.promo_started_at else None,
+                "billing_interval": interval_key,
+                "price": float(sub.normal_price or plan_config["normal_price"]),
+                "normal_price": float(plan_config["normal_price"]),
+                "monthly_equivalent": plan_config.get("monthly_equivalent", float(plan_config["normal_price"])),
+                "savings_amount": plan_config.get("savings_amount", 0.0),
+                "discount_percent": plan_config.get("discount_percent", 0),
             },
             "trial": {
                 "active": sub.status == "TRIAL_ACTIVE",
@@ -134,36 +108,29 @@ class EntitlementService:
         }
 
     @staticmethod
-    def start_trial(db: Session, business_id: str, plan_id: str) -> Dict[str, Any]:
+    def start_trial(db: Session, business_id: str, plan_id_or_interval: str = "monthly") -> Dict[str, Any]:
         """
-        Activates a 7-day free trial for the requested plan.
-        If started within the 15-day promotional window, locks the first-cycle promo price server-side.
+        Activates free trial for Autofy Pro.
+        Monthly: 7-day free trial (₹999/mo after trial)
+        Yearly:  14-day free trial (₹8,999/yr after trial)
         """
-        if plan_id not in SUBSCRIPTION_PLANS:
-            plan_id = "starter"
+        interval_key = "yearly" if "year" in str(plan_id_or_interval).lower() or str(plan_id_or_interval).lower() == "enterprise" else "monthly"
+        plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])
 
-        biz = db.query(Business).filter(Business.id == business_id).first()
         sub = EntitlementService.get_or_create_subscription(db, business_id)
-
         now = datetime.utcnow()
-        promo_expires_at = biz.promo_expires_at if biz and biz.promo_expires_at else (now + timedelta(days=15))
-        
-        is_promo_valid = now < promo_expires_at
-        
-        # PROMO LOCKING RULE: Lock promo if trial started before promo_expires_at
-        if is_promo_valid and not sub.promo_first_cycle_used:
-            sub.promo_first_cycle_locked = True
+        trial_days = plan_config.get("trial_days", 7 if interval_key == "monthly" else 14)
 
-        sub.plan_id = plan_id
+        sub.plan_id = "pro"
+        sub.billing_interval = interval_key
         sub.status = "TRIAL_ACTIVE"
         sub.trial_started_at = now
-        sub.trial_ends_at = now + timedelta(days=7)
+        sub.trial_ends_at = now + timedelta(days=trial_days)
         sub.current_period_start = now
-        sub.current_period_end = now + timedelta(days=7)
+        sub.current_period_end = now + timedelta(days=trial_days)
 
-        plan_config = SUBSCRIPTION_PLANS[plan_id]
         sub.normal_price = plan_config["normal_price"]
-        sub.first_cycle_price = plan_config["promo_first_cycle_price"] if sub.promo_first_cycle_locked else plan_config["normal_price"]
+        sub.first_cycle_price = plan_config["normal_price"]
 
         db.commit()
         db.refresh(sub)
@@ -174,7 +141,7 @@ class EntitlementService:
     def cancel_subscription(db: Session, business_id: str) -> Dict[str, Any]:
         """
         Flag subscription to cancel at period end.
-        Customer retains access until current_period_end, then transitions to free/demo.
+        Customer retains access until current_period_end, then transitions to EXPIRED/CANCELLED.
         NEVER deletes customer data, CRM, or conversations.
         """
         sub = EntitlementService.get_or_create_subscription(db, business_id)

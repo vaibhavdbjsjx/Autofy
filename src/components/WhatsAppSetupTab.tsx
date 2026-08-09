@@ -18,8 +18,19 @@ import {
   ChevronRight,
   ShieldAlert,
   Play,
-  Bookmark
+  Bookmark,
+  HelpCircle,
+  ChevronDown,
+  ChevronUp,
+  Info,
+  X,
+  UserMinus,
+  Plus,
+  Power,
+  Shield,
+  ExternalLink
 } from "lucide-react";
+import { validatePhone } from "../lib/phoneValidation";
 
 interface WebhookLog {
   id: string;
@@ -29,9 +40,55 @@ interface WebhookLog {
   success: boolean;
 }
 
+// ─── InfoPopover Component ───────────────────────────────────────
+const InfoPopover: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setIsOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  return (
+    <div className="relative inline-block" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="ml-1 text-blue-400/70 hover:text-blue-400 transition-colors cursor-pointer"
+        aria-label={`Help: ${title}`}
+      >
+        <HelpCircle className="w-3.5 h-3.5" />
+      </button>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.15 }}
+            className="absolute z-50 left-0 top-full mt-1.5 w-72 bg-[var(--bg-card)] border border-blue-500/20 rounded-xl p-3.5 shadow-xl shadow-black/20 backdrop-blur-md"
+          >
+            <p className="text-[10px] font-black text-blue-400 uppercase tracking-wider mb-1">{title}</p>
+            <div className="text-[11px] text-[var(--text-muted)] leading-relaxed font-medium space-y-1">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// ─── Connection State Type ───────────────────────────────────────
+type ConnectionTier = "Disconnected" | "Number Saved" | "Platform Connected" | "AI Active";
+
 export const WhatsAppSetupTab: React.FC = () => {
-  // Connection Status State
-  const [connectionStatus, setConnectionStatus] = useState<"Connected" | "Disconnected" | "Pending Verification">("Disconnected");
+  // Connection Status State — 3-tier truthful model
+  const [connectionTier, setConnectionTier] = useState<ConnectionTier>("Disconnected");
 
   // Meta Credentials Form fields — initialized empty for real tenant setup
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -46,8 +103,16 @@ export const WhatsAppSetupTab: React.FC = () => {
   const [copiedToken, setCopiedToken] = useState(false);
   const [copiedUrl, setCopiedUrl] = useState(false);
 
+  // AI Master Switch (persisted to backend)
+  const [aiAutoReplyEnabled, setAiAutoReplyEnabled] = useState(true);
+  const [aiToggleLoading, setAiToggleLoading] = useState(false);
+
+  // AI Reply Exceptions
+  const [aiExceptions, setAiExceptions] = useState<string[]>([]);
+  const [newExceptionPhone, setNewExceptionPhone] = useState("");
+  const [exceptionError, setExceptionError] = useState("");
+
   // AI Response Settings
-  const [enableAI, setEnableAI] = useState(true);
   const [enableHumanEscalation, setEnableHumanEscalation] = useState(true);
   const [enableLeadCapture, setEnableLeadCapture] = useState(true);
   const [enableBooking, setEnableBooking] = useState(true);
@@ -59,6 +124,9 @@ export const WhatsAppSetupTab: React.FC = () => {
   const [outOfHoursMessage, setOutOfHoursMessage] = useState(
     "Hi there! We are currently closed. Our standard operating hours are 6:00 AM - 10:00 PM. Our AI Bot will continue helping you, or we will ping you here first thing in the morning!"
   );
+
+  // Help panel expansion
+  const [showHelp, setShowHelp] = useState(false);
 
   // Message Templates Active Tab & Editing
   const [activeTemplateTab, setActiveTemplateTab] = useState<
@@ -112,18 +180,18 @@ export const WhatsAppSetupTab: React.FC = () => {
 
       const queryLc = userMsg.toLowerCase();
       if (queryLc.includes("plan") || queryLc.includes("memberships") || queryLc.includes("pricing")) {
-        botText = "We offer 3 primary AC-enabled packages: Standard AC access (₹1,999/mo), Elite Strength Workout (₹5,999/quarterly), and VIP annual passes (₹18,000/yr). Diets and steam baths are included in the elite packs!";
-        sourcePath = "Membership catalogue database";
+        botText = "We offer several customized packages tailored to your needs. Please share your specific requirements and I'll find the best match for you!";
+        sourcePath = "Service catalogue database";
         confidenceScore = "98%";
         responseTime = "78ms";
       } else if (queryLc.includes("book") || queryLc.includes("appointment") || queryLc.includes("schedule")) {
-        botText = "I can book that scheduling appointment right away! Please state your preferred hourly gym time slot (e.g. tomorrow 4:00 PM) and we will lock it in.";
+        botText = "I can book that appointment right away! Please state your preferred time slot (e.g. tomorrow 4:00 PM) and we will lock it in.";
         sourcePath = "Appointments schema agent rules";
         confidenceScore = "94%";
         responseTime = "112ms";
-      } else if (queryLc.includes("shower") || queryLc.includes("locker") || queryLc.includes("parking")) {
-        botText = "Yes! Locker keys, showers, steam facilities, and local free basement parking are fully accessible under all monthly and annual subscriptions.";
-        sourcePath = "Knowledge Base / Facility FAQs";
+      } else if (queryLc.includes("hours") || queryLc.includes("open") || queryLc.includes("close")) {
+        botText = "Our standard operating hours are 6:00 AM - 10:00 PM, Monday through Saturday. We are here to help during these hours!";
+        sourcePath = "Knowledge Base / Business Hours";
         confidenceScore = "91%";
         responseTime = "65ms";
       } else {
@@ -151,44 +219,8 @@ export const WhatsAppSetupTab: React.FC = () => {
     }, 1000);
   };
 
-  // Webhook Events logger
-  const [webhookLogs, setWebhookLogs] = useState<WebhookLog[]>([
-    {
-      id: "log-1",
-      timestamp: "Today, 10:48 AM",
-      eventType: "Message Received",
-      details: "Inbound payload from +91 9920158204: 'Do you offer a quarterly plan?'",
-      success: true
-    },
-    {
-      id: "log-2",
-      timestamp: "Today, 10:48 AM",
-      eventType: "Message Sent",
-      details: "Outbound RAG match dispatched: 'Elite Strength Elite Quarterly Plan...' options",
-      success: true
-    },
-    {
-      id: "log-3",
-      timestamp: "Today, 10:45 AM",
-      eventType: "Lead Captured",
-      details: "Client Priya Verma synced to database (WhatsApp: +91 9840251842)",
-      success: true
-    },
-    {
-      id: "log-4",
-      timestamp: "Today, 10:41 AM",
-      eventType: "Appointment Booked",
-      details: "Slot confirmed for Rahul Sen: tomorrow, 5:00 PM for Premium Consultation",
-      success: true
-    },
-    {
-      id: "log-5",
-      timestamp: "Today, 10:30 AM",
-      eventType: "Error Logs",
-      details: "Meta webhook handshake failed. Invalid Meta App Secret token parameters.",
-      success: false
-    }
-  ]);
+  // Webhook Events logger — initialized empty for fresh-account zero state
+  const [webhookLogs, setWebhookLogs] = useState<WebhookLog[]>([]);
 
   const addNewWebhookLog = (
     type: WebhookLog["eventType"],
@@ -211,37 +243,83 @@ export const WhatsAppSetupTab: React.FC = () => {
     setTimeout(() => setter(false), 2000);
   };
 
+  // ─── Compute connection tier from current state ─────────────────
+  const computeConnectionTier = (
+    phone: string,
+    baId: string,
+    appId: string,
+    appSecret: string,
+    platformVerified: boolean,
+    aiEnabled: boolean
+  ): ConnectionTier => {
+    const phoneValid = validatePhone(phone).ok;
+    if (!phoneValid) return "Disconnected";
+    if (!baId.trim() || !appId.trim() || !appSecret.trim()) return "Number Saved";
+    if (!platformVerified) return "Number Saved";
+    if (aiEnabled) return "AI Active";
+    return "Platform Connected";
+  };
+
+  // Track platform verification state separately
+  const [platformVerified, setPlatformVerified] = useState(false);
+
+  // Update connection tier whenever relevant state changes
+  useEffect(() => {
+    setConnectionTier(computeConnectionTier(
+      phoneNumber, businessAccountId, metaAppId, metaAppSecret, platformVerified, aiAutoReplyEnabled
+    ));
+  }, [phoneNumber, businessAccountId, metaAppId, metaAppSecret, platformVerified, aiAutoReplyEnabled]);
+
+  // Load AI settings from backend on mount
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const { api, isAuthenticated } = await import("../lib/api");
+        if (isAuthenticated()) {
+          const res: any = await api.get("/api/v1/business/profile");
+          if (res) {
+            setAiAutoReplyEnabled(res.ai_auto_reply_enabled ?? true);
+            if (res.ai_reply_exceptions) {
+              try {
+                setAiExceptions(JSON.parse(res.ai_reply_exceptions));
+              } catch { /* ignore parse errors */ }
+            }
+          }
+        }
+      } catch { /* silent on load failure */ }
+    };
+    loadSettings();
+  }, []);
+
   // Connection Triggers — requires all credentials and valid phone number
   const handleConnect = async () => {
     if (!phoneNumber.trim() || !businessAccountId.trim() || !metaAppId.trim() || !metaAppSecret.trim()) {
-      setConnectionStatus("Disconnected");
+      setPlatformVerified(false);
       addNewWebhookLog("Error Logs", "Connection rejected: All Meta Cloud API credential fields are required.", false);
       return;
     }
-    const { validatePhone } = await import("../lib/phoneValidation");
     const pVal = validatePhone(phoneNumber);
     if (!pVal.ok) {
-      setConnectionStatus("Disconnected");
+      setPlatformVerified(false);
       addNewWebhookLog("Error Logs", `Connection rejected: ${pVal.error}`, false);
       return;
     }
-    setConnectionStatus("Pending Verification");
     addNewWebhookLog("Message Sent", "Meta Cloud API authorization request dispatched", true);
     try {
       const { api, isAuthenticated } = await import("../lib/api");
       if (isAuthenticated()) {
         await api.get("/health");
       }
-      setConnectionStatus("Connected");
+      setPlatformVerified(true);
       addNewWebhookLog("Message Received", "Meta Webhook challenge verified. WhatsApp API Connected.", true);
     } catch {
-      setConnectionStatus("Disconnected");
+      setPlatformVerified(false);
       addNewWebhookLog("Error Logs", "Connection verification failed. Check Meta credentials & backend status.", false);
     }
   };
 
   const handleDisconnect = () => {
-    setConnectionStatus("Disconnected");
+    setPlatformVerified(false);
     addNewWebhookLog("Error Logs", "WhatsApp session closed by owner administration request.", false);
   };
 
@@ -258,6 +336,77 @@ export const WhatsAppSetupTab: React.FC = () => {
     }
   };
 
+  // AI Master Switch toggle
+  const handleToggleAI = async () => {
+    setAiToggleLoading(true);
+    const newState = !aiAutoReplyEnabled;
+    try {
+      const { api, isAuthenticated } = await import("../lib/api");
+      if (isAuthenticated()) {
+        await api.patch("/api/v1/business/ai-kill-switch", { enabled: newState });
+      }
+      setAiAutoReplyEnabled(newState);
+      addNewWebhookLog(
+        newState ? "Message Sent" : "Error Logs",
+        newState ? "AI Auto-Reply re-enabled globally." : "⚠️ AI Auto-Reply DISABLED globally. No automated messages will be sent.",
+        newState
+      );
+    } catch {
+      addNewWebhookLog("Error Logs", "Failed to toggle AI status. Check backend connection.", false);
+    }
+    setAiToggleLoading(false);
+  };
+
+  // AI Exception management
+  const handleAddException = async () => {
+    setExceptionError("");
+    const pVal = validatePhone(newExceptionPhone);
+    if (!pVal.ok) {
+      setExceptionError(pVal.error);
+      return;
+    }
+    if (aiExceptions.includes(pVal.normalized)) {
+      setExceptionError("This number is already in the exceptions list.");
+      return;
+    }
+    try {
+      const { api, isAuthenticated } = await import("../lib/api");
+      if (isAuthenticated()) {
+        const res: any = await api.post("/api/v1/business/ai-exceptions", { phone: newExceptionPhone });
+        setAiExceptions(res?.exceptions || [...aiExceptions, pVal.normalized]);
+      } else {
+        setAiExceptions([...aiExceptions, pVal.normalized]);
+      }
+      setNewExceptionPhone("");
+    } catch (err: any) {
+      setExceptionError(err?.detail || err?.message || "Failed to add exception.");
+    }
+  };
+
+  const handleRemoveException = async (phone: string) => {
+    try {
+      const { api, isAuthenticated } = await import("../lib/api");
+      if (isAuthenticated()) {
+        const res: any = await api.delete(`/api/v1/business/ai-exceptions?phone=${encodeURIComponent(phone)}`);
+        setAiExceptions(res?.exceptions || aiExceptions.filter(p => p !== phone));
+      } else {
+        setAiExceptions(aiExceptions.filter(p => p !== phone));
+      }
+    } catch {
+      // Optimistically remove locally
+      setAiExceptions(aiExceptions.filter(p => p !== phone));
+    }
+  };
+
+  // ─── Connection Tier Status Pill ────────────────────────────────
+  const tierConfig: Record<ConnectionTier, { color: string; bg: string; border: string; label: string; pulse: boolean }> = {
+    "Disconnected": { color: "text-red-400", bg: "bg-red-500/10", border: "border-red-500/25", label: "DISCONNECTED", pulse: false },
+    "Number Saved": { color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/25", label: "NUMBER SAVED", pulse: false },
+    "Platform Connected": { color: "text-green-400", bg: "bg-green-500/10", border: "border-green-500/25", label: "PLATFORM CONNECTED", pulse: true },
+    "AI Active": { color: "text-blue-400", bg: "bg-blue-500/10", border: "border-blue-500/25", label: "AI ACTIVE", pulse: true },
+  };
+  const tier = tierConfig[connectionTier];
+
   return (
     <div id="whatsapp-setup-module" className="space-y-8 font-sans">
       
@@ -273,25 +422,49 @@ export const WhatsAppSetupTab: React.FC = () => {
           </p>
         </div>
 
-        {/* CONNECTION STATUS PILL */}
+        {/* CONNECTION STATUS PILL — 3-Tier Truthful */}
         <div className="flex items-center gap-2.5">
-          {connectionStatus === "Connected" ? (
-            <div className="px-4 py-2 bg-green-500/10 border border-green-500/25 rounded-2xl flex items-center gap-2 animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-green-400" />
-              <span className="text-xs font-black text-green-400 uppercase tracking-wider">API Connected</span>
-            </div>
-          ) : connectionStatus === "Pending Verification" ? (
-            <div className="px-4 py-2 bg-amber-500/10 border border-amber-500/25 rounded-2xl flex items-center gap-2 animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-amber-400" />
-              <span className="text-xs font-black text-amber-400 uppercase tracking-wider">Verifying Sync...</span>
-            </div>
-          ) : (
-            <div className="px-4 py-2 bg-red-500/10 border border-red-500/25 rounded-2xl flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-red-400" />
-              <span className="text-xs font-black text-red-400 uppercase tracking-wider">API Disconnected</span>
-            </div>
-          )}
+          <div className={`px-4 py-2 ${tier.bg} border ${tier.border} rounded-2xl flex items-center gap-2 ${tier.pulse ? "animate-pulse" : ""}`}>
+            <span className={`w-2 h-2 rounded-full ${tier.color.replace("text-", "bg-")}`} />
+            <span className={`text-xs font-black ${tier.color} uppercase tracking-wider`}>{tier.label}</span>
+          </div>
         </div>
+      </div>
+
+      {/* ═══ AI MASTER SWITCH — Global Kill Banner ═══ */}
+      <div className={`rounded-2xl border p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${
+        aiAutoReplyEnabled
+          ? "bg-blue-500/5 border-blue-500/15"
+          : "bg-red-500/8 border-red-500/20"
+      }`}>
+        <div className="flex items-center gap-3">
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+            aiAutoReplyEnabled ? "bg-blue-500/15" : "bg-red-500/15"
+          }`}>
+            <Power className={`w-5 h-5 ${aiAutoReplyEnabled ? "text-blue-400" : "text-red-400"}`} />
+          </div>
+          <div>
+            <p className="text-sm font-black text-[var(--text)]">
+              AI Auto-Reply {aiAutoReplyEnabled ? "Active" : "Disabled"}
+            </p>
+            <p className="text-[10px] text-[var(--text-subtle)]">
+              {aiAutoReplyEnabled
+                ? "AI is responding to incoming WhatsApp messages automatically."
+                : "All AI auto-replies are paused. Incoming messages are recorded but not answered."}
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={handleToggleAI}
+          disabled={aiToggleLoading}
+          className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer shrink-0 ${
+            aiAutoReplyEnabled
+              ? "bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20"
+              : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/10"
+          } ${aiToggleLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+        >
+          {aiToggleLoading ? "Updating..." : aiAutoReplyEnabled ? "⏸ Disable AI Replies" : "▶ Enable AI Replies"}
+        </button>
       </div>
 
       {/* WHATSAPP CONTAINER GRID */}
@@ -307,43 +480,113 @@ export const WhatsAppSetupTab: React.FC = () => {
               <p className="text-[10.5px] text-[var(--text-subtle)] mt-0.5">Enter credentials matching your Meta App configuration platform.</p>
             </div>
 
+            {/* "Where do I find these?" help section */}
+            <button
+              onClick={() => setShowHelp(!showHelp)}
+              className="flex items-center gap-1.5 text-[11px] text-blue-400 hover:text-blue-300 font-bold transition-colors cursor-pointer"
+            >
+              <Info className="w-3.5 h-3.5" />
+              Where do I find these credentials?
+              {showHelp ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+            </button>
+
+            <AnimatePresence>
+              {showHelp && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-4 space-y-3 text-[11px] text-[var(--text-muted)] leading-relaxed">
+                    <p className="font-bold text-blue-400 text-[10px] uppercase tracking-wider">Step-by-Step Setup Guide</p>
+                    <ol className="space-y-2 list-decimal list-inside">
+                      <li>Go to <span className="font-bold text-[var(--text)]">Meta Business Suite</span> → your business account settings to find your <span className="font-bold text-blue-400">Business Account ID</span></li>
+                      <li>Visit <span className="font-bold text-[var(--text)]">developers.facebook.com</span> → your app → Settings → Basic to find your <span className="font-bold text-blue-400">App ID</span> and <span className="font-bold text-blue-400">App Secret</span></li>
+                      <li>In your Meta app, navigate to WhatsApp → API Setup to find your <span className="font-bold text-blue-400">Phone Number</span> and generate a permanent token</li>
+                      <li>Configure the Webhook URL and Verify Token below in your Meta app's WhatsApp → Configuration settings</li>
+                    </ol>
+                    <p className="text-[10px] text-[var(--text-subtle)] italic">All credentials are stored securely and never shared externally.</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider">Business Phone Number</label>
+                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider flex items-center">
+                  Business Phone Number
+                  <InfoPopover title="Business Phone Number">
+                    <p>The phone number registered with your WhatsApp Business Account. For Indian numbers, enter your 10-digit mobile number — we automatically add +91.</p>
+                    <p className="mt-1 text-blue-400/80 font-bold">Example: 6360254763 → +916360254763</p>
+                  </InfoPopover>
+                </label>
                 <input
                   type="text"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-400 focus:outline-none focus:border-[var(--brand)] font-medium"
+                  placeholder="e.g. 6360254763"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)] font-medium"
                 />
+                {phoneNumber && !validatePhone(phoneNumber).ok && (
+                  <p className="text-[9px] text-red-400 font-medium">{validatePhone(phoneNumber).error}</p>
+                )}
+                {phoneNumber && validatePhone(phoneNumber).ok && (
+                  <p className="text-[9px] text-green-400 font-medium">✓ Normalized: {validatePhone(phoneNumber).normalized}</p>
+                )}
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider font-bold">WhatsApp Business Account ID</label>
+                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider flex items-center">
+                  WhatsApp Business Account ID
+                  <InfoPopover title="Business Account ID">
+                    <p>A numeric ID for your WhatsApp Business Account. Find it in:</p>
+                    <p className="mt-1 font-bold text-[var(--text)]">Meta Business Suite → Settings → Business info</p>
+                    <p className="mt-1 text-blue-400/80 font-bold">Format: 123456789012345</p>
+                  </InfoPopover>
+                </label>
                 <input
                   type="text"
                   value={businessAccountId}
                   onChange={(e) => setBusinessAccountId(e.target.value)}
-                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)] font-medium"
+                  placeholder="e.g. 123456789012345"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)] font-medium"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider">Meta App ID</label>
+                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider flex items-center">
+                  Meta App ID
+                  <InfoPopover title="Meta App ID">
+                    <p>Your Meta application identifier. Find it at:</p>
+                    <p className="mt-1 font-bold text-[var(--text)]">developers.facebook.com → Your App → Settings → Basic</p>
+                    <p className="mt-1 text-blue-400/80 font-bold">Format: 1234567890123456</p>
+                  </InfoPopover>
+                </label>
                 <input
                   type="text"
                   value={metaAppId}
                   onChange={(e) => setMetaAppId(e.target.value)}
-                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)] font-medium"
+                  placeholder="e.g. 1234567890123456"
+                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)] font-medium"
                 />
               </div>
 
               <div className="space-y-1.5 relative">
-                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider">Meta App Secret</label>
+                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider flex items-center">
+                  Meta App Secret
+                  <InfoPopover title="Meta App Secret">
+                    <p>A confidential key found alongside your App ID. <span className="text-red-400 font-bold">Never share this publicly.</span></p>
+                    <p className="mt-1 font-bold text-[var(--text)]">developers.facebook.com → Your App → Settings → Basic → App Secret</p>
+                    <p className="mt-1 text-blue-400/80 font-bold">Click "Show" to reveal it on Meta's page.</p>
+                  </InfoPopover>
+                </label>
                 <input
                   type={revealSecret ? "text" : "password"}
                   value={metaAppSecret}
                   onChange={(e) => setMetaAppSecret(e.target.value)}
+                  placeholder="••••••••••••"
                   className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)] font-medium"
                 />
                 <button
@@ -359,7 +602,12 @@ export const WhatsAppSetupTab: React.FC = () => {
             <div className="p-4 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-[10px] uppercase font-black text-[var(--text-subtle)]">Webhook URL</label>
+                  <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] flex items-center">
+                    Webhook URL
+                    <InfoPopover title="Webhook URL">
+                      <p>Copy this URL and paste it into your Meta app's WhatsApp → Configuration → Callback URL field.</p>
+                    </InfoPopover>
+                  </label>
                   <button
                     onClick={() => copyToClipboard(webhookUrl, setCopiedUrl)}
                     className="text-[9.5px] text-blue-500 hover:underline flex items-center gap-1 font-bold cursor-pointer"
@@ -375,7 +623,12 @@ export const WhatsAppSetupTab: React.FC = () => {
 
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-[10px] uppercase font-black text-[var(--text-subtle)]">Webhook Verify Token</label>
+                  <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] flex items-center">
+                    Webhook Verify Token
+                    <InfoPopover title="Verify Token">
+                      <p>Copy this token and paste it into the "Verify Token" field when configuring your webhook in the Meta app.</p>
+                    </InfoPopover>
+                  </label>
                   <button
                     onClick={() => copyToClipboard(verifyToken, setCopiedToken)}
                     className="text-[9.5px] text-blue-500 hover:underline flex items-center gap-1 font-bold cursor-pointer"
@@ -390,13 +643,36 @@ export const WhatsAppSetupTab: React.FC = () => {
               </div>
             </div>
 
+            {/* CONNECTION STATUS BREAKDOWN */}
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: "Number Saved", active: connectionTier !== "Disconnected", icon: Phone },
+                { label: "Platform Connected", active: connectionTier === "Platform Connected" || connectionTier === "AI Active", icon: CheckCircle },
+                { label: "AI Auto-Reply", active: connectionTier === "AI Active", icon: Sparkles },
+              ].map((step, idx) => (
+                <div
+                  key={idx}
+                  className={`p-2.5 rounded-xl border text-center space-y-1 transition-all ${
+                    step.active
+                      ? "bg-green-500/5 border-green-500/15"
+                      : "bg-[var(--bg-elevated)]/30 border-[var(--border)]"
+                  }`}
+                >
+                  <step.icon className={`w-4 h-4 mx-auto ${step.active ? "text-green-400" : "text-[var(--text-subtle)]"}`} />
+                  <p className={`text-[9px] font-black uppercase tracking-wider ${step.active ? "text-green-400" : "text-[var(--text-subtle)]"}`}>
+                    {step.label}
+                  </p>
+                </div>
+              ))}
+            </div>
+
             {/* ACTION TRIGGERS ROW */}
             <div className="flex flex-wrap gap-2 pt-2">
               <button
                 onClick={handleConnect}
-                disabled={connectionStatus === "Connected"}
+                disabled={connectionTier === "Platform Connected" || connectionTier === "AI Active"}
                 className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                  connectionStatus === "Connected"
+                  connectionTier === "Platform Connected" || connectionTier === "AI Active"
                     ? "bg-[var(--bg-elevated)] text-[var(--text-subtle)] border border-transparent cursor-not-allowed"
                     : "bg-blue-600 hover:bg-blue-550 text-[var(--text)] shadow-lg shadow-blue-500/10"
                 }`}
@@ -411,9 +687,9 @@ export const WhatsAppSetupTab: React.FC = () => {
               </button>
               <button
                 onClick={handleDisconnect}
-                disabled={connectionStatus === "Disconnected"}
+                disabled={connectionTier === "Disconnected"}
                 className={`px-4 py-2.5 text-xs font-bold bg-[var(--bg-card)] hover:bg-red-500/10 hover:border-red-500/20 border border-[var(--border)] rounded-xl text-[var(--text-subtle)] hover:text-red-400 cursor-pointer ${
-                  connectionStatus === "Disconnected" && "opacity-50 cursor-not-allowed"
+                  connectionTier === "Disconnected" && "opacity-50 cursor-not-allowed"
                 }`}
               >
                 Disconnect Line
@@ -488,10 +764,9 @@ export const WhatsAppSetupTab: React.FC = () => {
               {/* Toggles */}
               <div className="space-y-3">
                 {[
-                  { label: "Enable AI Auto Responses", desc: "Allow model to reply instantly without user approvals", val: enableAI, setVal: setEnableAI },
                   { label: "Enable Human Escalation Alerts", desc: "Ping support teams when confidence threshold drops", val: enableHumanEscalation, setVal: setEnableHumanEscalation },
                   { label: "Enable Smart Lead Capture", desc: "Collect phone line details and index them automatically", val: enableLeadCapture, setVal: setEnableLeadCapture },
-                  { label: "Enable Appointment Booking", desc: "Empower chatbot to lock trainer slots into the agenda", val: enableBooking, setVal: setEnableBooking },
+                  { label: "Enable Appointment Booking", desc: "Empower chatbot to lock appointment slots into the agenda", val: enableBooking, setVal: setEnableBooking },
                   { label: "Enable Payment Requests", desc: "Disburse digital checkout links dynamically inside chat threads", val: enablePayments, setVal: setEnablePayments }
                 ].map((item, idx) => (
                   <div key={idx} className="flex items-center justify-between p-2.5 bg-[var(--bg-elevated)]/20 border border-[var(--border)]/60 rounded-xl">
@@ -570,6 +845,66 @@ export const WhatsAppSetupTab: React.FC = () => {
               </div>
             </div>
 
+          </div>
+
+          {/* ═══ AI REPLY EXCEPTIONS CARD ═══ */}
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 backdrop-blur-md space-y-5">
+            <div>
+              <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <UserMinus className="w-4 h-4" />
+                AI Reply Exceptions
+              </h3>
+              <p className="text-[10.5px] text-[var(--text-subtle)] mt-0.5">
+                Phone numbers listed here will never receive AI-generated replies. Messages from these numbers are still recorded for manual human review.
+              </p>
+            </div>
+
+            {/* Add Exception Input */}
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newExceptionPhone}
+                onChange={(e) => { setNewExceptionPhone(e.target.value); setExceptionError(""); }}
+                placeholder="Enter phone number (e.g. 9876543210)"
+                className="flex-1 bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-amber-500/50 font-medium"
+                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); handleAddException(); } }}
+              />
+              <button
+                onClick={handleAddException}
+                className="px-4 py-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 rounded-xl text-xs font-bold cursor-pointer transition-all flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                Add
+              </button>
+            </div>
+            {exceptionError && (
+              <p className="text-[10px] text-red-400 font-medium -mt-2">{exceptionError}</p>
+            )}
+
+            {/* Exception List */}
+            {aiExceptions.length > 0 ? (
+              <div className="space-y-1.5">
+                {aiExceptions.map((phone, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-2.5 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-xl group">
+                    <div className="flex items-center gap-2">
+                      <UserMinus className="w-3.5 h-3.5 text-amber-400/70" />
+                      <span className="text-xs font-mono font-bold text-[var(--text)]">{phone}</span>
+                    </div>
+                    <button
+                      onClick={() => handleRemoveException(phone)}
+                      className="text-[var(--text-subtle)] hover:text-red-400 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                      title="Remove exception"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-[10.5px] text-[var(--text-subtle)] py-4 italic">
+                No exceptions configured. All contacts receive AI-generated replies when AI is active.
+              </p>
+            )}
           </div>
 
         </div>
