@@ -34,13 +34,7 @@ export const PaymentsTab: React.FC<{
   onboardingData?: any;
   triggerNotification: (msg: string) => void;
 }> = ({ onboardingData, triggerNotification }) => {
-  const isDemoMode = typeof window !== "undefined" && window.location.search.includes("demo=true");
-  const stats = isDemoMode ? {
-    totalRevenue: "₹8,42,200",
-    monthlyRevenue: "₹1,84,000",
-    pendingPayments: "₹24,500",
-    successfulPayments: "₹8,17,700"
-  } : {
+  const stats = {
     totalRevenue: "₹0",
     monthlyRevenue: "₹0",
     pendingPayments: "₹0",
@@ -80,25 +74,23 @@ export const PaymentsTab: React.FC<{
   };
 
   // UPI settings state
-  const [upiId, setUpiId] = useState("autofy@hdfcbank");
-  const [holderName, setHolderName] = useState("Autofy Tech Solutions Private Limited");
-  const [bankName, setBankName] = useState("HDFC Bank Ltd");
-  const [accNumber, setAccNumber] = useState("50200081293041");
-  const [ifscCode, setIfscCode] = useState("HDFC0000081");
+  const [upiId, setUpiId] = useState("");
+  const [holderName, setHolderName] = useState("");
+  const [bankName, setBankName] = useState("");
+  const [accNumber, setAccNumber] = useState("");
+  const [ifscCode, setIfscCode] = useState("");
   const [selectedUpiQr, setSelectedUpiQr] = useState<string | null>(null);
-  const [upiAmount, setUpiAmount] = useState(2999);
+  const [upiAmount, setUpiAmount] = useState(0);
   const [upiStatus, setUpiStatus] = useState<"Pending" | "Completed" | "Failed">("Pending");
 
   const copyUpiId = () => {
+    if (!upiId) return;
     navigator.clipboard.writeText(upiId);
     triggerNotification(" UPI ID Copied to clipboard!");
   };
 
-  // Pay links state
-  const [payLinks, setPayLinks] = useState([
-    { id: "LNK-910", name: "Sanjay Singhania", phone: "+91 81223 99881", amount: 45000, desc: "Ancillary exhaust fitments", expiry: "24 Hours" },
-    { id: "LNK-812", name: "Ananya Saxena", phone: "+91 74011 22334", amount: 15600, desc: "ECU tuning downpayment", expiry: "12 Hours" }
-  ]);
+  // Pay links state — starts empty
+  const [payLinks, setPayLinks] = useState<Array<{ id: string; name: string; phone: string; amount: number; desc: string; expiry: string }>>([]);
   const [linkName, setLinkName] = useState("");
   const [linkPhone, setLinkPhone] = useState("");
   const [linkAmount, setLinkAmount] = useState("");
@@ -126,14 +118,10 @@ export const PaymentsTab: React.FC<{
     triggerNotification(` Created secure Paylink ₹${newLink.amount} for ${linkName}`);
   };
 
-  // Invoices builder
-  const [invoices, setInvoices] = useState([
-    { invoiceNo: "INV-2026-001", customerName: "Vaibhav SG", company: "Vaibhav Tech", items: "Premium Consult + VIP Tuning", tax: 18, amount: 125000, status: "Paid", date: "2026-06-20" },
-    { invoiceNo: "INV-2026-002", customerName: "Priya Patel", company: "Patel Gyms", items: "AC Trial Workspace Package", tax: 18, amount: 15000, status: "Pending", date: "2026-06-20" },
-    { invoiceNo: "INV-2026-003", customerName: "Rohan Mehra", company: "Mehra Tuning Ltd", items: "Custom ECU Dyno Alignment", tax: 18, amount: 64000, status: "Paid", date: "2026-06-18" }
-  ]);
+  // Invoices builder — starts empty
+  const [invoices, setInvoices] = useState<Array<{ invoiceNo: string; customerName: string; company: string; items: string; tax: number; amount: number; status: string; date: string }>>([]);
 
-  const [formInvoiceNo, setFormInvoiceNo] = useState("INV-2026-004");
+  const [formInvoiceNo, setFormInvoiceNo] = useState("INV-2026-001");
   const [formCustomer, setFormCustomer] = useState("");
   const [formCompany, setFormCompany] = useState("");
   const [formItems, setFormItems] = useState("");
@@ -162,19 +150,38 @@ export const PaymentsTab: React.FC<{
     setFormCompany("");
     setFormItems("");
     setFormAmount("");
-    setFormInvoiceNo(`INV-2026-00${invoices.length + 5}`);
+    setFormInvoiceNo(`INV-2026-00${invoices.length + 2}`);
     triggerNotification(` Generated Professional Invoice ${newInv.invoiceNo}`);
   };
 
-  // Transactions ledger state
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    { id: "TXN-902183", customerName: "Vaibhav SG", amount: 125000, planName: "Enterprise Tier", paymentMethod: "Card (Stripe)", status: "Paid", date: "2026-06-20" },
-    { id: "TXN-902184", customerName: "Priya Patel", amount: 15000, planName: "Pro Tier", paymentMethod: "UPI (PhonePe)", status: "Pending", date: "2026-06-20" },
-    { id: "TXN-902185", customerName: "Ananya Saxena", amount: 15600, planName: "Pro Tier", paymentMethod: "UPI (GPay)", status: "Paid", date: "2026-06-20" },
-    { id: "TXN-902186", customerName: "Kunal Verma", amount: 24500, planName: "Starter Tier", paymentMethod: "NetBanking", status: "Failed", date: "2026-06-18" },
-    { id: "TXN-902187", customerName: "Sanjay Singhania", amount: 45000, planName: "Pro Tier", paymentMethod: "Stripe Escrow", status: "Paid", date: "2026-06-19" },
-    { id: "TXN-902188", customerName: "Rohan Mehra", amount: 64000, planName: "Enterprise Tier", paymentMethod: "Razorpay Checkout", status: "Paid", date: "2026-06-18" }
-  ]);
+  // Transactions ledger state — loaded from backend API
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        const { api, isAuthenticated } = await import("../lib/api");
+        if (isAuthenticated()) {
+          const res: any = await api.get("/api/v1/payments");
+          if (res && Array.isArray(res.items)) {
+            const mappedTx: Transaction[] = res.items.map((p: any) => ({
+              id: p.id,
+              customerName: p.description || "Client Payment",
+              amount: p.amount,
+              planName: p.billing_type === "subscription" ? "Autofy Pro" : "One-Time Payment",
+              paymentMethod: "Razorpay",
+              status: p.status === "paid" ? "Paid" : p.status === "failed" ? "Failed" : "Pending",
+              date: p.created_at ? p.created_at.substring(0, 10) : "Today"
+            }));
+            setTransactions(mappedTx);
+          }
+        }
+      } catch {
+        setTransactions([]);
+      }
+    };
+    fetchPayments();
+  }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [filterState, setFilterState] = useState<"All" | "Paid" | "Pending" | "Failed">("All");

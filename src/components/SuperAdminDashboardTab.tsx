@@ -21,14 +21,8 @@ import {
 } from "lucide-react";
 
 export const SuperAdminDashboardTab: React.FC = () => {
-  // Demo Platform Businesses State (Labeled Preview)
-  const isDemo = true; // SuperAdmin platform view runs in preview mode until admin API endpoint is provisioned
-  const [businesses, setBusinesses] = useState([
-    { id: "biz-1", name: "[Demo] Supreme Athletic Arena", owner: "Karan Johar", plan: "Enterprise", status: "Active", usage: "85%", rev: "₹24,000", created: "June 02, 2026" },
-    { id: "biz-2", name: "[Demo] AEW Motors India", owner: "Vivek Roy", plan: "Professional", status: "Active", usage: "45%", rev: "₹12,000", created: "May 14, 2026" },
-    { id: "biz-3", name: "[Demo] Aparna Yoga Shala", owner: "Priya Rao", plan: "Starter Lite", status: "Active", usage: "30%", rev: "₹5,000", created: "June 11, 2026" },
-    { id: "biz-4", name: "[Demo] Siddharth Leather Works", owner: "Sid Mehta", plan: "Professional", status: "Suspended", usage: "90%", rev: "₹0", created: "Jan 12, 2026" }
-  ]);
+  // Platform Businesses State — starts empty for clean production view
+  const [businesses, setBusinesses] = useState<Array<{ id: string; name: string; owner: string; plan: string; status: string; usage: string; rev: string; created: string }>>([]);
 
   // System Monitor Status Toggles
   const [dbStatus, setDbStatus] = useState<"Healthy" | "Degraded">("Healthy");
@@ -37,13 +31,8 @@ export const SuperAdminDashboardTab: React.FC = () => {
   const [geminiStatus, setGeminiStatus] = useState<"Active" | "Delayed">("Active");
   const [gatewayStatus, setGatewayStatus] = useState<"Active" | "Offline">("Active");
 
-  // Admin Logs
-  const [logs, setLogs] = useState([
-    { time: "08:04:12", type: "Security", text: "Brute force attempts blocked on API user ID 402" },
-    { time: "07:55:01", type: "System", text: "Automatic database backup snap-9912 completed successfully." },
-    { time: "07:44:32", type: "Billing", text: "Webhook invoice confirmation processed for client #biz-3" },
-    { time: "06:30:00", type: "Gemini", text: "Varying model latency: successfully selected Gemini Flash 3.5 fallback" }
-  ]);
+  // Admin Logs — starts empty
+  const [logs, setLogs] = useState<Array<{ time: string; type: string; text: string }>>([]);
 
   // Active Admin Actions Tabs & Modals
   const [selectedSubTab, setSelectedSubTab] = useState<"businesses" | "monitoring" | "revenue" | "logs">("businesses");

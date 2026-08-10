@@ -95,14 +95,14 @@ function VisualPanel() {
       <div style={{ display: "flex", flexDirection: "column", gap: 20, zIndex: 1, marginBottom: 40 }}>
         <FloatingEventCard
           icon={<Target size={18} style={{ color: "#8B5CF6" }} />}
-          text=" New Lead — Raj wants gym membership info"
+          text=" New Lead captured via WhatsApp AI"
           delay={0}
           duration={3.5}
           yRange={-15}
         />
         <FloatingEventCard
           icon={<CreditCard size={18} style={{ color: "#22C55E" }} />}
-          text=" Payment received — ₹2,999 from Priya K."
+          text=" Razorpay Subscription Mandate verified"
           delay={1}
           duration={4.2}
           yRange={-12}
@@ -172,11 +172,19 @@ export const LoginView: React.FC<LoginProps> = ({
     }
   };
 
+  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
+
   const handleGoogleLogin = async () => {
     setError("");
-    const { error: authError } = await signInWithGoogle();
-    if (authError) {
-      setError(authError.message || "Google sign in failed.");
+    setIsLoadingGoogle(true);
+    try {
+      const { error: authError } = await signInWithGoogle();
+      if (authError) {
+        setError(authError.message || "Google sign in failed.");
+        setIsLoadingGoogle(false);
+      }
+    } catch {
+      setIsLoadingGoogle(false);
     }
   };
 
@@ -311,8 +319,16 @@ export const LoginView: React.FC<LoginProps> = ({
           </div>
 
           {/* Google Sign In */}
-          <button onClick={handleGoogleLogin} className="btn-secondary" style={{ width: "100%" }}>
-            <GoogleIcon /> Continue with Google
+          <button onClick={handleGoogleLogin} disabled={isLoadingGoogle || isLoading} className="btn-secondary" style={{ width: "100%" }}>
+            {isLoadingGoogle ? (
+              <>
+                <Loader2 size={16} className="animate-spin" /> Redirecting to Google...
+              </>
+            ) : (
+              <>
+                <GoogleIcon /> Continue with Google
+              </>
+            )}
           </button>
 
           {/* Footer Link */}
@@ -420,18 +436,26 @@ export const SignUpView: React.FC<SignUpProps> = ({
     }
   };
 
+  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
+
   const handleGoogleLogin = async () => {
     setError("");
     if (!agreed) {
       setError("Please agree to the Privacy Policy and Terms of Service to continue.");
       return;
     }
+    setIsLoadingGoogle(true);
     try {
       localStorage.setItem("autofy-consent", JSON.stringify({ agreed: true, at: new Date().toISOString() }));
     } catch { /* ignore */ }
-    const { error: authError } = await signInWithGoogle();
-    if (authError) {
-      setError(authError.message || "Google sign in failed.");
+    try {
+      const { error: authError } = await signInWithGoogle();
+      if (authError) {
+        setError(authError.message || "Google sign in failed.");
+        setIsLoadingGoogle(false);
+      }
+    } catch {
+      setIsLoadingGoogle(false);
     }
   };
 
@@ -650,8 +674,16 @@ export const SignUpView: React.FC<SignUpProps> = ({
           </div>
 
           {/* Google Sign In */}
-          <button onClick={handleGoogleLogin} className="btn-secondary" style={{ width: "100%" }}>
-            <GoogleIcon /> Continue with Google
+          <button onClick={handleGoogleLogin} disabled={isLoadingGoogle || isLoading} className="btn-secondary" style={{ width: "100%" }}>
+            {isLoadingGoogle ? (
+              <>
+                <Loader2 size={16} className="animate-spin" /> Redirecting to Google...
+              </>
+            ) : (
+              <>
+                <GoogleIcon /> Continue with Google
+              </>
+            )}
           </button>
 
           {/* Footer Link */}

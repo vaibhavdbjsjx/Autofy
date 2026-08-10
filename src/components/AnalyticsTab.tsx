@@ -77,14 +77,8 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
   const [customEndDate, setCustomEndDate] = useState("2026-06-20");
   const [isCustomDateApplied, setIsCustomDateApplied] = useState(false);
 
-  // Live real-time events feed state
-  const [activityFeed, setActivityFeed] = useState<FeedEvent[]>([
-    { id: "evt-1", type: "payment", title: "Payment Completed", detail: "Vaibhav SG processed ₹5,000 for Premium Club Upgrade", time: "2 mins ago" },
-    { id: "evt-2", type: "lead", title: "New Lead Generated", detail: "Ananya Saxena left phone line +91 74011 XXXXX via WhatsApp AI", time: "12 mins ago" },
-    { id: "evt-3", type: "appointment", title: "Appointment Booked", detail: "Priya Patel reserved specialist session for AEW sound fitment", time: "45 mins ago" },
-    { id: "evt-4", type: "resolution", title: "AI Resolved Inquiry", detail: "Successfully addressed checkout queries for Sanjay Singhania", time: "1 hour ago" },
-    { id: "evt-5", type: "conversion", title: "Customer Converted", detail: "Kunal Verma upgraded standard maintenance pack to active subscription", time: "3 hours ago" }
-  ]);
+  // Live real-time events feed state — starts empty for clean production accounts
+  const [activityFeed, setActivityFeed] = useState<FeedEvent[]>([]);
 
   // Simulation feature - add random events
   const handleSimulateEvent = () => {
@@ -97,8 +91,7 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
     
     if (randomType === "lead") {
       title = "New Lead Generated";
-      const names = ["Rohan Roy", "Siddharth Sen", "Deepika Padukone", "Sania M.", "Preeti S."];
-      detail = `${names[Math.floor(Math.random() * names.length)]} left contact information for premium custom exhaust retrofit package`;
+      detail = "New customer left contact information via WhatsApp AI";
     } else if (randomType === "payment") {
       title = "Payment Completed";
       const val = Math.floor(Math.random() * 8000) + 1500;
@@ -1015,8 +1008,8 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
           {/* Top Customers Log link */}
           <div className="p-3.5 bg-[var(--bg-elevated)]/35 border border-white/5 rounded-2xl flex items-center justify-between text-[11px] font-medium">
             <span className="text-[var(--text)]">Top Customer this week:</span>
-            <strong className="text-[var(--text)] hover:underline cursor-pointer flex items-center gap-1 font-sans">
-              Vaibhav SG <ChevronRight className="w-3.5 h-3.5" />
+            <strong className="text-[var(--text-muted)] font-sans">
+              No activity recorded
             </strong>
           </div>
 

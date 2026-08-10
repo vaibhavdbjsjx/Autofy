@@ -1187,7 +1187,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
 
                   <button
                     onClick={() => {
-                      const list = ["Suman K.", "Alok R.", "Coach Rohit", "Self (Owner)"];
+                      const list = ["Unassigned", "Support Rep", "Sales Desk", "Self (Owner)"];
                       const currentId = list.indexOf(selectedLead.assignedTo);
                       const next = list[(currentId + 1) % list.length];
                       assignToTeam(selectedLead, next);

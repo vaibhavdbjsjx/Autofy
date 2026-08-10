@@ -14,6 +14,34 @@ router = APIRouter(prefix="/payments", tags=["Razorpay Billing Ledger & Subscrip
 
 owner_admin = RoleChecker(["Owner", "Admin", "Manager"])
 
+@router.get("", response_model=Dict[str, Any])
+def list_business_payments(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns payment ledger records for current authenticated business tenant.
+    """
+    from models.payment import Payment
+    payments = db.query(Payment).filter(Payment.business_id == current_user.business_id).order_by(Payment.created_at.desc()).all()
+    items = []
+    for p in payments:
+        items.append({
+            "id": p.id,
+            "business_id": p.business_id,
+            "lead_id": p.lead_id,
+            "amount": float(p.amount) if p.amount else 0.0,
+            "currency": p.currency or "INR",
+            "status": p.status or "issued",
+            "billing_type": p.billing_type or "one_time",
+            "description": p.description or "Payment Invoice",
+            "razorpay_payment_id": p.razorpay_payment_id,
+            "razorpay_subscription_id": p.razorpay_subscription_id,
+            "invoice_id": p.invoice_id,
+            "created_at": p.created_at.isoformat() if p.created_at else None,
+        })
+    return {"items": items, "count": len(items)}
+
 @router.post("/links", response_model=PaymentResponse, status_code=status.HTTP_201_CREATED)
 async def create_payment_link_endpoint(
     payload: PaymentLinkCreate,

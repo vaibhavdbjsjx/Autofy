@@ -19,29 +19,38 @@ import {
 } from "lucide-react";
 
 export const CustomerPortalTab: React.FC = () => {
-  // Member States
+  // Member States — initialized dynamically for logged-in user
   const [tier, setTier] = useState<"Silver" | "Gold" | "Platinum">("Gold");
-  const [profileName, setProfileName] = useState("Vaibhav Sharma");
-  const [profileEmail, setProfileEmail] = useState("vaibhav.sg18@gmail.com");
-  const [profilePhone, setProfilePhone] = useState("+91 98765 01234");
+  const [profileName, setProfileName] = useState("");
+  const [profileEmail, setProfileEmail] = useState("");
+  const [profilePhone, setProfilePhone] = useState("");
   
-  // Appointments state
-  const [appointments, setAppointments] = useState([
-    { id: "a1", date: "June 22, 2026", time: "4:00 PM", service: "Elite Strength & Conditioning", status: "Confirmed", trainer: "Coach Rohan" },
-    { id: "a2", date: "June 25, 2026", time: "11:30 AM", service: "Yoga Trainer Session", status: "Pending Guidance", trainer: "Coach Priya" }
-  ]);
+  // Appointments state — starts empty
+  const [appointments, setAppointments] = useState<Array<{ id: string; date: string; time: string; service: string; status: string; trainer: string }>>([]);
   
   // Interactive Book form state
   const [showBookModal, setShowBookModal] = useState(false);
   const [newDate, setNewDate] = useState("");
   const [newTime, setNewTime] = useState("4:00 PM");
-  const [newService, setNewService] = useState("Elite Strength & Conditioning");
+  const [newService, setNewService] = useState("Consultation Session");
 
-  // Invoices list state
-  const [invoices, setInvoices] = useState([
-    { id: 'INV-2026-042', date: 'June 01, 2026', amount: '₹18,000', status: 'Paid', method: 'UPI (GPay)' },
-    { id: 'INV-2026-015', date: 'March 01, 2026', amount: '₹5,000', status: 'Paid', method: 'Card ending 4242' }
-  ]);
+  // Invoices list state — starts empty
+  const [invoices, setInvoices] = useState<Array<{ id: string; date: string; amount: string; status: string; method: string }>>([]);
+
+  React.useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const { getCurrentUser } = await import("../lib/auth");
+        const { user } = await getCurrentUser();
+        if (user) {
+          setProfileName((user as any).name || (user as any).full_name || user.email || "");
+          setProfileEmail(user.email || "");
+          setProfilePhone((user as any).phone || "");
+        }
+      } catch { /* ignore */ }
+    };
+    loadProfile();
+  }, []);
 
   // Support list
   const [tickets, setTickets] = useState([

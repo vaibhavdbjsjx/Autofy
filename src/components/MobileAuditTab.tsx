@@ -1950,10 +1950,7 @@ export default function ActiveChatScreen() {
   const { width } = useWindowDimensions();
   const isTablet = width > 768; // Native responsive flag
 
-  const [messages, setMessages] = useState([
-    { id: "1", text: "Hi, has my AEW slip-on arrived at Mumbai workshop?", sender: "client", time: "10:14 AM" },
-    { id: "2", text: "Yes Rahul! Your order ORD-9382 arrived. Aman is ready for fitting.", sender: "copilot", time: "10:15 AM" }
-  ]);
+  const [messages, setMessages] = useState<Array<{ id: string; text: string; sender: string; time: string }>>([]);
   const [inputText, setInputText] = useState("");
   const listRef = useRef<FlatList>(null);
 
@@ -2012,9 +2009,8 @@ export default function ActiveChatScreen() {
         {isTablet && (
           <View style={styles.tabletSidebar}>
             <Text style={styles.sidebarHeading}>Customer CRM Quick-Look</Text>
-            <Text style={styles.metaLabel}>Name: <Text style={styles.metaVal}>{route.params?.customerName || "Rahul Sharma"}</Text></Text>
-            <Text style={styles.metaLabel}>Status: <Text style={styles.metaVal}>VIP Customer</Text></Text>
-            <Text style={styles.metaLabel}>Fitted Exhaust: <Text style={styles.metaVal}>AEW Royal Enfield 350</Text></Text>
+            <Text style={styles.metaLabel}>Name: <Text style={styles.metaVal}>{route.params?.customerName || "Customer Name"}</Text></Text>
+            <Text style={styles.metaLabel}>Status: <Text style={styles.metaVal}>Active Customer</Text></Text>
           </View>
         )}
       </View>

@@ -621,9 +621,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
       category: "PRIMARY",
       items: [
         { id: "overview", label: "Overview", icon: LayoutDashboard },
-        { id: "conversations", label: "Inbox (Chats)", icon: MessageSquare, badge: 4 },
-        { id: "leads", label: "Leads", icon: Users, badge: 4 },
-        { id: "appointments", label: "Appointments", icon: Calendar, badge: 3 },
+        { id: "conversations", label: "Inbox (Chats)", icon: MessageSquare },
+        { id: "leads", label: "Leads", icon: Users },
+        { id: "appointments", label: "Appointments", icon: Calendar },
       ]
     },
     {
@@ -651,7 +651,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     {
       category: "CONTROL",
       items: [
-        { id: "owner_center", label: "Owner Control Center", icon: Shield, badge: "VIP" },
+        { id: "owner_center", label: "Owner Control Center", icon: Shield },
         { id: "settings", label: "Settings", icon: Settings },
       ]
     }
@@ -759,7 +759,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         style={{ color: isActive ? "var(--brand)" : "var(--text-subtle)" }}
                       />
                       <span className="min-w-0 flex-1 truncate">{item.label}</span>
-                      {item.badge !== undefined && (
+                      {(item as any).badge !== undefined && (
                         <span
                           className="shrink-0 rounded-full px-2 py-0.5 text-center text-[9px] font-black"
                           style={{
@@ -767,7 +767,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             color: isActive ? "#FFF" : "var(--brand)",
                           }}
                         >
-                          {item.badge}
+                          {(item as any).badge}
                         </span>
                       )}
                     </button>
@@ -779,7 +779,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Account footer */}
-        <div className="flex flex-col gap-3 border-t pt-4" style={{ borderColor: "var(--border)" }}>
+        <div className="flex shrink-0 flex-col gap-3 border-t pt-4" style={{ borderColor: "var(--border)" }}>
           <div
             onClick={() => handleTabChange("subscription")}
             className="surface-a flex items-center justify-between rounded-2xl p-3.5 cursor-pointer border border-[var(--border)] shadow-md hover:border-[var(--brand)]/50 transition duration-200 group"

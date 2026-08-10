@@ -66,110 +66,7 @@ interface Conversation {
   timeline: Array<{ event: string; date: string; checked: boolean }>;
 }
 
-const INITIAL_CONVERSATIONS: Conversation[] = [
-  {
-    id: "conv-1",
-    name: "Arya Sharma",
-    phone: "+91 98124 55321",
-    email: "arya.sharma@yahoo.com",
-    businessType: "Premium Fitness Member",
-    leadStatus: "Warm Lead",
-    leadScore: 88,
-    source: "Instagram Ad",
-    lastMessage: "Do you have any AC membership or premium group training slots available?",
-    time: "2 Mins Ago",
-    unreadCount: 1,
-    status: "active",
-    history: [
-      { id: "1", sender: "customer", text: "Hey! Wanted to check about joining your studio soon.", time: "4:15 PM" },
-      { id: "2", sender: "ai", text: "Hello Arya! Welcome to our fitness studio. We'd love to help you reach your goals. What kind of workouts are you interested in?", time: "4:16 PM" },
-      { id: "3", sender: "customer", text: "Do you have any AC membership or premium group training slots available?", time: "4:30 PM" }
-    ],
-    timeline: [
-      { event: "First Contact via Instagram", date: "Today, 4:15 PM", checked: true },
-      { event: "AI Answer Sent", date: "Today, 4:16 PM", checked: true },
-      { event: "Payment Link Created", date: "Pending", checked: false },
-      { event: "Appointment Booked", date: "Pending", checked: false }
-    ]
-  },
-  {
-    id: "conv-2",
-    name: "Rahul Verma",
-    phone: "+91 88523 00192",
-    email: "rahul.v99@gmail.com",
-    businessType: "Automobile Accessories",
-    leadStatus: "Converted",
-    leadScore: 97,
-    source: "Google Search",
-    lastMessage: "Thank you! I have completed the paylink check, booking confirmed.",
-    time: "1 Hour Ago",
-    unreadCount: 0,
-    status: "active",
-    history: [
-      { id: "1", sender: "customer", text: "Is the AEW Exhaust in stock for GT 650?", time: "3:01 PM" },
-      { id: "2", sender: "ai", text: "Yes Rahul! We have 12 units of the Premium AEW Exhaust in stock right now for ₹6,500. It is fully available.", time: "3:01 PM" },
-      { id: "3", sender: "customer", text: "Can you send me a custom booking checkout link?", time: "3:02 PM" },
-      { id: "4", sender: "human", text: "Certainly! I've generated a payment link for ₹6,500. You'll receive the confirmation instantly upon settlement.", time: "3:04 PM" },
-      { id: "5", sender: "customer", text: "Thank you! I have completed the paylink check, booking confirmed.", time: "3:10 PM" }
-    ],
-    timeline: [
-      { event: "First Contact", date: "Today, 3:00 PM", checked: true },
-      { event: "AI Answer Sent", date: "Today, 3:01 PM", checked: true },
-      { event: "Payment Made (₹6500)", date: "Today, 3:10 PM", checked: true },
-      { event: "Appointment Booked", date: "Today, 3:15 PM", checked: true }
-    ]
-  },
-  {
-    id: "conv-3",
-    name: "Vikram Malhotra",
-    phone: "+91 91152 44321",
-    email: "vikram.malhotra@rediff.com",
-    businessType: "Corporate Guest",
-    leadStatus: "Needs Nurturing",
-    leadScore: 45,
-    source: "WhatsApp Direct",
-    lastMessage: "I need to discuss terms of customized corporate packages instead.",
-    time: "3 Hours Ago",
-    unreadCount: 0,
-    status: "needs_review",
-    history: [
-      { id: "1", sender: "customer", text: "Do you offer corporate rates for 50 people?", time: "1:10 PM" },
-      { id: "2", sender: "ai", text: "Hello Vikram! Standard membership is ₹2,500 but customized corporate package setups can be custom quoted. Let me ask our manager to contact you.", time: "1:11 PM" },
-      { id: "3", sender: "customer", text: "I need to discuss terms of customized corporate packages instead.", time: "1:15 PM" }
-    ],
-    timeline: [
-      { event: "First Contact", date: "Today, 1:10 PM", checked: true },
-      { event: "AI Answer Sent", date: "Today, 1:11 PM", checked: true },
-      { event: "Payment Made", date: "Pending", checked: false },
-      { event: "Appointment Booked", date: "Pending", checked: false }
-    ]
-  },
-  {
-    id: "conv-4",
-    name: "Dr. Ananya Sen",
-    phone: "+91 75001 88231",
-    email: "ananya.sen@healthplus.org",
-    businessType: "Premium Consultation",
-    leadStatus: "Escalated",
-    leadScore: 92,
-    source: "Referral Partner",
-    lastMessage: "Your bot claims no slots exist, but I need immediate diagnostic support.",
-    time: "5 Hours Ago",
-    unreadCount: 0,
-    status: "escalated",
-    history: [
-      { id: "1", sender: "customer", text: "Is there any urgent slot at 5:00 PM today?", time: "11:30 AM" },
-      { id: "2", sender: "ai", text: "I'm sorry Ananya, our current booking schedule shows fully busy slots up to 7:00 PM today.", time: "11:31 AM" },
-      { id: "3", sender: "customer", text: "Your bot claims no slots exist, but I need immediate diagnostic support.", time: "11:35 AM" }
-    ],
-    timeline: [
-      { event: "First Contact", date: "Today, 11:30 AM", checked: true },
-      { event: "AI Answer Sent", date: "Today, 11:31 AM", checked: true },
-      { event: "Human Agent Assigned", date: "Today, 11:40 AM", checked: true },
-      { event: "Appointment Booked", date: "Pending", checked: false }
-    ]
-  }
-];
+const INITIAL_CONVERSATIONS: Conversation[] = [];
 
 export const ConversationsTab: React.FC<ConversationsTabProps> = ({
   onboardingData,
@@ -180,11 +77,8 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
   policies,
   triggerNotification
 }) => {
-  const [conversations, setConversations] = useState<Conversation[]>(() => {
-    return INITIAL_CONVERSATIONS;
-  });
-
-  const [activeId, setActiveId] = useState<string>("conv-1");
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeId, setActiveId] = useState<string>("");
   const [filter, setFilter] = useState<"all" | "unread" | "ai" | "human" | "converted">("all");
   const [search, setSearch] = useState<string>("");
   const [typedMessage, setTypedMessage] = useState<string>("");
@@ -193,18 +87,55 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
 
   // AI response tracking state for current response insights
   const [aiInsight, setAiInsight] = useState({
-    source: "Membership Plans",
-    confidence: "98%",
-    responseTime: "1.2 Seconds",
-    faqMatched: "AC Membership Enquiry"
+    source: "Knowledge Base",
+    confidence: "--",
+    responseTime: "--",
+    faqMatched: "None"
   });
 
-  // Local alert logs that trigger dynamically in the floating ticker
-  const [alerts, setAlerts] = useState<Array<{ id: string; text: string; time: string }>>([
-    { id: "alt-1", text: " New Lead captured: Priya Patel via FB Ads", time: "Just Now" },
-    { id: "alt-2", text: " AI Answer Sent automatically to Vikram Malhotra", time: "1 min ago" },
-    { id: "alt-3", text: " Payment Received: ₹2,500 from Rahul Verma for Personal Training", time: "10 mins ago" }
-  ]);
+  // Local alert logs that trigger dynamically on real events
+  const [alerts, setAlerts] = useState<Array<{ id: string; text: string; time: string }>>([]);
+
+  useEffect(() => {
+    const fetchConversations = async () => {
+      try {
+        const { api, isAuthenticated } = await import("../lib/api");
+        if (isAuthenticated()) {
+          const res: any = await api.get("/api/v1/conversations");
+          const items = Array.isArray(res) ? res : (res?.items || []);
+          if (items.length > 0) {
+            const mapped: Conversation[] = items.map((c: any) => ({
+              id: c.id,
+              name: c.lead_name || c.contact_name || c.customer_name || "WhatsApp Contact",
+              phone: c.phone || c.customer_phone || "",
+              email: c.email || "",
+              businessType: c.business_type || "Lead",
+              leadStatus: c.lead_status || "Warm Lead",
+              leadScore: c.lead_score || 80,
+              source: c.source || "WhatsApp Direct",
+              lastMessage: c.last_message || c.message || "Conversation started",
+              time: c.updated_at ? c.updated_at.substring(11, 16) : "Today",
+              unreadCount: c.unread_count || 0,
+              status: c.status || "active",
+              history: Array.isArray(c.messages) ? c.messages.map((m: any) => ({
+                id: m.id || `m-${Math.random()}`,
+                sender: m.sender || (m.is_user ? "customer" : "ai"),
+                text: m.text || m.content || "",
+                time: m.created_at ? m.created_at.substring(11, 16) : "Today"
+              })) : [],
+              timeline: []
+            }));
+            setConversations(mapped);
+            setActiveId(mapped[0]?.id || "");
+          }
+        }
+      } catch {
+        setConversations([]);
+        setActiveId("");
+      }
+    };
+    fetchConversations();
+  }, []);
 
   const activeChat = conversations.find((c) => c.id === activeId) || conversations[0];
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -560,36 +491,22 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
       </div>
 
       <AnimatePresence mode="wait">
-        {emptyState || filteredChatList.length === 0 ? (
-          /* EMPTY STATE SCREEN */
+        {(emptyState || conversations.length === 0) ? (
+          /* CLEAN PROFESSIONAL EMPTY STATE */
           <motion.div 
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            className="bg-[var(--bg-card)] border border-[var(--border)] p-12 text-center rounded-3xl backdrop-blur-md max-w-2xl mx-auto space-y-4"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[var(--bg-card)] border border-[var(--border)] p-12 text-center rounded-3xl backdrop-blur-md max-w-2xl mx-auto space-y-4 shadow-xl"
           >
-            <div className="w-16 h-16 bg-blue-500/10 text-blue-400 rounded-full flex items-center justify-center mx-auto border border-blue-500/20">
+            <div className="w-16 h-16 bg-purple-500/10 text-purple-400 rounded-2xl flex items-center justify-center mx-auto border border-purple-500/20">
               <MessageSquare className="w-8 h-8" />
             </div>
             
             <div className="space-y-1.5">
-              <h3 className="text-lg font-black text-[var(--text)]">Your customer conversations will appear here.</h3>
-              <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto">
-                Once you connect your WhatsApp Business line via the API integration gateway, you can instruct Autofy to auto-respond to leads and close appointments instantly.
+              <h3 className="text-lg font-black text-[var(--text)]">No conversations yet</h3>
+              <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto leading-relaxed">
+                Your WhatsApp conversations will appear here automatically once customers start messaging your AI assistant. Connect WhatsApp in Settings to begin.
               </p>
-            </div>
-
-            <div className="pt-2">
-              <button 
-                onClick={() => {
-                  setEmptyState(false);
-                  setConversations(INITIAL_CONVERSATIONS);
-                  triggerNotification(" Sync link active: Demo WhatsApp initialized");
-                }}
-                className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-[var(--text)] font-extrabold text-xs tracking-wide rounded-xl uppercase transition cursor-pointer shadow-lg shadow-blue-500/20"
-              >
-                Connect WhatsApp Business Line
-              </button>
             </div>
           </motion.div>
         ) : (

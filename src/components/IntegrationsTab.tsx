@@ -1375,7 +1375,7 @@ export const IntegrationsTab: React.FC<IntegrationsTabProps> = ({ onboardingData
             <div className="flex items-start gap-2.5 pb-2.5 border-b border-[var(--border)]/40">
               <span className="p-1 rounded bg-[var(--bg-elevated)] text-emerald-400 shrink-0"> RES</span>
               <div>
-                <p className="text-[var(--text)]">Successfully locked scheduling slot for प्रिया पटेल (Priya Patel) on Google Calendar API.</p>
+                <p className="text-[var(--text)]">Successfully synchronized scheduling slot on Google Calendar API.</p>
                 <span className="text-[var(--text-subtle)] text-[8.5px] mt-0.5 block">2026-06-20 11:15:02 UTC | Module: google-calendar | Latency: 120ms</span>
               </div>
             </div>

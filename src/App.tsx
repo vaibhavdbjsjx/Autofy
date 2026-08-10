@@ -338,10 +338,10 @@ function Hero() {
       {[
         { cls: "bob-slow", pos: { top: "27%", left: "3.5%" }, delay: 0.9,
           icon: <Users size={15} style={{ color: "#3B82F6" }} />, tint: "rgba(59,130,246,0.12)",
-          title: "New lead captured", sub: "Raj wants gym membership info" },
+          title: "New lead captured", sub: "WhatsApp lead qualified via AI" },
         { cls: "bob-mid", pos: { top: "23%", right: "3.5%" }, delay: 1.05,
           icon: <CreditCard size={15} style={{ color: "#16A34A" }} />, tint: "rgba(22,163,74,0.12)",
-          title: "Payment received", sub: "₹2,999 from Priya K." },
+          title: "Payment received", sub: "Razorpay subscription verified" },
         { cls: "bob-fast", pos: { top: "40%", right: "5%" }, delay: 1.2,
           icon: <Zap size={15} style={{ color: "#8B5CF6" }} />, tint: "rgba(139,92,246,0.14)",
           title: "AI replied in 0.3s", sub: "98% confidence" },
@@ -783,7 +783,7 @@ function LiveDemoSection() {
                         <div style={{ width: 28, height: 28, borderRadius: "50%", background: "#10B981", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}><Check size={16} /></div>
                         <div style={{ textAlign: "left" }}>
                           <div style={{ fontSize: 12, fontWeight: 800 }}>Payment Received</div>
-                          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Priya K. paid ₹3,999</div>
+                          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Payment mandate verified</div>
                         </div>
                       </div>
                       <div style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center" }}>
@@ -870,9 +870,9 @@ function LiveDemoSection() {
                           <span style={{ fontSize: 9, fontWeight: 800, color: "var(--text-muted)", textTransform: "uppercase" }}>Recent Activity</span>
                           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                             {[
-                              { dot: "#10B981", text: "Priya K. — Paid ₹3,999 — Quarterly plan", time: "2m ago" },
-                              { dot: "var(--accent-blue)", text: "Rahul M. — Asked about annual plan", time: "8m ago" },
-                              { dot: "var(--accent-amber)", text: "Sneha T. — Booked trial session — Tomorrow 10am", time: "15m ago" }
+                              { dot: "#10B981", text: "Subscription mandate verified — Autofy Pro", time: "2m ago" },
+                              { dot: "var(--accent-blue)", text: "Inbound customer inquiry answered via AI", time: "8m ago" },
+                              { dot: "var(--accent-amber)", text: "Appointment confirmed & synced to calendar", time: "15m ago" }
                             ].map((act, i) => (
                               <div key={i} style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 10, paddingBottom: 6, borderBottom: i < 2 ? "1px solid var(--border)" : "none" }}>
                                 <div style={{ display: "flex", gap: 6, alignItems: "center", overflow: "hidden" }}>

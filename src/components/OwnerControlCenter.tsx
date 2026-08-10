@@ -57,14 +57,8 @@ export const OwnerControlCenter: React.FC<{
   const [deviceModel, setDeviceModel] = useState<"iphone" | "android" | "tablet">("iphone");
   const [mobileTab, setMobileTab] = useState<"home" | "customers" | "messages" | "payments" | "settings">("home");
 
-  // Notifications state
-  const [ownerNotifications, setOwnerNotifications] = useState([
-    { id: 1, type: "lead", title: "New Lead", msg: "Rohit Deshmukh registered via WhatsApp QR", time: "Just now", read: false },
-    { id: 2, type: "payment", title: "New Payment", msg: "₹4,999 received via Razorpay (Super Gym Pass)", time: "12m ago", read: false },
-    { id: 3, type: "appointment", title: "Appointment Set", msg: "Dr. Alisha Rao booked for Yoga Trials (June 24)", time: "1h ago", read: true },
-    { id: 4, type: "ai", title: "AI Deflection Alert", msg: "Knowledge base matched high confidence discount inquiry", time: "2h ago", read: true },
-    { id: 5, type: "escalation", title: "Human Escalation Needed", msg: "Complex shipping refund inquiry from Kabir Sen", time: "3h ago", read: false }
-  ]);
+  // Notifications state — starts empty for fresh production accounts
+  const [ownerNotifications, setOwnerNotifications] = useState<Array<{ id: number; type: string; title: string; msg: string; time: string; read: boolean }>>([]);
 
   // Business state management for premium interactive experience
   const [services, setServices] = useState([
@@ -89,24 +83,15 @@ export const OwnerControlCenter: React.FC<{
     { id: "faq-2", q: "Is car parking available?", a: "Yes, free secure underground parking is available for all active card members.", category: "Facility" }
   ]);
 
-  const [uploadedDocsList, setUploadedDocsList] = useState([
-    { name: "Summer_Syllabus_2026.pdf", size: "2.4 MB", date: "June 18, 2026", status: "Ingested" },
-    { name: "Refund_Merchant_Policy.docx", size: "450 KB", date: "June 20, 2026", status: "Ingested" }
-  ]);
+  const [uploadedDocsList, setUploadedDocsList] = useState<Array<{ name: string; size: string; date: string; status: string }>>([]);
 
   // Payments State
-  const [upiId, setUpiId] = useState("pay.autofy@icici");
+  const [upiId, setUpiId] = useState("");
   const [qrCodeFile, setQrCodeFile] = useState<string | null>(null);
-  const [bankAccount, setBankAccount] = useState({ name: "Autofy Technologies Pvt Ltd", bank: "HDFC Bank", acc: "50200049281923", ifsc: "HDFC0000104" });
+  const [bankAccount, setBankAccount] = useState({ name: "", bank: "", acc: "", ifsc: "" });
   const [activeGateway, setActiveGateway] = useState<"razorpay" | "phonepe" | "cashfree">("razorpay");
   const [transactionSearch, setTransactionSearch] = useState("");
-  const [transactions, setTransactions] = useState([
-    { id: "TXN108200", customer: "Priya Patel", date: "June 21, 2026", method: "Razorpay", amount: "₹4,999", type: "Subscription", status: "Success" },
-    { id: "TXN108201", customer: "Rahul Sharma", date: "June 21, 2026", method: "UPI", amount: "₹1,200", type: "Product", status: "Success" },
-    { id: "TXN108202", customer: "Rohit Deshmukh", date: "June 20, 2026", method: "Cashfree", amount: "₹2,500", type: "Service", status: "Success" },
-    { id: "TXN108203", customer: "Alisha Rao", date: "June 19, 2026", method: "PhonePe", amount: "₹4,500", type: "Service", status: "Refunded" },
-    { id: "TXN108204", customer: "Kabir Sen", date: "June 18, 2026", method: "Razorpay", amount: "₹18,999", type: "Subscription", status: "Pending" }
-  ]);
+  const [transactions, setTransactions] = useState<Array<{ id: string; customer: string; date: string; method: string; amount: string; type: string; status: string }>>([]);
 
   // Reports view variables
   const [reportTimeframe, setReportTimeframe] = useState<"daily" | "weekly" | "monthly" | "yearly">("monthly");
@@ -114,20 +99,12 @@ export const OwnerControlCenter: React.FC<{
 
   // AI center states
   const [aiImprovementStatus, setAiImprovementStatus] = useState<"idle" | "optimizing" | "completed">("idle");
-  const [knowledgeGaps, setKnowledgeGaps] = useState([
-    { query: "Is steam bath open on Sundays?", hits: 14, status: "Critical" },
-    { query: "Do you have EMI options?", hits: 9, status: "Medium" }
-  ]);
+  const [knowledgeGaps, setKnowledgeGaps] = useState<Array<{ query: string; hits: number; status: string }>>([]);
 
-  // Customer state variables
+  // Customer state variables — loaded from backend
   const [customerQuery, setCustomerQuery] = useState("");
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("c-1");
-  const [customers, setCustomers] = useState([
-    { id: "c-1", name: "Priya Patel", phone: "+91 98765 01234", tag: "VIP Elite", email: "priya@gmail.com", joined: "May 14, 2026", appointments: 8, payments: 12400, notes: "Prefers morning sessions, prefers quiet Yoga zones.", status: "Active" },
-    { id: "c-2", name: "Rahul Sharma", phone: "+91 91234 56789", tag: "Fighter Streak", email: "rahul.s@outlook.com", joined: "April 29, 2026", appointments: 14, payments: 8700, notes: "Requires direct invoice copy on WhatsApp.", status: "Active" },
-    { id: "c-3", name: "Alisha Rao", phone: "+91 88200 49301", tag: "Trial Member", email: "alisha@rao.com", joined: "June 10, 2026", appointments: 2, payments: 4500, notes: "Interpreting rehabilitation guidelines for knee alignment.", status: "Active" },
-    { id: "c-4", name: "Kabir Sen", phone: "+91 71049 48102", tag: "Silent Buyer", email: "kabir.sen@gmail.com", joined: "June 18, 2026", appointments: 0, payments: 18999, notes: "Enterprise package client, needs quarterly statements.", status: "Pending" }
-  ]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
+  const [customers, setCustomers] = useState<Array<{ id: string; name: string; phone: string; tag: string; email: string; joined: string; appointments: number; payments: number; notes: string; status: string }>>([]);
 
   // Appointments Calendar values
   const [appointmentFilter, setAppointmentFilter] = useState<"all" | "upcoming" | "completed" | "cancelled">("all");
@@ -158,13 +135,9 @@ export const OwnerControlCenter: React.FC<{
     fetchAppointments();
   }, []);
 
-  // Chat simulator internally for mobile messages tab
+  // Chat simulator internally for mobile messages tab — starts empty
   const [mobileChatInput, setMobileChatInput] = useState("");
-  const [mobileChats, setMobileChats] = useState([
-    { id: 1, sender: "assistant", text: "Hello Rahul! How can Autofy help you today?", time: "2:04 PM" },
-    { id: 2, sender: "client", text: "Can you tell me if the 3-Month Elite plan provides lockers?", time: "2:05 PM" },
-    { id: 3, sender: "assistant", text: "Yes absolutely! The Elite Warrior Pass includes direct VIP lockers, steam room access, and free fitness analytics card.", time: "2:05 PM" }
-  ]);
+  const [mobileChats, setMobileChats] = useState<Array<{ id: number; sender: string; text: string; time: string }>>([]);
 
   // Interactive forms state
   const [kbSection, setKbSection] = useState<"services" | "products" | "memberships" | "faqs" | "docs">("services");

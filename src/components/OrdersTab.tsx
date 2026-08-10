@@ -1342,7 +1342,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
                   <input
                     type="text"
                     required
-                    placeholder="Rahul Sharma"
+                    placeholder="Customer Name"
                     value={billingName}
                     onChange={(e) => setBillingName(e.target.value)}
                     className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)] focus:outline-none"
@@ -1353,7 +1353,7 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
                   <label className="text-[10.5px] uppercase font-mono tracking-wider text-[var(--text-muted)]">Email Address</label>
                   <input
                     type="email"
-                    placeholder="sharma.rahul@gmail.com"
+                    placeholder="name@business.com"
                     value={billingEmail}
                     onChange={(e) => setBillingEmail(e.target.value)}
                     className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)] focus:outline-none"

@@ -58,29 +58,21 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
   // Support tickets — loaded from backend API, initialized empty for fresh accounts
   const [tickets, setTickets] = useState<TicketData[]>([]);
 
-  const [agents, setAgents] = useState<SupportAgent[]>([
-    { id: "agent-1", name: "Aman Sen", role: "Workshop Lead" },
-    { id: "agent-2", name: "John Mercer", role: "Store Specialist" },
-    { id: "agent-3", name: "Vikram Rathore", role: "Rider Desk Support" }
-  ]);
-
-  const [history, setHistory] = useState<TicketLog[]>([
-    { id: "h1", changed_by: "Rahul Sharma", action: "Created", notes: "Ticket logged via automated customer portal inquiry.", created_at: "2026-06-20 10:14" },
-    { id: "h2", changed_by: "System", action: "Reassigned", notes: "Assignee auto-routed to primary workshop coordinator.", created_at: "2026-06-20 10:15" }
-  ]);
+  const [agents, setAgents] = useState<SupportAgent[]>([]);
+  const [history, setHistory] = useState<TicketLog[]>([]);
 
   const [analytics, setAnalytics] = useState({
-    totalTickets: 3,
-    openTickets: 1,
-    pendingTickets: 1,
-    resolvedTickets: 1,
+    totalTickets: 0,
+    openTickets: 0,
+    pendingTickets: 0,
+    resolvedTickets: 0,
     closedTickets: 0,
-    slaMetCount: 2,
+    slaMetCount: 0,
     slaBreachedCount: 0
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedTicketId, setSelectedTicketId] = useState<string>("TKT-1921");
+  const [selectedTicketId, setSelectedTicketId] = useState<string>("");
   
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterPriority, setFilterPriority] = useState("All");
@@ -546,7 +538,7 @@ export const SupportTicketsTab: React.FC<SupportTicketsTabProps> = ({
                 <label className="text-xs font-bold text-[var(--text)]">Customer Full Name:</label>
                 <input
                   type="text"
-                  placeholder="e.g. Rahul Sharma"
+                  placeholder="e.g. Customer Name"
                   value={newCustName}
                   onChange={(e) => setNewCustName(e.target.value)}
                   className="w-full bg-black border border-[var(--border)] rounded-xl py-2 px-3 text-xs text-[var(--text)]"

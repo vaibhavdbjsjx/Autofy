@@ -47,115 +47,47 @@ interface Appointment {
 }
 
 export const AppointmentsTab: React.FC = () => {
-  // Pre-seeded database of appointments
-  const [appointments, setAppointments] = useState<Appointment[]>([
-    {
-      id: "APT-1001",
-      customerName: "Vaibhav SG",
-      phone: "+91 91720 40420",
-      email: "vaibhav.sg18@gmail.com",
-      service: "Premium Consultation",
-      date: "2026-06-20",
-      time: "10:30 AM",
-      status: "Confirmed",
-      notes: "Customer interested in long-term premium membership packages and premium tuning options.",
-      reminders: {
-        whatsapp: true,
-        email: true,
-        sms: false,
-        timing: "1 Hour Before"
+  // Database of appointments loaded from backend API — starts empty for fresh accounts
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+
+  React.useEffect(() => {
+    const fetchAppointments = async () => {
+      try {
+        const { api, isAuthenticated } = await import("../lib/api");
+        if (isAuthenticated()) {
+          const res: any = await api.get("/api/v1/appointments");
+          const items = Array.isArray(res) ? res : (res?.items || []);
+          if (items.length > 0) {
+            const mapped: Appointment[] = items.map((a: any) => ({
+              id: a.id,
+              customerName: a.customer_name || a.lead_name || "Client",
+              phone: a.customer_phone || a.phone || "",
+              email: a.customer_email || a.email || "",
+              service: a.service || "Consultation",
+              date: a.appointment_date ? a.appointment_date.substring(0, 10) : new Date().toISOString().substring(0, 10),
+              time: a.start_time || "10:00 AM",
+              status: (a.status as any) || "Scheduled",
+              notes: a.notes || "",
+              reminders: {
+                whatsapp: true,
+                email: true,
+                sms: false,
+                timing: "1 Day Before"
+              }
+            }));
+            setAppointments(mapped);
+          }
+        }
+      } catch {
+        setAppointments([]);
       }
-    },
-    {
-      id: "APT-1002",
-      customerName: "Priya Patel",
-      phone: "+91 98765 01234",
-      email: "priya.patel@gmail.com",
-      service: "Trial Session Workout",
-      date: "2026-06-20",
-      time: "02:00 PM",
-      status: "Scheduled",
-      notes: "First time trying the premium AC equipment. Assign senior instructor.",
-      reminders: {
-        whatsapp: true,
-        email: false,
-        sms: true,
-        timing: "1 Day Before"
-      }
-    },
-    {
-      id: "APT-1003",
-      customerName: "Ananya Saxena",
-      phone: "+91 74011 22334",
-      email: "ananya.saxena@gmail.com",
-      service: "Custom Service Package",
-      date: "2026-06-21",
-      time: "11:00 AM",
-      status: "Scheduled",
-      notes: "Needs exhaust swap and fitment inspection. Allocated bay 3.",
-      reminders: {
-        whatsapp: false,
-        email: true,
-        sms: true,
-        timing: "Custom"
-      }
-    },
-    {
-      id: "APT-1004",
-      customerName: "Sanjay Singhania",
-      phone: "+91 81223 99881",
-      email: "sanjay.s@singhania.io",
-      service: "Premium Consultation",
-      date: "2026-06-19",
-      time: "04:30 PM",
-      status: "Completed",
-      notes: "Completed signup of annual dual platinum corporate elite pack.",
-      reminders: {
-        whatsapp: true,
-        email: true,
-        sms: false,
-        timing: "1 Hour Before"
-      }
-    },
-    {
-      id: "APT-1005",
-      customerName: "Kunal Verma",
-      phone: "+91 99002 88123",
-      email: "kunal.verma@yahoo.com",
-      service: "Trial Session Workout",
-      date: "2026-06-18",
-      time: "09:00 AM",
-      status: "No Show",
-      notes: "Did not pick up our confirmation check calls.",
-      reminders: {
-        whatsapp: true,
-        email: false,
-        sms: false,
-        timing: "1 Day Before"
-      }
-    },
-    {
-      id: "APT-1006",
-      customerName: "Rohan Mehra",
-      phone: "+91 90088 12344",
-      email: "rohan.mehra@gmail.com",
-      service: "Custom Service Package",
-      date: "2026-06-22",
-      time: "03:30 PM",
-      status: "Scheduled",
-      notes: "Engine ECU diagnostics check up on dynamometer.",
-      reminders: {
-        whatsapp: true,
-        email: true,
-        sms: true,
-        timing: "1 Hour Before"
-      }
-    }
-  ]);
+    };
+    fetchAppointments();
+  }, []);
 
   // States
   const [calendarView, setCalendarView] = useState<"Day" | "Week" | "Month" | "Agenda">("Month");
-  const [activeDate, setActiveDate] = useState<string>("2026-06-20");
+  const [activeDate, setActiveDate] = useState<string>(() => new Date().toISOString().substring(0, 10));
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("All");
   
@@ -167,8 +99,8 @@ export const AppointmentsTab: React.FC = () => {
   const [formName, setFormName] = useState("");
   const [formPhone, setFormPhone] = useState("");
   const [formEmail, setFormEmail] = useState("");
-  const [formService, setFormService] = useState("Premium Consultation");
-  const [formDate, setFormDate] = useState("2026-06-20");
+  const [formService, setFormService] = useState("Consultation");
+  const [formDate, setFormDate] = useState(() => new Date().toISOString().substring(0, 10));
   const [formTime, setFormTime] = useState("10:00 AM");
   const [formNotes, setFormNotes] = useState("");
   
@@ -185,9 +117,9 @@ export const AppointmentsTab: React.FC = () => {
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   
   // Form updates state
-  const [reschedDate, setReschedDate] = useState("2026-06-21");
+  const [reschedDate, setReschedDate] = useState(() => new Date().toISOString().substring(0, 10));
   const [reschedTime, setReschedTime] = useState("11:00 AM");
-  const [followUpNotes, setFollowUpNotes] = useState("Check with customer if they found the trial setup satisfactory.");
+  const [followUpNotes, setFollowUpNotes] = useState("Follow up regarding scheduled session.");
 
   const triggerToast = (text: string) => {
     setNotification(text);
@@ -324,7 +256,7 @@ export const AppointmentsTab: React.FC = () => {
       {/* METRIC CARD PANELS */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Today's Visits", val: appointments.filter(a => a.date === "2026-06-20").length, action: "Active schedule" },
+          { label: "Today's Visits", val: appointments.filter(a => a.date === new Date().toISOString().substring(0, 10)).length, action: "Active schedule" },
           { label: "Pending Confirmed", val: appointments.filter(a => a.status === "Confirmed" || a.status === "Scheduled").length, action: "Next 48 hrs" },
           { label: "Checkouts Completed", val: appointments.filter(a => a.status === "Completed").length, action: "Revenue generated" },
           { label: "No Shows Today", val: appointments.filter(a => a.status === "No Show").length, action: "Need follow-up" }
@@ -549,99 +481,113 @@ export const AppointmentsTab: React.FC = () => {
               </div>
             </div>
 
-            {/* Logs Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs font-sans">
-                <thead>
-                  <tr className="border-b border-[var(--border)] text-[var(--text-subtle)] text-[10px] uppercase font-black tracking-wider">
-                    <th className="py-2.5">Customer details</th>
-                    <th className="py-2.5">Solution Service</th>
-                    <th className="py-2.5">Schedule date/time</th>
-                    <th className="py-2.5">Reminders Active</th>
-                    <th className="py-2.5">Status</th>
-                    <th className="py-2.5 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-900/40 text-[11px]">
-                  {filteredAppointments.map(apt => (
-                    <tr key={apt.id} className="hover:bg-[var(--bg-elevated)]/20 transition-colors">
-                      <td className="py-3">
-                        <p className="font-bold text-[var(--text)] text-[12px]">{apt.customerName}</p>
-                        <p className="text-[10px] text-[var(--text-subtle)] font-mono mt-0.5">{apt.phone} • {apt.email}</p>
-                      </td>
-                      <td className="py-3 text-[var(--text)] font-semibold">{apt.service}</td>
-                      <td className="py-3">
-                        <p className="font-semibold text-[var(--text)]">{apt.date}</p>
-                        <p className="text-[10px] text-[var(--text-subtle)] mt-0.5 font-mono">{apt.time}</p>
-                      </td>
-                      <td className="py-3">
-                        <div className="flex flex-wrap gap-1">
-                          {apt.reminders.whatsapp && (
-                            <span className="text-[9px] px-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded">WA</span>
-                          )}
-                          {apt.reminders.email && (
-                            <span className="text-[9px] px-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded">Email</span>
-                          )}
-                          {apt.reminders.sms && (
-                            <span className="text-[9px] px-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded">SMS</span>
-                          )}
-                          <span className="text-[9px] text-[var(--text-subtle)] font-mono font-bold">({apt.reminders.timing})</span>
-                        </div>
-                      </td>
-                      <td className="py-3">
-                        <span className={`px-2 py-0.5 rounded font-black text-[9.5px] uppercase ${
-                          apt.status === "Confirmed" 
-                            ? "bg-green-600/10 text-green-400 border border-green-500/20"
-                            : apt.status === "Scheduled"
-                            ? "bg-blue-600/10 text-blue-400 border border-blue-500/20"
-                            : apt.status === "Completed"
-                            ? "bg-purple-600/10 text-purple-400 border border-purple-500/20"
-                            : apt.status === "Cancelled"
-                            ? "bg-red-650 bg-red-600/10 text-red-500 border border-red-500/20"
-                            : "bg-[var(--bg-elevated)] text-[var(--text-subtle)] border border-[var(--border)]"
-                        }`}>
-                          {apt.status}
-                        </span>
-                      </td>
-                      <td className="py-3 text-right">
-                        <div className="inline-flex gap-1.5 shrink-0">
-                          <button
-                            onClick={() => {
-                              setSelectedAppointment(apt);
-                              setReschedDate(apt.date);
-                              setReschedTime(apt.time);
-                              setIsRescheduleOpen(true);
-                            }}
-                            className="bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] text-[var(--text)] font-bold px-2 py-1 rounded text-[9.5px] cursor-pointer"
-                          >
-                            Reschedule
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedAppointment(apt);
-                              setIsCancelOpen(true);
-                            }}
-                            className="bg-[var(--bg-elevated)] hover:bg-red-500/10 hover:text-red-400 text-[var(--text-subtle)] font-bold px-2 py-1 rounded text-[9.5px] cursor-pointer border border-transparent hover:border-red-500/10"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            onClick={() => {
-                              setSelectedAppointment(apt);
-                              setFollowUpNotes(`Hi ${apt.customerName}, thanks for booking your slot with us. We would love to check if you have any feedback regarding your session!`);
-                              setIsFollowUpOpen(true);
-                            }}
-                            className="bg-blue-600 hover:bg-blue-550 text-[var(--text)] font-bold px-2 py-1 rounded text-[9.5px] cursor-pointer shadow shadow-blue-500/5 whitespace-nowrap"
-                          >
-                            Follow-Up
-                          </button>
-                        </div>
-                      </td>
+            {/* Logs Table or Clean Empty State */}
+            {filteredAppointments.length === 0 ? (
+              <div className="py-12 px-6 text-center bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl space-y-4 my-2">
+                <div className="w-16 h-16 bg-purple-500/10 text-purple-400 rounded-2xl flex items-center justify-center mx-auto border border-purple-500/20">
+                  <Calendar className="w-8 h-8" />
+                </div>
+                <div className="space-y-1.5 max-w-md mx-auto">
+                  <h3 className="text-base font-black text-[var(--text)]">No appointments yet</h3>
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                    When customers book appointments through WhatsApp or your website they will appear here automatically.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs font-sans">
+                  <thead>
+                    <tr className="border-b border-[var(--border)] text-[var(--text-subtle)] text-[10px] uppercase font-black tracking-wider">
+                      <th className="py-2.5">Customer details</th>
+                      <th className="py-2.5">Solution Service</th>
+                      <th className="py-2.5">Schedule date/time</th>
+                      <th className="py-2.5">Reminders Active</th>
+                      <th className="py-2.5">Status</th>
+                      <th className="py-2.5 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-900/40 text-[11px]">
+                    {filteredAppointments.map(apt => (
+                      <tr key={apt.id} className="hover:bg-[var(--bg-elevated)]/20 transition-colors">
+                        <td className="py-3">
+                          <p className="font-bold text-[var(--text)] text-[12px]">{apt.customerName}</p>
+                          <p className="text-[10px] text-[var(--text-subtle)] font-mono mt-0.5">{apt.phone} • {apt.email}</p>
+                        </td>
+                        <td className="py-3 text-[var(--text)] font-semibold">{apt.service}</td>
+                        <td className="py-3">
+                          <p className="font-semibold text-[var(--text)]">{apt.date}</p>
+                          <p className="text-[10px] text-[var(--text-subtle)] mt-0.5 font-mono">{apt.time}</p>
+                        </td>
+                        <td className="py-3">
+                          <div className="flex flex-wrap gap-1">
+                            {apt.reminders.whatsapp && (
+                              <span className="text-[9px] px-1 bg-green-500/10 text-green-400 border border-green-500/20 rounded">WA</span>
+                            )}
+                            {apt.reminders.email && (
+                              <span className="text-[9px] px-1 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded">Email</span>
+                            )}
+                            {apt.reminders.sms && (
+                              <span className="text-[9px] px-1 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded">SMS</span>
+                            )}
+                            <span className="text-[9px] text-[var(--text-subtle)] font-mono font-bold">({apt.reminders.timing})</span>
+                          </div>
+                        </td>
+                        <td className="py-3">
+                          <span className={`px-2 py-0.5 rounded font-black text-[9.5px] uppercase ${
+                            apt.status === "Confirmed" 
+                              ? "bg-green-600/10 text-green-400 border border-green-500/20"
+                              : apt.status === "Scheduled"
+                              ? "bg-blue-600/10 text-blue-400 border border-blue-500/20"
+                              : apt.status === "Completed"
+                              ? "bg-purple-600/10 text-purple-400 border border-purple-500/20"
+                              : apt.status === "Cancelled"
+                              ? "bg-red-650 bg-red-600/10 text-red-500 border border-red-500/20"
+                              : "bg-[var(--bg-elevated)] text-[var(--text-subtle)] border border-[var(--border)]"
+                          }`}>
+                            {apt.status}
+                          </span>
+                        </td>
+                        <td className="py-3 text-right">
+                          <div className="inline-flex gap-1.5 shrink-0">
+                            <button
+                              onClick={() => {
+                                setSelectedAppointment(apt);
+                                setReschedDate(apt.date);
+                                setReschedTime(apt.time);
+                                setIsRescheduleOpen(true);
+                              }}
+                              className="bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] text-[var(--text)] font-bold px-2 py-1 rounded text-[9.5px] cursor-pointer"
+                            >
+                              Reschedule
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedAppointment(apt);
+                                setIsCancelOpen(true);
+                              }}
+                              className="bg-[var(--bg-elevated)] hover:bg-red-500/10 hover:text-red-400 text-[var(--text-subtle)] font-bold px-2 py-1 rounded text-[9.5px] cursor-pointer border border-transparent hover:border-red-500/10"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={() => {
+                                setSelectedAppointment(apt);
+                                setFollowUpNotes(`Hi ${apt.customerName}, thanks for booking your slot with us. We would love to check if you have any feedback regarding your session!`);
+                                setIsFollowUpOpen(true);
+                              }}
+                              className="bg-blue-600 hover:bg-blue-550 text-[var(--text)] font-bold px-2 py-1 rounded text-[9.5px] cursor-pointer shadow shadow-blue-500/5 whitespace-nowrap"
+                            >
+                              Follow-Up
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
           </div>
 
@@ -695,20 +641,23 @@ export const AppointmentsTab: React.FC = () => {
             <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-wider text-blue-400">Active Reminder Dispatch Logs</h3>
             
             <div className="space-y-3.5 max-h-72 overflow-y-auto pr-1">
-              {[
-                { type: "WhatsApp Active", client: "Vaibhav SG", time: "Pending in 15 mins", content: "Hi Vaibhav SG, looking forward to seeing you at 10:30 AM." },
-                { type: "Email Dispatched", client: "Sanjay Singhania", time: "Dispatched 2 hrs ago", content: "Secure onboarding token package successfully delivered." },
-                { type: "WhatsApp Dispatched", client: "Priya Patel", time: "Dispatched 1 day ago", content: "Cardio trial workout invitation verified." }
-              ].map((log, lIdx) => (
-                <div key={lIdx} className="p-3 bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-xl space-y-1 text-xs">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[9.5px] px-1 bg-cyan-600/15 text-cyan-400 border border-cyan-500/20 rounded font-black uppercase font-mono">{log.type}</span>
-                    <span className="text-[8.5px] text-[var(--text-subtle)] text-[var(--text-subtle)] font-mono">{log.time}</span>
+              {appointments.length > 0 ? (
+                appointments.slice(0, 5).map((appt, lIdx) => (
+                  <div key={lIdx} className="p-3 bg-[var(--bg-elevated)]/40 border border-[var(--border)] rounded-xl space-y-1 text-xs">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[9.5px] px-1 bg-cyan-600/15 text-cyan-400 border border-cyan-500/20 rounded font-black uppercase font-mono">WhatsApp Active</span>
+                      <span className="text-[8.5px] text-[var(--text-subtle)] font-mono">{appt.time}</span>
+                    </div>
+                    <p className="font-bold text-[var(--text)]">To: {appt.customerName}</p>
+                    <p className="text-[10px] text-[var(--text-muted)] italic font-mono truncate">"Appointment scheduled for {appt.service} on {appt.date}."</p>
                   </div>
-                  <p className="font-bold text-[var(--text)]">To: {log.client}</p>
-                  <p className="text-[10px] text-[var(--text-muted)] italic font-mono truncate">"{log.content}"</p>
+                ))
+              ) : (
+                <div className="p-8 text-center text-xs text-[var(--text-subtle)] font-mono space-y-2">
+                  <Bell className="w-6 h-6 mx-auto opacity-40 text-purple-400" />
+                  <p className="font-bold text-[var(--text-muted)]">No reminder activity yet.</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
 
@@ -740,7 +689,7 @@ export const AppointmentsTab: React.FC = () => {
                 <input
                   type="text"
                   required
-                  placeholder="E.g. Priya Patel"
+                  placeholder="E.g. Customer Name"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                   className="w-full bg-[#050507] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)]"

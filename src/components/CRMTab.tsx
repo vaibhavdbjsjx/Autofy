@@ -55,88 +55,17 @@ interface CRMTabProps {
 export const CRMTab: React.FC<CRMTabProps> = ({
   triggerNotification = (msg) => console.log(msg)
 }) => {
-  const [profiles, setProfiles] = useState<CustomerProfileData[]>([
-    {
-      id: "cp-1",
-      name: "Rahul Sharma",
-      email: "rahul.sharma@gmail.com",
-      phone: "+91 98765 43210",
-      segment: "High Value Customer",
-      lifetime_value: 12500.0,
-      notes: "Loves custom bike configurations, prefers quiet performance sound over loud baffles.",
-      tags: "exhaust, bullet, mechanic-install",
-      purchase_history: [
-        { order_id: "ORD-9382", date: "2026-06-18", amount: 5850.0, items: "AEW Exhaust for Classic 350" },
-        { order_id: "ORD-4211", date: "2026-05-12", amount: 6650.0, items: "Red Rooster Exhaust Core" }
-      ],
-      interaction_history: [
-        { event: "WhatsApp Inquiry", date: "2026-06-18", notes: "Asked about installation hours and warranty on classic exhausts." },
-        { event: "Delivered Order", date: "2026-06-19", notes: "Fitted slip-on at workshop. Rated 5-stars." }
-      ],
-      created_at: "2026-04-12"
-    },
-    {
-      id: "cp-2",
-      name: "John Doe",
-      email: "john.doe@example.com",
-      phone: "+1 (555) 019-2834",
-      segment: "VIP",
-      lifetime_value: 28400.0,
-      notes: "Premium buyer. Willing to pay high custom fees for express air carrier shipping.",
-      tags: "vip, premium, helmets, gloves",
-      purchase_history: [
-        { order_id: "ORD-8441", date: "2026-06-15", amount: 4800.0, items: "Carbon Dual-Ring Riding Gloves x2" },
-        { order_id: "ORD-1109", date: "2026-04-01", amount: 23600.0, items: "Arai Quantum Helmets Series" }
-      ],
-      interaction_history: [
-        { event: "Premium VIP Onboarding", date: "2026-04-01", notes: "Met at exhibition gate. Assigned dedicated technician." },
-        { event: "Custom Sizing Request", date: "2026-06-14", notes: "Wants extra carbon-fiber shield models." }
-      ],
-      created_at: "2026-04-01"
-    },
-    {
-      id: "cp-3",
-      name: "Amit Patel",
-      email: "amit.patel@yahoo.com",
-      phone: "+91 99112 23344",
-      segment: "Returning Customer",
-      lifetime_value: 3600.0,
-      notes: "Commutes daily, looking for durable high-safety certified full face designs.",
-      tags: "commuter, helmets, bangalore",
-      purchase_history: [
-        { order_id: "ORD-7128", date: "2026-06-20", amount: 3600.0, items: "Stealth Knight Full Face Helmet" }
-      ],
-      interaction_history: [
-        { event: "Lead Qualification", date: "2026-06-19", notes: "Exchanged sizing tables on helmet designs." }
-      ],
-      created_at: "2026-06-19"
-    },
-    {
-      id: "cp-4",
-      name: "Neha Sen",
-      email: "neha.sen@outlook.com",
-      phone: "+91 91234 56789",
-      segment: "Standard",
-      lifetime_value: 0.0,
-      notes: "Seeking entry level summer breathable jackets.",
-      tags: "jacket, inquiry",
-      purchase_history: [],
-      interaction_history: [
-        { event: "Web Contact Form", date: "2026-06-20", notes: "Submitted inquiry regarding ladies gear availability."}
-      ],
-      created_at: "2026-06-20"
-    }
-  ]);
+  const [profiles, setProfiles] = useState<CustomerProfileData[]>([]);
 
   const [analytics, setAnalytics] = useState({
-    totalCustomers: 4,
-    overallLTV: 44500.0,
-    avgLTV: 11125.0
+    totalCustomers: 0,
+    overallLTV: 0.0,
+    avgLTV: 0.0
   });
 
   const [search, setSearch] = useState("");
   const [selectedSegment, setSelectedSegment] = useState("All");
-  const [selectedProfileId, setSelectedProfileId] = useState<string>("cp-1");
+  const [selectedProfileId, setSelectedProfileId] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
   // Edit Overlay modals states
@@ -176,9 +105,9 @@ export const CRMTab: React.FC<CRMTabProps> = ({
     try {
       const data = await api.get<any>("/api/v1/crm/analytics");
       setAnalytics({
-        totalCustomers: data.total_customers || 4,
-        overallLTV: data.overall_ltv || 44500.0,
-        avgLTV: data.avg_ltv || 11125.0
+        totalCustomers: data.total_customers || 0,
+        overallLTV: data.overall_ltv || 0.0,
+        avgLTV: data.avg_ltv || 0.0
       });
     } catch (err) {
       console.log("CRM analytics fallback:", err);
