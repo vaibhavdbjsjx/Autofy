@@ -11,85 +11,8 @@ import json
 router = APIRouter(prefix="/crm", tags=["CRM System"])
 
 def ensure_crm_seeds(db: Session, business_id: str):
-    profile_count = db.query(CustomerProfile).filter(CustomerProfile.business_id == business_id).count()
-    if profile_count == 0:
-        # Load leads if any exist, to link
-        lead_list = db.query(Lead).filter(Lead.business_id == business_id).all()
-        l_id_1 = lead_list[0].id if len(lead_list) > 0 else None
-        l_id_2 = lead_list[1].id if len(lead_list) > 1 else None
-
-        seed_profiles = [
-            CustomerProfile(
-                business_id=business_id,
-                lead_id=l_id_1,
-                name="Rahul Sharma",
-                email="rahul.sharma@gmail.com",
-                phone="+91 98765 43210",
-                segment="High Value Customer",
-                lifetime_value=12500.0,
-                purchase_history_json=json.dumps([
-                    {"order_id": "ORD-9382", "date": "2026-06-18", "amount": 5850.0, "items": "AEW Exhaust for Classic 350"},
-                    {"order_id": "ORD-4211", "date": "2026-05-12", "amount": 6650.0, "items": "Red Rooster Exhaust Core"}
-                ]),
-                interaction_history_json=json.dumps([
-                    {"event": "WhatsApp Inquiry", "date": "2026-06-18", "notes": "Asked about installation hours and warranty on classic exhausts."},
-                    {"event": "Delivered Order", "date": "2026-06-19", "notes": "Fitted slip-on at workshop. Rated 5-stars."}
-                ]),
-                notes="Loves custom bike configurations, prefers quiet performance sound over loud baffles.",
-                tags="exhaust, bullet, mechanic-install"
-            ),
-            CustomerProfile(
-                business_id=business_id,
-                lead_id=l_id_2,
-                name="John Doe",
-                email="john.doe@example.com",
-                phone="+1 (555) 019-2834",
-                segment="VIP",
-                lifetime_value=28400.0,
-                purchase_history_json=json.dumps([
-                    {"order_id": "ORD-8441", "date": "2026-06-15", "amount": 4800.0, "items": "Carbon Dual-Ring Riding Gloves x2"},
-                    {"order_id": "ORD-1109", "date": "2026-04-01", "amount": 23600.0, "items": "Arai Quantum Helmets Series"}
-                ]),
-                interaction_history_json=json.dumps([
-                    {"event": "Premium VIP Onboarding", "date": "2026-04-01", "notes": "Met at exhibition gate. Assigned dedicated technician."},
-                    {"event": "Custom Sizing Request", "date": "2026-06-14", "notes": "Wants extra carbon-fiber shield models."}
-                ]),
-                notes="Premium buyer. Willing to pay high custom fees for express air carrier shipping.",
-                tags="vip, premium, helmets, gloves"
-            ),
-            CustomerProfile(
-                business_id=business_id,
-                name="Amit Patel",
-                email="amit.patel@yahoo.com",
-                phone="+91 99112 23344",
-                segment="Returning Customer",
-                lifetime_value=3600.0,
-                purchase_history_json=json.dumps([
-                    {"order_id": "ORD-7128", "date": "2026-06-20", "amount": 3600.0, "items": "Stealth Knight Full Face Helmet"}
-                ]),
-                interaction_history_json=json.dumps([
-                    {"event": "Lead Qualification", "date": "2026-06-19", "notes": "Exchanged sizing tables on helmet designs."}
-                ]),
-                notes="Commutes daily, looking for durable high-safety certified full face designs.",
-                tags="commuter, helmets, bangalore"
-            ),
-            CustomerProfile(
-                business_id=business_id,
-                name="Neha Sen",
-                email="neha.sen@outlook.com",
-                phone="+91 91234 56789",
-                segment="Standard",
-                lifetime_value=0.0,
-                purchase_history_json=json.dumps([]),
-                interaction_history_json=json.dumps([
-                    {"event": "Web Contact Form", "date": "2026-06-20", "notes": "Submitted inquiry regarding ladies gear availability."}
-                ]),
-                notes="Seeking entry level summer breathable jackets.",
-                tags="jacket, inquiry"
-            )
-        ]
-        db.add_all(seed_profiles)
-        db.commit()
+    # Empty seed handler — production accounts initialize clean without fake profiles
+    pass
 
 @router.get("/profiles", response_model=Dict[str, Any])
 def get_crm_profiles(

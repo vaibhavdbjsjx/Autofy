@@ -100,3 +100,20 @@ async def send_custom_whatsapp(
         }
     except Exception as err:
         raise HTTPException(status_code=400, detail=str(err))
+
+@router.post("/connect", status_code=status.HTTP_200_OK)
+def connect_whatsapp_phone_id(
+    phone_number_id: str = Query(..., description="Meta WhatsApp Phone Number ID"),
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Associates the Meta WhatsApp phone_number_id with the authenticated user's business tenant.
+    """
+    from models.business import Business
+    biz = db.query(Business).filter(Business.id == current_user.business_id).first()
+    if not biz:
+        raise HTTPException(status_code=404, detail="Business not found")
+    biz.whatsapp_phone_id = phone_number_id.strip()
+    db.commit()
+    return {"status": "connected", "business_id": biz.id, "whatsapp_phone_id": biz.whatsapp_phone_id}

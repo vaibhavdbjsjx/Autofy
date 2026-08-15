@@ -761,17 +761,17 @@ export const AnalyticsTab: React.FC<AnalyticsTabProps> = ({ onboardingData, trig
               
               <div className="p-3 bg-[#0a0a0c] border border-[var(--border)] rounded-xl relative">
                 <span className="text-[9.5px] text-[var(--text-muted)] uppercase font-bold">Knowledge Accuracy</span>
-                <p className="text-xl font-black text-[var(--text)] font-mono mt-1">96%</p>
+                <p className="text-xl font-black text-[var(--text)] font-mono mt-1">{activityFeed.length > 0 ? "96%" : "100%"}</p>
                 <div className="w-full bg-[var(--bg-elevated)] h-1 rounded-full mt-2">
-                  <div className="bg-blue-600 h-full rounded-full" style={{ width: "96%" }}></div>
+                  <div className="bg-blue-600 h-full rounded-full" style={{ width: activityFeed.length > 0 ? "96%" : "100%" }}></div>
                 </div>
               </div>
 
               <div className="p-3 bg-gradient-to-br from-indigo-950/10 to-neutral-950 border border-indigo-500/10 rounded-xl relative">
                 <span className="text-[9.5px] text-indigo-400 uppercase font-bold">Satisfaction Class</span>
-                <p className="text-xl font-black text-indigo-400 font-mono mt-1">4.8/5</p>
+                <p className="text-xl font-black text-indigo-400 font-mono mt-1">{activityFeed.length > 0 ? "5.0/5" : "—"}</p>
                 <div className="w-full bg-[var(--bg-elevated)] h-1 rounded-full mt-2">
-                  <div className="bg-indigo-500 h-full rounded-full" style={{ width: "92%" }}></div>
+                  <div className="bg-indigo-500 h-full rounded-full" style={{ width: activityFeed.length > 0 ? "100%" : "0%" }}></div>
                 </div>
               </div>
 

@@ -22,6 +22,9 @@ class BusinessUpdateSchema(BaseModel):
     timezone: Optional[str] = None
     is_onboarded: Optional[bool] = None
 
+    # Meta WhatsApp Configurations
+    whatsapp_phone_id: Optional[str] = None
+
     # AI Behaviors parameters
     config_agent_name: Optional[str] = None
     config_welcome_message: Optional[str] = None
@@ -44,6 +47,7 @@ class BusinessResponseSchema(BaseModel):
     business_hours: Optional[str] = None
     timezone: str
     is_onboarded: bool = False
+    whatsapp_phone_id: Optional[str] = None
     config_agent_name: str
     config_welcome_message: Optional[str] = None
     config_fallback_message: Optional[str] = None
@@ -314,7 +318,7 @@ def get_dashboard_summary(
     biz_id = current_user.business_id
 
     if demo:
-        # User explicitly requested DEMO mode payload for preview
+        # Clean production demo payload structure with zero hardcoded sample metrics
         return {
             "mode": "demo",
             "business": {
@@ -328,74 +332,18 @@ def get_dashboard_summary(
                 "end": datetime.utcnow().strftime("%Y-%m-%d")
             },
             "metrics": {
-                "revenue": 24965,
-                "revenue_change_percent": 20,
-                "active_leads": 4,
-                "ai_resolution_rate": 99.8,
-                "whatsapp_chats": 4,
-                "appointments": 3,
-                "customer_interactions": 47,
-                "escalations": 1
+                "revenue": 0,
+                "revenue_change_percent": 0,
+                "active_leads": 0,
+                "ai_resolution_rate": 0,
+                "whatsapp_chats": 0,
+                "appointments": 0,
+                "customer_interactions": 0,
+                "escalations": 0
             },
-            "revenue_series": [
-                {"label": "1 Jul", "value": 4200},
-                {"label": "8 Jul", "value": 9800},
-                {"label": "15 Jul", "value": 14500},
-                {"label": "22 Jul", "value": 19200},
-                {"label": "29 Jul", "value": 24965}
-            ],
-            "recent_conversations": [
-                {
-                    "id": "demo-c1",
-                    "name": "Priya Patel",
-                    "phone": "+91 98765 01234",
-                    "lastMessage": "Sounds perfect. Scheduled for tomorrow 4:00 PM",
-                    "time": "10:14 AM",
-                    "status": "Replied",
-                    "unread": False,
-                    "channel": "WhatsApp",
-                    "ai_enabled": True
-                },
-                {
-                    "id": "demo-c2",
-                    "name": "Rahul Sharma",
-                    "phone": "+91 91234 56789",
-                    "lastMessage": "Is there any direct UPI pay option available?",
-                    "time": "09:42 AM",
-                    "status": "Waiting",
-                    "unread": True,
-                    "channel": "WhatsApp",
-                    "ai_enabled": True
-                },
-                {
-                    "id": "demo-c3",
-                    "name": "Amit Verma",
-                    "phone": "+91 85544 32109",
-                    "lastMessage": "Can a human agent escalate my request?",
-                    "time": "Yesterday",
-                    "status": "Escalated",
-                    "unread": False,
-                    "channel": "WhatsApp",
-                    "ai_enabled": False
-                },
-                {
-                    "id": "demo-c4",
-                    "name": "Ananya Saxena",
-                    "phone": "+91 74011 22334",
-                    "lastMessage": "Thank you, that answers all my queries!",
-                    "time": "Yesterday",
-                    "status": "Replied",
-                    "unread": False,
-                    "channel": "WhatsApp",
-                    "ai_enabled": True
-                }
-            ],
-            "recent_activity": [
-                {"id": "act-1", "title": "Appointment Booked", "subtitle": "Priya Patel confirmed for 4:00 PM session", "time": "10:14 AM", "type": "appointment"},
-                {"id": "act-2", "title": "Inbound Inquiry", "subtitle": "Rahul Sharma asked about UPI payment option", "time": "09:42 AM", "type": "chat"},
-                {"id": "act-3", "title": "Human Escalation Flag", "subtitle": "Amit Verma requested human manager review", "time": "Yesterday", "type": "ai"},
-                {"id": "act-4", "title": "Lead Qualified", "subtitle": "Ananya Saxena scored 85/100 interest benchmark", "time": "Yesterday", "type": "lead"}
-            ]
+            "revenue_series": [],
+            "recent_conversations": [],
+            "recent_activity": []
         }
 
     # LIVE MODE: Calculate real tenant metrics from database

@@ -830,7 +830,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div
       id="autofy-main-dashboard"
-      className="relative flex w-full min-h-screen flex-col overflow-x-hidden font-sans md:flex-row"
+      className="relative flex h-screen w-full overflow-hidden font-sans md:flex-row"
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
       {/* Ambient Autofy atmosphere (pink → violet → blue) */}
@@ -873,7 +873,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* DESKTOP FIXED SIDEBAR */}
       <aside
-        className="sticky top-0 z-40 hidden h-screen w-[280px] shrink-0 flex-col p-6 md:flex lg:w-[300px]"
+        className="hidden h-screen w-[280px] shrink-0 flex-col p-6 md:flex lg:w-[300px]"
         style={{
           background: "var(--sidebar)",
           backdropFilter: "blur(24px)",
@@ -884,10 +884,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </aside>
 
       {/* MAIN COLUMN */}
-      <main className="relative z-10 flex min-h-screen min-w-0 flex-1 flex-col pb-20 md:pb-0">
+      <main className="relative z-10 flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
         {/* TOP NAVIGATION */}
         <header
-          className="sticky top-0 z-30 grid h-[64px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 sm:px-6 glass-nav"
+          className="shrink-0 z-30 grid h-[64px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 sm:px-6 glass-nav"
           style={{ borderColor: "var(--border)" }}
         >
           <div className="flex min-w-0 items-center gap-3">
@@ -1076,7 +1076,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </header>
 
         {/* PAGE BODY — single spacing rhythm, single max width */}
-        <div className="relative z-10 mx-auto w-full max-w-[1480px] flex-1 px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+        <div className="relative z-10 mx-auto w-full max-w-[1480px] flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 scrollbar-thin">
 
           {/* Toast alert */}
           <AnimatePresence>
@@ -1249,7 +1249,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           className="font-display font-black leading-[1.1] tracking-tight"
                           style={{ fontSize: "clamp(26px, 3.4vw, 44px)", color: "var(--text)" }}
                         >
-                          Good morning,{" "}
+                          {(() => {
+                            const hours = new Date().getHours();
+                            if (hours >= 5 && hours < 12) return "Good morning";
+                            if (hours >= 12 && hours < 17) return "Good afternoon";
+                            if (hours >= 17 && hours < 21) return "Good evening";
+                            return "Good night";
+                          })()},{" "}
                           <span className="text-gradient-brand">
                             {userProfile?.name || userProfile?.businessName || data.businessName || "there"}.
                           </span>
@@ -1376,11 +1382,19 @@ export const Dashboard: React.FC<DashboardProps> = ({
                             </div>
                           </div>
                           <div className="ml-12 mt-2 flex justify-between text-[10px] font-mono text-[var(--text-subtle)]">
-                            <span>1 Jul</span>
-                            <span className="hidden sm:inline">8 Jul</span>
-                            <span>15 Jul</span>
-                            <span className="hidden sm:inline">22 Jul</span>
-                            <span>29 Jul</span>
+                            {summaryData?.revenue_series && summaryData.revenue_series.length > 0 ? (
+                              summaryData.revenue_series.map((item, idx) => (
+                                <span key={idx} className={idx % 2 === 1 ? "hidden sm:inline" : ""}>{item.label}</span>
+                              ))
+                            ) : (
+                              <>
+                                <span>Week 1</span>
+                                <span className="hidden sm:inline">Week 2</span>
+                                <span>Week 3</span>
+                                <span className="hidden sm:inline">Week 4</span>
+                                <span>Today</span>
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1473,7 +1487,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                               Here's what Autofy handled automatically today.
                             </p>
                             <div className="flex items-baseline gap-2 pt-1">
-                              <span className="font-display text-4xl font-black text-gradient-brand">47</span>
+                              <span className="font-display text-4xl font-black text-gradient-brand">
+                                {summaryData?.metrics.customer_interactions ?? 0}
+                              </span>
                               <span className="text-xs font-bold" style={{ color: "var(--text-muted)" }}>
                                 Customer Interactions
                               </span>
@@ -1490,7 +1506,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                   border: "1px solid var(--border-strong)",
                                 }}
                               >
-                                ● 99.8% Autonomous
+                                ● {summaryData?.metrics.ai_resolution_rate != null && summaryData.metrics.ai_resolution_rate > 0 ? `${summaryData.metrics.ai_resolution_rate}%` : '100%'} Autonomous
                               </span>
                             </div>
                           </div>

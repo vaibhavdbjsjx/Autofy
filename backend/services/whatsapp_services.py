@@ -11,8 +11,17 @@ logger = logging.getLogger("autofy_whatsapp_services")
 
 class WhatsAppService:
     @staticmethod
+    def get_token() -> str:
+        from config import settings
+        return (
+            os.environ.get("WHATSAPP_TOKEN")
+            or os.environ.get("WHATSAPP_ACCESS_TOKEN")
+            or getattr(settings, "WHATSAPP_TOKEN", "")
+        )
+
+    @staticmethod
     def get_headers() -> Dict[str, str]:
-        token = os.environ.get("WHATSAPP_ACCESS_TOKEN", "MOCK_WHATSAPP_TOKEN")
+        token = WhatsAppService.get_token()
         return {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
@@ -20,17 +29,21 @@ class WhatsAppService:
 
     @staticmethod
     async def send_whatsapp_message(
-        phone_number_id: str,
+        phone_number_id: Optional[str],
         to_phone: str,
         message_body: str,
         media_url: Optional[str] = None,
         media_type: Optional[str] = None # 'image', 'document', 'audio', 'video'
     ) -> Dict[str, Any]:
         """
-        Transmits outgoing messages to the WhatsApp Business graph endpoints.
+        Transmits outgoing messages to the WhatsApp Business Graph API endpoints.
         """
-        # If running in mock mode or values are default
-        if "MOCK" in phone_number_id or not os.environ.get("WHATSAPP_ACCESS_TOKEN"):
+        from config import settings
+        token = WhatsAppService.get_token()
+        pid = phone_number_id or getattr(settings, "WHATSAPP_PHONE_ID", "1256189660910549")
+
+        # If token is missing, log message and return dev fallback
+        if not token or "MOCK" in pid:
             logger.info(f"[WHATSAPP MOCK] Outgoing message to {to_phone}: {message_body} (Media: {media_url})")
             import uuid
             return {
@@ -40,7 +53,7 @@ class WhatsAppService:
                 "status": "sent"
             }
 
-        url = f"https://graph.facebook.com/v19.0/{phone_number_id}/messages"
+        url = f"https://graph.facebook.com/v19.0/{pid}/messages"
         headers = WhatsAppService.get_headers()
 
         payload: Dict[str, Any] = {
@@ -70,11 +83,14 @@ class WhatsAppService:
         async with httpx.AsyncClient() as client:
             try:
                 response = await client.post(url, headers=headers, json=payload, timeout=12.0)
-                response.raise_for_status()
+                if response.status_code not in (200, 201):
+                    error_details = response.text
+                    logger.error(f"WhatsApp Cloud API returned error status {response.status_code}: {error_details}")
+                    raise Exception(f"WhatsApp Cloud API error (HTTP {response.status_code}): {error_details}")
                 return response.json()
-            except Exception as err:
-                logger.error(f"WhatsApp Cloud API post failed: {err}")
-                raise Exception(f"WhatsApp message delivery failed: {err}")
+            except httpx.HTTPError as err:
+                logger.error(f"WhatsApp Cloud API HTTP transport failure: {err}")
+                raise Exception(f"WhatsApp API delivery transport failure: {err}")
 
     @staticmethod
     def handle_webhook_verification(hub_mode: Optional[str], hub_token: Optional[str], hub_challenge: Optional[str]) -> str:
@@ -111,20 +127,59 @@ class WhatsAppService:
 
         # Dynamic Tenant Resolution via phone_number_id metadata
         phone_metadata = value.get("metadata", {})
-        phone_number_id = phone_metadata.get("phone_number_id")
+        phone_number_id = str(phone_metadata.get("phone_number_id") or "").strip()
+        logger.info(f"[WHATSAPP WEBHOOK] Received incoming webhook payload with phone_number_id='{phone_number_id}'")
 
         from models.business import Business
         from config import settings
 
         target_business = None
+
+        # 1. Exact match in database by whatsapp_phone_id
         if phone_number_id:
             target_business = db.query(Business).filter(Business.whatsapp_phone_id == phone_number_id).first()
+            if target_business:
+                logger.info(f"[WHATSAPP WEBHOOK] Database lookup result: Matched by exact whatsapp_phone_id='{phone_number_id}' -> Business ID '{target_business.id}' ({target_business.name})")
+
+        # 2. Query param override (e.g. /api/v1/whatsapp/webhook?business_id=xxx)
         if not target_business and business_id_param:
             target_business = db.query(Business).filter(Business.id == business_id_param).first()
+            if target_business:
+                logger.info(f"[WHATSAPP WEBHOOK] Database lookup result: Matched by query param business_id='{business_id_param}' -> Business ID '{target_business.id}' ({target_business.name})")
+                if phone_number_id and not target_business.whatsapp_phone_id:
+                    target_business.whatsapp_phone_id = phone_number_id
+                    db.commit()
+
+        # 3. Match against server settings.WHATSAPP_PHONE_ID / env
+        env_phone_id = str(getattr(settings, "WHATSAPP_PHONE_ID", "") or os.environ.get("WHATSAPP_PHONE_ID") or "").strip()
+        if not target_business and env_phone_id:
+            target_business = db.query(Business).filter(Business.whatsapp_phone_id == env_phone_id).first()
+            if target_business:
+                logger.info(f"[WHATSAPP WEBHOOK] Database lookup result: Matched by env WHATSAPP_PHONE_ID='{env_phone_id}' -> Business ID '{target_business.id}' ({target_business.name})")
+                if phone_number_id and target_business.whatsapp_phone_id != phone_number_id:
+                    target_business.whatsapp_phone_id = phone_number_id
+                    db.commit()
+
+        # 4. Fallback: Auto-bind to primary/owner or first business with unassigned whatsapp_phone_id
+        if not target_business:
+            owner_biz = db.query(Business).filter(Business.email.in_(["vaibhav.sg18@gmail.com"])).first()
+            if owner_biz:
+                target_business = owner_biz
+                logger.info(f"[WHATSAPP WEBHOOK] Database lookup result: Auto-binding to owner workspace '{owner_biz.name}' (ID: {owner_biz.id})")
+            else:
+                target_business = db.query(Business).order_by(Business.created_at.asc()).first()
+                if target_business:
+                    logger.info(f"[WHATSAPP WEBHOOK] Database lookup result: Auto-binding to default workspace '{target_business.name}' (ID: {target_business.id})")
+
+            if target_business and phone_number_id:
+                target_business.whatsapp_phone_id = phone_number_id
+                db.commit()
 
         if not target_business:
-            logger.warning(f"Unmapped WhatsApp webhook received for phone_number_id={phone_number_id or 'missing'}. No tenant assigned.")
+            logger.warning(f"[WHATSAPP WEBHOOK] Unmapped WhatsApp webhook received for phone_number_id='{phone_number_id}'. Database lookup result: No business found in database.")
             return {"status": "unmapped_tenant", "detail": "No registered business matches this WhatsApp phone_number_id"}
+
+        logger.info(f"[WHATSAPP WEBHOOK] Matched tenant ID: '{target_business.id}' (Business Name: '{target_business.name}', Phone Number ID: '{target_business.whatsapp_phone_id}')")
 
         business_id = target_business.id
         

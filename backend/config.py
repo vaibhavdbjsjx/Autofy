@@ -37,7 +37,8 @@ class Settings(BaseSettings):
 
     # Meta WhatsApp Cloud API Configurations
     WHATSAPP_TOKEN: str = ""
-    WHATSAPP_PHONE_ID: str = ""
+    WHATSAPP_PHONE_ID: str = "1256189660910549"
+    WHATSAPP_BUSINESS_ACCOUNT_ID: str = "1756724672123841"
     WHATSAPP_VERIFY_TOKEN: str = "autofy_webhook_verification_token_2026"
     META_APP_SECRET: str = ""
 
@@ -51,9 +52,13 @@ class Settings(BaseSettings):
     RAZORPAY_KEY_SECRET: str = ""
     RAZORPAY_WEBHOOK_SECRET: str = ""
 
-    # Razorpay Recurring Plan IDs (Autofy Pro Monthly & Yearly)
+    # Razorpay Recurring Plan IDs (Autofy Pro Monthly & Yearly - INR)
     RAZORPAY_MONTHLY_PLAN_ID: str = ""
     RAZORPAY_YEARLY_PLAN_ID: str = ""
+
+    # Future USD Razorpay Plan IDs (International Cards / Apple Pay)
+    RAZORPAY_USD_MONTHLY_PLAN_ID: str = ""
+    RAZORPAY_USD_YEARLY_PLAN_ID: str = ""
 
     # SMTP Settings for Email Notifications
     # For Gmail: go to Google Account > Security > 2-Step Verification > App Passwords

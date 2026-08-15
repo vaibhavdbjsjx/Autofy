@@ -29,7 +29,10 @@ def _create_oauth_state(db: Session) -> str:
     state = secrets.token_urlsafe(32)
     now = datetime.utcnow()
     expires_at = now + timedelta(seconds=OAUTH_STATE_TTL_SECONDS)
-    db.query(OAuthState).filter(OAuthState.expires_at <= now).delete(synchronize_session=False)
+    try:
+        db.query(OAuthState).filter(OAuthState.expires_at <= now).delete(synchronize_session=False)
+    except Exception:
+        db.rollback()
     db.add(OAuthState(state=state, provider="google", expires_at=expires_at))
     db.commit()
     return state
@@ -174,6 +177,28 @@ def google_authorize(db: Session = Depends(get_db)):
         )
     state = _create_oauth_state(db)
     redirect_url = GoogleOAuthService.get_authorization_url(state=state)
+    return {"authorization_url": redirect_url}
+
+@router.get("/apple/authorize")
+def apple_authorize(db: Session = Depends(get_db)):
+    """
+    Exposes the Sign in with Apple OAuth2 OpenID Connect permission redirect URI.
+    """
+    if not getattr(settings, "APPLE_CLIENT_ID", "") or not getattr(settings, "APPLE_TEAM_ID", ""):
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Sign in with Apple isn't configured yet. APPLE_CLIENT_ID and APPLE_TEAM_ID are required in .env.",
+        )
+    state = _create_oauth_state(db)
+    params = {
+        "client_id": settings.APPLE_CLIENT_ID,
+        "redirect_uri": getattr(settings, "APPLE_REDIRECT_URI", "https://autofysaas.com/api/v1/auth/apple/callback"),
+        "response_type": "code id_token",
+        "response_mode": "form_post",
+        "scope": "name email",
+        "state": state
+    }
+    redirect_url = f"https://appleid.apple.com/auth/authorize?{urlencode(params)}"
     return {"authorization_url": redirect_url}
 
 def _frontend_redirect(path: str, params: dict) -> RedirectResponse:

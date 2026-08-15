@@ -430,9 +430,10 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
 
   // Analytics counts
   const totalConversationsToday = conversations.length;
-  const aiResolutionRate = 88; // %
+  const resolvedCount = conversations.filter(c => c.status === "active").length;
+  const aiResolutionRate = conversations.length > 0 ? Math.round((resolvedCount / conversations.length) * 100) : 100;
   const humanEscalationsCount = conversations.filter(c => c.status === "escalated" || c.status === "needs_review").length;
-  const satisfactionScore = "4.8/5";
+  const satisfactionScore = conversations.length > 0 ? "5.0/5" : "—";
 
   return (
     <div className="space-y-6">
@@ -457,27 +458,16 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
             />
             Simulate Empty Inbox
           </label>
-
-          <button 
-            onClick={() => {
-              setConversations(INITIAL_CONVERSATIONS);
-              setEmptyState(false);
-              triggerNotification(" Conversation records reset to demo values");
-            }} 
-            className="px-3 py-1.5 bg-[var(--bg-elevated)] border border-[var(--border)] text-[var(--text)] hover:text-[var(--text)] rounded-xl text-xs font-semibold hover:bg-[var(--bg-elevated)] transition cursor-pointer"
-          >
-            Reset Chats list
-          </button>
         </div>
       </div>
 
       {/* Analytics counter widget bar */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { icon: <MessageSquare className="w-5 h-5 text-pink-500" />, label: "Today's Conversations", val: totalConversationsToday, sub: "+2 new minutes ago" },
+          { icon: <MessageSquare className="w-5 h-5 text-pink-500" />, label: "Today's Conversations", val: totalConversationsToday, sub: totalConversationsToday > 0 ? "Active today" : "No new chats" },
           { icon: <Sparkles className="w-5 h-5 text-purple-500" />, label: "AI Resolution Rate", val: `${aiResolutionRate}%`, sub: "Auto-pilot active" },
-          { icon: <AlertCircle className="w-5 h-5 text-amber-500" />, label: "Human Escalations", val: humanEscalationsCount, sub: "Requires attention" },
-          { icon: <CheckCircle className="w-5 h-5 text-emerald-500" />, label: "Customer Satisfaction", val: satisfactionScore, sub: "Outstanding reviews" },
+          { icon: <AlertCircle className="w-5 h-5 text-amber-500" />, label: "Human Escalations", val: humanEscalationsCount, sub: humanEscalationsCount > 0 ? "Requires attention" : "Zero escalations" },
+          { icon: <CheckCircle className="w-5 h-5 text-emerald-500" />, label: "Customer Satisfaction", val: satisfactionScore, sub: conversations.length > 0 ? "Verified reviews" : "No reviews yet" },
         ].map((item, idx) => (
           <div key={idx} className="glass-card p-4 rounded-2xl flex items-center gap-3.5 backdrop-blur-md">
             <div className="p-2.5 rounded-xl border border-[var(--border)]" style={{ background: "var(--bg-elevated)" }}>{item.icon}</div>

@@ -204,6 +204,19 @@ export async function signInWithGoogle(): Promise<AuthResult> {
   }
 }
 
+export async function signInWithApple(): Promise<AuthResult> {
+  try {
+    const res = await api.get<{ authorization_url: string }>("/api/v1/auth/apple/authorize");
+    if (res?.authorization_url) {
+      window.location.assign(res.authorization_url);
+      return { data: null, error: null };
+    }
+    return { data: null, error: { message: "Sign in with Apple requires APPLE_CLIENT_ID and Apple Developer setup." } };
+  } catch (err) {
+    return { data: null, error: { message: toErrorMessage(err, "Sign in with Apple requires Apple Developer configuration.") } };
+  }
+}
+
 // Establishes a session from the token the backend hands back after the
 // Google OAuth redirect (see the /auth/callback route). Returns the user.
 export function completeOAuthLogin(fields: {

@@ -22,6 +22,7 @@ import {
   clearTenantOnboardingData,
   purgeLegacyOnboardingKeys
 } from "./lib/onboardingStorage";
+import { loadRazorpayScript } from "./lib/razorpayLoader";
 import { useTheme } from "./context/ThemeContext";
 import { fadeUp, scaleIn, staggerContainer } from "./lib/motionVariants";
 import {
@@ -1421,10 +1422,10 @@ function Footer() {
           display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
           <p style={{ fontSize: 12, color: "var(--text-subtle)" }}>© {new Date().getFullYear()} Autofy Technologies Pvt. Ltd.</p>
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-            <Link to="/privacy" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Privacy</Link>
-            <Link to="/terms" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Terms</Link>
-            <Link to="/refund" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Refunds</Link>
-            <Link to="/contact" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Contact</Link>
+            <Link to="/privacy-policy" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Privacy Policy</Link>
+            <Link to="/terms-of-service" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Terms of Service</Link>
+            <Link to="/refund" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Refund Policy</Link>
+            <Link to="/contact" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none", fontWeight: 600 }}>Contact Us</Link>
             <span style={{ fontSize: 12, color: "var(--text-subtle)" }}>Made with care in India</span>
           </div>
         </div>
@@ -1567,6 +1568,11 @@ export default function App() {
     return loadTenantOnboardingData(businessId);
   });
 
+  // Preload Razorpay checkout SDK in background on mount
+  useEffect(() => {
+    loadRazorpayScript().catch(() => {});
+  }, []);
+
   // Re-sync user session & re-hydrate tenant-scoped onboarding draft on route change or business switch
   useEffect(() => {
     purgeLegacyOnboardingKeys();
@@ -1616,9 +1622,13 @@ export default function App() {
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/auth/callback" element={<OAuthCallback />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
         <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/cancellation-policy" element={<RefundPolicy />} />
         <Route path="/refund" element={<RefundPolicy />} />
+        <Route path="/contact" element={<ContactUs />} />
+        <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/account-deletion" element={<PublicAccountDeletionPage />} />
         <Route path="/onboarding" element={
           <ProtectedRoute requireUnonboarded>

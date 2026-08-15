@@ -11,78 +11,8 @@ from datetime import datetime, timedelta
 router = APIRouter(prefix="/tickets", tags=["Support Tickets"])
 
 def ensure_ticket_seeds(db: Session, business_id: str):
-    ticket_count = db.query(SupportTicket).filter(SupportTicket.business_id == business_id).count()
-    if ticket_count == 0:
-        # Load any existing team members to assign, fallback to None
-        team = db.query(TeamMember).filter(TeamMember.business_id == business_id).all()
-        t1 = team[0].id if len(team) > 0 else None
-        t2 = team[1].id if len(team) > 1 else None
-        
-        tick1 = SupportTicket(
-            business_id=business_id,
-            customer_name="Rahul Sharma",
-            customer_email="rahul.sharma@gmail.com",
-            customer_phone="+91 98765 43210",
-            title="Slight fitting rattle noise on Royal Enfield AEW",
-            description="Since getting my custom AEW single exhaust fitted yesterday, I hear a high-vibration metallic tin rattle around 3000 RPM. Can a slot be booked for retightening?",
-            status="Open",
-            priority="High",
-            assigned_agent_id=t1,
-            sla_deadline=datetime.utcnow() + timedelta(hours=24),
-            sla_status="Within Limit"
-        )
-        
-        tick2 = SupportTicket(
-            business_id=business_id,
-            customer_name="John Doe",
-            customer_email="john.doe@example.com",
-            customer_phone="+1 (555) 019-2834",
-            title="Premium gloves carbon seam cracking",
-            description="I bought Carbon Dual-Ring Riding Gloves. On the outer left knuckle shield padding, the double seams are stretching out under slight pressure. Please arrange standard size exchange.",
-            status="Pending",
-            priority="Medium",
-            assigned_agent_id=t2,
-            sla_deadline=datetime.utcnow() + timedelta(hours=48),
-            sla_status="Within Limit"
-        )
-        
-        tick3 = SupportTicket(
-            business_id=business_id,
-            customer_name="Gurpreet Singh",
-            customer_email="gurpreet.customs@gmail.com",
-            title="Damaged shipping package container",
-            description="The core box delivered via Delhivery was heavily smashed on the top corners. Thankfully the internal exhaust core was heavily bubblewrapped and sustained no scratches.",
-            status="Resolved",
-            priority="Low",
-            assigned_agent_id=t1,
-            sla_deadline=datetime.utcnow() - timedelta(hours=6),
-            sla_status="Met"
-        )
-        
-        db.add_all([tick1, tick2, tick3])
-        db.commit()
-        
-        # Add seed history
-        h1 = TicketHistory(
-            ticket_id=tick1.id,
-            changed_by="Rahul Sharma",
-            action="Created",
-            notes="Ticket logged via automated customer portal inquiry."
-        )
-        h2 = TicketHistory(
-            ticket_id=tick1.id,
-            changed_by="System",
-            action="Reassigned",
-            notes="Assignee auto-routed to primary workshop coordinator."
-        )
-        h3 = TicketHistory(
-            ticket_id=tick2.id,
-            changed_by="Tech Desk",
-            action="Status Changed",
-            notes="Marked Pending. Awaiting photograph proofs from the customer on WhatsApp thread."
-        )
-        db.add_all([h1, h2, h3])
-        db.commit()
+    # Empty seed handler — production accounts initialize clean without fake tickets
+    pass
 
 @router.get("", response_model=Dict[str, Any])
 def get_tickets(

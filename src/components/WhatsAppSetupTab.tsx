@@ -31,6 +31,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { validatePhone } from "../lib/phoneValidation";
+import { CountryPhoneInput } from "./CountryPhoneInput";
 
 interface WebhookLog {
   id: string;
@@ -41,7 +42,7 @@ interface WebhookLog {
 }
 
 // ─── InfoPopover Component ───────────────────────────────────────
-const InfoPopover: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => {
+const InfoPopover: React.FC<{ title: string; children: React.ReactNode; align?: "left" | "right" }> = ({ title, children, align = "left" }) => {
   const [isOpen, setIsOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -70,10 +71,12 @@ const InfoPopover: React.FC<{ title: string; children: React.ReactNode }> = ({ t
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.97 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 left-0 top-full mt-1.5 w-72 bg-[var(--bg-card)] border border-blue-500/20 rounded-xl p-3.5 shadow-xl shadow-black/20 backdrop-blur-md"
+            className={`absolute z-50 top-full mt-1.5 w-[280px] max-w-[calc(100vw-3rem)] bg-[var(--bg-card)] border border-blue-500/20 rounded-xl p-3.5 shadow-xl shadow-black/20 backdrop-blur-md break-words ${
+              align === "right" ? "right-0 left-auto" : "left-0 right-auto md:left-0 md:right-auto"
+            }`}
           >
             <p className="text-[10px] font-black text-blue-400 uppercase tracking-wider mb-1">{title}</p>
-            <div className="text-[11px] text-[var(--text-muted)] leading-relaxed font-medium space-y-1">
+            <div className="text-[11px] text-[var(--text-muted)] leading-relaxed font-medium space-y-1 break-words min-w-0">
               {children}
             </div>
           </motion.div>
@@ -468,13 +471,13 @@ export const WhatsAppSetupTab: React.FC = () => {
       </div>
 
       {/* WHATSAPP CONTAINER GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 w-full min-w-0">
         
         {/* Left Column: Connections Setup Form (Holds 2 spans) */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-6 w-full min-w-0">
           
           {/* META ACCESS CARD */}
-          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 backdrop-blur-md space-y-5">
+          <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 backdrop-blur-md space-y-5 w-full min-w-0">
             <div>
               <h3 className="text-xs font-black text-[var(--text)] uppercase tracking-wider text-blue-400">WhatsApp Business Setup Credentials</h3>
               <p className="text-[10.5px] text-[var(--text-subtle)] mt-0.5">Enter credentials matching your Meta App configuration platform.</p>
@@ -485,9 +488,9 @@ export const WhatsAppSetupTab: React.FC = () => {
               onClick={() => setShowHelp(!showHelp)}
               className="flex items-center gap-1.5 text-[11px] text-blue-400 hover:text-blue-300 font-bold transition-colors cursor-pointer"
             >
-              <Info className="w-3.5 h-3.5" />
-              Where do I find these credentials?
-              {showHelp ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              <Info className="w-3.5 h-3.5 shrink-0" />
+              <span>Where do I find these credentials?</span>
+              {showHelp ? <ChevronUp className="w-3 h-3 shrink-0" /> : <ChevronDown className="w-3 h-3 shrink-0" />}
             </button>
 
             <AnimatePresence>
@@ -497,15 +500,15 @@ export const WhatsAppSetupTab: React.FC = () => {
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  className="overflow-hidden"
+                  className="w-full min-w-0 overflow-hidden"
                 >
-                  <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-4 space-y-3 text-[11px] text-[var(--text-muted)] leading-relaxed">
+                  <div className="bg-blue-500/5 border border-blue-500/10 rounded-2xl p-4 space-y-3 text-[11px] text-[var(--text-muted)] leading-relaxed w-full min-w-0 break-words">
                     <p className="font-bold text-blue-400 text-[10px] uppercase tracking-wider">Step-by-Step Setup Guide</p>
-                    <ol className="space-y-2 list-decimal list-inside">
-                      <li>Go to <span className="font-bold text-[var(--text)]">Meta Business Suite</span> → your business account settings to find your <span className="font-bold text-blue-400">Business Account ID</span></li>
-                      <li>Visit <span className="font-bold text-[var(--text)]">developers.facebook.com</span> → your app → Settings → Basic to find your <span className="font-bold text-blue-400">App ID</span> and <span className="font-bold text-blue-400">App Secret</span></li>
-                      <li>In your Meta app, navigate to WhatsApp → API Setup to find your <span className="font-bold text-blue-400">Phone Number</span> and generate a permanent token</li>
-                      <li>Configure the Webhook URL and Verify Token below in your Meta app's WhatsApp → Configuration settings</li>
+                    <ol className="space-y-2 list-decimal list-inside break-words min-w-0">
+                      <li className="break-words min-w-0">Go to <span className="font-bold text-[var(--text)]">Meta Business Suite</span> → your business account settings to find your <span className="font-bold text-blue-400">Business Account ID</span></li>
+                      <li className="break-words min-w-0">Visit <span className="font-bold text-[var(--text)]">developers.facebook.com</span> → your app → Settings → Basic to find your <span className="font-bold text-blue-400">App ID</span> and <span className="font-bold text-blue-400">App Secret</span></li>
+                      <li className="break-words min-w-0">In your Meta app, navigate to WhatsApp → API Setup to find your <span className="font-bold text-blue-400">Phone Number</span> and generate a permanent token</li>
+                      <li className="break-words min-w-0">Configure the Webhook URL and Verify Token below in your Meta app's WhatsApp → Configuration settings</li>
                     </ol>
                     <p className="text-[10px] text-[var(--text-subtle)] italic">All credentials are stored securely and never shared externally.</p>
                   </div>
@@ -513,34 +516,26 @@ export const WhatsAppSetupTab: React.FC = () => {
               )}
             </AnimatePresence>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider flex items-center">
-                  Business Phone Number
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full min-w-0">
+              <div className="space-y-1.5 min-w-0">
+                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider flex items-center flex-wrap min-w-0">
+                  <span>Business Phone Number</span>
                   <InfoPopover title="Business Phone Number">
                     <p>The phone number registered with your WhatsApp Business Account. For Indian numbers, enter your 10-digit mobile number — we automatically add +91.</p>
                     <p className="mt-1 text-blue-400/80 font-bold">Example: 6360254763 → +916360254763</p>
                   </InfoPopover>
                 </label>
-                <input
-                  type="text"
+                <CountryPhoneInput
                   value={phoneNumber}
-                  onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="e.g. 6360254763"
-                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)] font-medium"
+                  onChange={(val) => setPhoneNumber(val)}
+                  placeholder="e.g. 9876543210"
                 />
-                {phoneNumber && !validatePhone(phoneNumber).ok && (
-                  <p className="text-[9px] text-red-400 font-medium">{validatePhone(phoneNumber).error}</p>
-                )}
-                {phoneNumber && validatePhone(phoneNumber).ok && (
-                  <p className="text-[9px] text-green-400 font-medium">✓ Normalized: {validatePhone(phoneNumber).normalized}</p>
-                )}
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider flex items-center">
-                  WhatsApp Business Account ID
-                  <InfoPopover title="Business Account ID">
+              <div className="space-y-1.5 min-w-0">
+                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider flex items-center flex-wrap min-w-0">
+                  <span>WhatsApp Business Account ID</span>
+                  <InfoPopover title="Business Account ID" align="right">
                     <p>A numeric ID for your WhatsApp Business Account. Find it in:</p>
                     <p className="mt-1 font-bold text-[var(--text)]">Meta Business Suite → Settings → Business info</p>
                     <p className="mt-1 text-blue-400/80 font-bold">Format: 123456789012345</p>
@@ -551,13 +546,13 @@ export const WhatsAppSetupTab: React.FC = () => {
                   value={businessAccountId}
                   onChange={(e) => setBusinessAccountId(e.target.value)}
                   placeholder="e.g. 123456789012345"
-                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)] font-medium"
+                  className="w-full min-w-0 bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)] font-medium"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider flex items-center">
-                  Meta App ID
+              <div className="space-y-1.5 min-w-0">
+                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider flex items-center flex-wrap min-w-0">
+                  <span>Meta App ID</span>
                   <InfoPopover title="Meta App ID">
                     <p>Your Meta application identifier. Find it at:</p>
                     <p className="mt-1 font-bold text-[var(--text)]">developers.facebook.com → Your App → Settings → Basic</p>
@@ -569,14 +564,14 @@ export const WhatsAppSetupTab: React.FC = () => {
                   value={metaAppId}
                   onChange={(e) => setMetaAppId(e.target.value)}
                   placeholder="e.g. 1234567890123456"
-                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)] font-medium"
+                  className="w-full min-w-0 bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] placeholder-neutral-500 focus:outline-none focus:border-[var(--brand)] font-medium"
                 />
               </div>
 
-              <div className="space-y-1.5 relative">
-                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider flex items-center">
-                  Meta App Secret
-                  <InfoPopover title="Meta App Secret">
+              <div className="space-y-1.5 relative min-w-0">
+                <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] tracking-wider flex items-center flex-wrap min-w-0">
+                  <span>Meta App Secret</span>
+                  <InfoPopover title="Meta App Secret" align="right">
                     <p>A confidential key found alongside your App ID. <span className="text-red-400 font-bold">Never share this publicly.</span></p>
                     <p className="mt-1 font-bold text-[var(--text)]">developers.facebook.com → Your App → Settings → Basic → App Secret</p>
                     <p className="mt-1 text-blue-400/80 font-bold">Click "Show" to reveal it on Meta's page.</p>
@@ -587,7 +582,7 @@ export const WhatsAppSetupTab: React.FC = () => {
                   value={metaAppSecret}
                   onChange={(e) => setMetaAppSecret(e.target.value)}
                   placeholder="••••••••••••"
-                  className="w-full bg-[var(--input-bg)] border border-[var(--border)] p-2.5 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)] font-medium"
+                  className="w-full min-w-0 bg-[var(--input-bg)] border border-[var(--border)] p-2.5 pr-14 rounded-xl text-xs text-[var(--text)] focus:outline-none focus:border-[var(--brand)] font-medium"
                 />
                 <button
                   onClick={() => setRevealSecret(!revealSecret)}
@@ -599,45 +594,45 @@ export const WhatsAppSetupTab: React.FC = () => {
             </div>
 
             {/* WEBHOOK PROPERTIES */}
-            <div className="p-4 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] flex items-center">
-                    Webhook URL
+            <div className="p-4 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-2xl grid grid-cols-1 md:grid-cols-2 gap-4 w-full min-w-0">
+              <div className="space-y-1.5 min-w-0">
+                <div className="flex items-center justify-between min-w-0">
+                  <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] flex items-center flex-wrap min-w-0">
+                    <span>Webhook URL</span>
                     <InfoPopover title="Webhook URL">
                       <p>Copy this URL and paste it into your Meta app's WhatsApp → Configuration → Callback URL field.</p>
                     </InfoPopover>
                   </label>
                   <button
                     onClick={() => copyToClipboard(webhookUrl, setCopiedUrl)}
-                    className="text-[9.5px] text-blue-500 hover:underline flex items-center gap-1 font-bold cursor-pointer"
+                    className="text-[9.5px] text-blue-500 hover:underline flex items-center gap-1 font-bold cursor-pointer shrink-0"
                   >
                     {copiedUrl ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
                     {copiedUrl ? "Copied" : "Copy"}
                   </button>
                 </div>
-                <div className="bg-[var(--input-bg)] p-2.5 rounded-xl text-[10.5px] font-mono text-[var(--text)] font-semibold select-all border border-[var(--border)]">
+                <div className="bg-[var(--input-bg)] p-2.5 rounded-xl text-[10.5px] font-mono text-[var(--text)] font-semibold select-all border border-[var(--border)] break-all min-w-0">
                   {webhookUrl}
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] flex items-center">
-                    Webhook Verify Token
-                    <InfoPopover title="Verify Token">
+              <div className="space-y-1.5 min-w-0">
+                <div className="flex items-center justify-between min-w-0">
+                  <label className="text-[10px] uppercase font-black text-[var(--text-subtle)] flex items-center flex-wrap min-w-0">
+                    <span>Webhook Verify Token</span>
+                    <InfoPopover title="Verify Token" align="right">
                       <p>Copy this token and paste it into the "Verify Token" field when configuring your webhook in the Meta app.</p>
                     </InfoPopover>
                   </label>
                   <button
                     onClick={() => copyToClipboard(verifyToken, setCopiedToken)}
-                    className="text-[9.5px] text-blue-500 hover:underline flex items-center gap-1 font-bold cursor-pointer"
+                    className="text-[9.5px] text-blue-500 hover:underline flex items-center gap-1 font-bold cursor-pointer shrink-0"
                   >
                     {copiedToken ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
                     {copiedToken ? "Copied" : "Copy"}
                   </button>
                 </div>
-                <div className="bg-[var(--input-bg)] p-2.5 rounded-xl text-[10.5px] font-mono text-[var(--text)] font-semibold select-all border border-[var(--border)] truncate">
+                <div className="bg-[var(--input-bg)] p-2.5 rounded-xl text-[10.5px] font-mono text-[var(--text)] font-semibold select-all border border-[var(--border)] break-all min-w-0">
                   {verifyToken}
                 </div>
               </div>
@@ -910,7 +905,7 @@ export const WhatsAppSetupTab: React.FC = () => {
         </div>
 
         {/* Right Column: WhatsApp Tester + Webhook Logs */}
-        <div className="space-y-6">
+        <div className="space-y-6 w-full min-w-0">
           
           {/* SIMULATED CLIENT HANDSET GLASS PANEL */}
           <div className="bg-[var(--bg-card)] border border-blue-500/20 rounded-3xl p-5 relative overflow-hidden shadow-xl h-[400px] flex flex-col justify-between">

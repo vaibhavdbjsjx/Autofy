@@ -17,7 +17,8 @@ def test_new_business_subscription_initial_state(db_session: Session):
 
     state = EntitlementService.evaluate_subscription_state(db_session, "biz-sub-new")
     assert state["status"] == "EXPLORING"
-    assert state["plan_id"] == "pro"
+    assert state["plan_id"] == "free"
+    assert state["product_name"] == "Free Tier"
     assert state["is_live_accessible"] is False
     assert state["is_paid"] is False
     assert state["trial"]["active"] is False

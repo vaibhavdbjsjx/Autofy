@@ -76,9 +76,9 @@ class EntitlementService:
         return {
             "business_id": business_id,
             "status": sub.status,
-            "plan_id": "pro",
-            "product_name": "Autofy Pro",
-            "plan_name": plan_config["name"],
+            "plan_id": "pro" if is_live_accessible else "free",
+            "product_name": "Autofy Pro" if is_live_accessible else "Free Tier",
+            "plan_name": plan_config["name"] if is_live_accessible else "Free Tier",
             "provider": sub.provider,
             "provider_subscription_id": sub.provider_subscription_id,
             "is_live_accessible": is_live_accessible,
