@@ -21,12 +21,12 @@ class Payment(Base):
     razorpay_order_id = Column(String(255), nullable=True, index=True)
     razorpay_subscription_id = Column(String(255), nullable=True, index=True)
     
-    status = Column(String(50), default="issued", nullable=False) # issued, paid, expired, cancelled, failed, refunded
+    status = Column(String(50), default="issued", nullable=False, index=True) # issued, paid, expired, cancelled, failed, refunded
     billing_type = Column(String(50), default="one-time", nullable=False) # one-time, subscription
     invoice_id = Column(String(100), nullable=True)
     description = Column(Text, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships

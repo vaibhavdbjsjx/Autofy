@@ -468,7 +468,7 @@ class RazorpayService:
 
                 return {"status": "success", "processed_subscription": sub_record.id, "action": "activated"}
 
-        elif event in ["subscription.halted", "payment.failed"]:
+        elif event in ["subscription.halted"]:
             sub_entities = payload.get("payload", {}).get("subscription", {}).get("entity", {})
             sub_id = sub_entities.get("id")
             notes = sub_entities.get("notes", {})
@@ -479,19 +479,58 @@ class RazorpayService:
             sub_record = query.filter((Subscription.provider_subscription_id == sub_id) | (Subscription.business_id == biz_id)).first() if (sub_id or biz_id) else None
 
             if sub_record:
-                # Transition to PAST_DUE without destroying customer data
                 sub_record.status = "PAST_DUE"
                 sub_record.updated_at = datetime.utcnow()
                 db.commit()
                 return {"status": "success", "processed_subscription": sub_record.id, "action": "past_due"}
 
-            payment = db.query(Payment).filter(Payment.razorpay_subscription_id == sub_id).first()
+        elif event in ["subscription.cancelled"]:
+            sub_entities = payload.get("payload", {}).get("subscription", {}).get("entity", {})
+            sub_id = sub_entities.get("id")
+            notes = sub_entities.get("notes", {})
+            biz_id = notes.get("business_id")
+
+            from models.subscription import Subscription
+            query = db.query(Subscription)
+            sub_record = query.filter((Subscription.provider_subscription_id == sub_id) | (Subscription.business_id == biz_id)).first() if (sub_id or biz_id) else None
+
+            if sub_record:
+                sub_record.status = "CANCELLED"
+                sub_record.updated_at = datetime.utcnow()
+                db.commit()
+                return {"status": "success", "processed_subscription": sub_record.id, "action": "cancelled"}
+
+        elif event in ["payment.failed"]:
+            pay_entities = payload.get("payload", {}).get("payment", {}).get("entity", {})
+            razorpay_payment_id = pay_entities.get("id")
+            razorpay_order_id = pay_entities.get("order_id")
+            sub_id = pay_entities.get("subscription_id")
+
+            payment = None
+            if razorpay_payment_id:
+                payment = db.query(Payment).filter(Payment.razorpay_payment_id == razorpay_payment_id).first()
+            if not payment and razorpay_order_id:
+                payment = db.query(Payment).filter(Payment.razorpay_order_id == razorpay_order_id).first()
+            if not payment and sub_id:
+                payment = db.query(Payment).filter(Payment.razorpay_subscription_id == sub_id).first()
+
             if payment:
-                payment.status = "paid"
-                payment.razorpay_payment_id = razorpay_payment_id
+                payment.status = "failed"
                 payment.updated_at = datetime.utcnow()
                 db.commit()
-                return {"status": "success", "processed_record": payment.id, "action": "recurring_charged"}
+                return {"status": "success", "processed_record": payment.id, "action": "marked_failed"}
+
+        elif event in ["refund.processed", "refund.created"]:
+            refund_entities = payload.get("payload", {}).get("refund", {}).get("entity", {})
+            razorpay_payment_id = refund_entities.get("payment_id")
+
+            if razorpay_payment_id:
+                payment = db.query(Payment).filter(Payment.razorpay_payment_id == razorpay_payment_id).first()
+                if payment:
+                    payment.status = "refunded"
+                    payment.updated_at = datetime.utcnow()
+                    db.commit()
+                    return {"status": "success", "processed_record": payment.id, "action": "refunded"}
 
         return {"status": "ignored", "reason": "No matched transaction record or event unsupported"}
 

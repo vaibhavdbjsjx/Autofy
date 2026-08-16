@@ -22,7 +22,7 @@ class Message(Base):
     # AI confidence scoring
     confidence_score = Column(Float, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
 
     # Relationships
     conversation = relationship("Conversation", back_populates="messages")

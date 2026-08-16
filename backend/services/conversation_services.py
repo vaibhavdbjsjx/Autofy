@@ -247,6 +247,9 @@ class ConversationalAIService:
         Generates automated conversational reply using Gemini model 3.5-flash.
         Implements memory, exact business facts injection, confidence score, and automatic escalation threshold check.
         """
+        # Clamp input message length to prevent token exhaustion / prompt stuffing attacks
+        clean_incoming = (incoming_message or "").strip()[:1500]
+
         # Fetch conversation and business config
         conv = db.query(Conversation).filter(Conversation.id == conversation_id).first()
         if not conv:
@@ -269,7 +272,7 @@ class ConversationalAIService:
             memory_str += f"{sender}: {content}\n"
 
         # Search database catalogs to fetch highly accurate context
-        context = BusinessKnowledgeService.retrieve_context(db, business.id, incoming_message)
+        context = BusinessKnowledgeService.retrieve_context(db, business.id, clean_incoming)
 
         # Build context prompt
         faq_context = "\n".join([f"Q: {f.question}\nA: {f.answer}" for f in context["faqs"]])
@@ -362,13 +365,14 @@ Return output in strictly valid JSON format with keys:
                     http_options={"headers": {"User-Agent": "aistudio-build"}}
                 )
                 
-                # Fetch output from gemini-3.5-flash
+                # Fetch output from gemini-3.5-flash with bounded token limit
                 response = client.models.generate_content(
                     model="gemini-3.5-flash",
                     contents=system_prompt,
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json",
-                        temperature=0.1
+                        temperature=0.1,
+                        max_output_tokens=600
                     )
                 )
 

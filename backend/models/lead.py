@@ -12,12 +12,12 @@ class Lead(Base):
     name = Column(String(255), nullable=True)
     email = Column(String(255), nullable=True, index=True)
     phone = Column(String(50), nullable=True, index=True)
-    status = Column(String(50), default="New", nullable=False) # New, Contacted, Qualified, Lost, Converted
+    status = Column(String(50), default="New", nullable=False, index=True) # New, Contacted, Qualified, Lost, Converted
     source = Column(String(100), default="WhatsApp", nullable=False) # WhatsApp, Web, Manual, Instagram
     score = Column(Integer, default=10, nullable=False) # Lead scoring metric
     notes = Column(Text, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships

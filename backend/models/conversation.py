@@ -12,11 +12,11 @@ class Conversation(Base):
     lead_id = Column(String(36), ForeignKey("leads.id", ondelete="SET NULL"), nullable=True, index=True)
     channel = Column(String(50), default="WhatsApp", nullable=False) # WhatsApp, Web, SMS
     platform_sender_id = Column(String(255), nullable=True, index=True) # WhatsApp Phone Number, Web session ID etc.
-    status = Column(String(50), default="Active", nullable=False) # Active, Escalated, Resolved
+    status = Column(String(50), default="Active", nullable=False, index=True) # Active, Escalated, Resolved
     ai_enabled = Column(Boolean, default=True, nullable=False) # True = AI responds, False = Human agent took over
     summary = Column(Text, nullable=True)
 
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships

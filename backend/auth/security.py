@@ -53,7 +53,7 @@ def create_access_token(
 
 def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
     """
-    Decodes and cryptographically crypt-verifies a JWT Access Token.
+    Decodes and cryptographically verifies a JWT Access Token.
     Returns the claims dict if successful, or None if token is invalid/expired.
     """
     try:
@@ -62,6 +62,40 @@ def decode_access_token(token: str) -> Optional[Dict[str, Any]]:
             settings.JWT_SECRET_KEY,
             algorithms=[settings.JWT_ALGORITHM]
         )
+        if payload.get("type") != "access_token":
+            return None
         return payload
+    except JWTError:
+        return None
+
+def create_password_reset_token(email: str, expires_minutes: int = 15) -> str:
+    """
+    Generates a short-lived cryptographically signed token for password recovery.
+    """
+    expire = datetime.utcnow() + timedelta(minutes=expires_minutes)
+    to_encode = {
+        "exp": expire,
+        "sub": email.strip().lower(),
+        "type": "password_reset"
+    }
+    return jwt.encode(
+        to_encode,
+        settings.JWT_SECRET_KEY,
+        algorithm=settings.JWT_ALGORITHM
+    )
+
+def decode_password_reset_token(token: str) -> Optional[str]:
+    """
+    Decodes and validates a password reset token, returning the subject email.
+    """
+    try:
+        payload = jwt.decode(
+            token,
+            settings.JWT_SECRET_KEY,
+            algorithms=[settings.JWT_ALGORITHM]
+        )
+        if payload.get("type") != "password_reset":
+            return None
+        return payload.get("sub")
     except JWTError:
         return None

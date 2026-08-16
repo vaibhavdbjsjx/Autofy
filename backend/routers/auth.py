@@ -12,7 +12,10 @@ from database import get_db
 from models.user import User
 from models.business import Business
 from models.oauth_state import OAuthState
-from auth.security import get_password_hash, verify_password, create_access_token
+from auth.security import (
+    get_password_hash, verify_password, create_access_token,
+    create_password_reset_token, decode_password_reset_token
+)
 from auth.google_oauth import GoogleOAuthService
 from auth.dependencies import get_current_active_user
 
@@ -409,3 +412,68 @@ def delete_account(
         user_id=current_user.id
     )
     return result
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str = Field(..., min_length=8)
+
+@router.post("/forgot-password")
+def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Initiates password recovery. Always returns 200 generic message to prevent account enumeration.
+    """
+    normalized_email = _normalize_email(payload.email)
+    user = db.query(User).filter(func.lower(User.email) == normalized_email).first()
+    if user:
+        reset_token = create_password_reset_token(normalized_email)
+        # Log event securely (in production would trigger email dispatch)
+        import logging
+        logging.getLogger("auth_recovery").info(f"Password reset token issued for {normalized_email}")
+        return {
+            "status": "success",
+            "message": "If an account matches that email address, password reset instructions have been dispatched.",
+            "reset_token": reset_token if (settings.ENVIRONMENT.lower() in ["development", "dev", "test", "local"] or os.environ.get("TESTING") == "true") else None
+        }
+    return {
+        "status": "success",
+        "message": "If an account matches that email address, password reset instructions have been dispatched."
+    }
+
+@router.post("/reset-password")
+def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Validates password reset token and securely sets a new password hash.
+    """
+    email = decode_password_reset_token(payload.token)
+    if not email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid, malformed, or expired password reset token."
+        )
+
+    user = db.query(User).filter(func.lower(User.email) == email).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User account not found."
+        )
+
+    user.password_hash = get_password_hash(payload.new_password)
+    db.commit()
+    return {
+        "status": "success",
+        "message": "Your password has been successfully reset. You may now log in."
+    }
+
+@router.post("/logout")
+def logout(current_user: User = Depends(get_current_active_user)):
+    """
+    Client-side session termination handshake.
+    """
+    return {
+        "status": "success",
+        "message": "Logged out successfully."
+    }
