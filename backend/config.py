@@ -40,7 +40,9 @@ class Settings(BaseSettings):
     WHATSAPP_PHONE_ID: str = "1256189660910549"
     WHATSAPP_BUSINESS_ACCOUNT_ID: str = "1756724672123841"
     WHATSAPP_VERIFY_TOKEN: str = "autofy_webhook_verification_token_2026"
+    META_APP_ID: str = ""
     META_APP_SECRET: str = ""
+    META_EMBEDDED_SIGNUP_CONFIG_ID: str = ""
 
     # Cognitive AI Layer
     GEMINI_API_KEY: str = ""

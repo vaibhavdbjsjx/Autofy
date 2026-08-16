@@ -23,8 +23,21 @@ class Business(Base):
     currency = Column(String(10), default="INR (₹)")
     language = Column(String(50), default="English")
 
-    # Meta WhatsApp Configurations
+    # Meta WhatsApp Enterprise Configurations & Health
     whatsapp_phone_id = Column(String(100), nullable=True, index=True)
+    whatsapp_business_account_id = Column(String(100), nullable=True)
+    whatsapp_phone_number = Column(String(50), nullable=True)
+    whatsapp_display_name = Column(String(255), nullable=True)
+    whatsapp_access_token = Column(Text, nullable=True)
+    whatsapp_token_expires_at = Column(DateTime, nullable=True)
+    whatsapp_connection_status = Column(String(50), default="DISCONNECTED", nullable=False) # CONNECTED, DISCONNECTED, EXPIRED, ACTION_REQUIRED
+    whatsapp_quality_rating = Column(String(50), default="GREEN", nullable=False) # GREEN, YELLOW, RED, UNKNOWN
+    whatsapp_message_tier = Column(String(50), default="TIER_1K", nullable=False) # TIER_250, TIER_1K, TIER_10K, TIER_100K, UNLIMITED
+    whatsapp_webhook_verified = Column(Boolean, default=True, nullable=False)
+    whatsapp_last_webhook_at = Column(DateTime, nullable=True)
+    whatsapp_last_error = Column(Text, nullable=True)
+    whatsapp_signup_type = Column(String(50), default="MANUAL_CLOUD_API", nullable=False) # EMBEDDED_SIGNUP, MANUAL_CLOUD_API
+    whatsapp_connected_at = Column(DateTime, nullable=True)
 
     # AI Configurations
     config_agent_name = Column(String(100), default="AutoBot Elite")

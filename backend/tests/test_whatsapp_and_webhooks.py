@@ -483,3 +483,97 @@ def test_webhook_dispatches_only_plain_text_reply(client: TestClient, db_session
     assert "{" not in captured_outbound["message_body"]
     assert "confidence" not in captured_outbound["message_body"]
     assert "escalate" not in captured_outbound["message_body"]
+
+
+def test_whatsapp_enterprise_connection_lifecycle(client: TestClient, auth_headers_a: dict, db_session):
+    # 1. Check initial status
+    status_res = client.get("/api/v1/whatsapp/status", headers=auth_headers_a)
+    assert status_res.status_code == 200
+    status_data = status_res.json()
+    assert "connection_status" in status_data
+    assert "token_health" in status_data
+    assert "webhook_health" in status_data
+    assert "messaging_health" in status_data
+
+    # 2. Connect with full enterprise payload
+    connect_payload = {
+        "phone_number_id": "meta_phone_ent_999",
+        "business_account_id": "waba_ent_999",
+        "phone_number": "+91 98765 43210",
+        "display_name": "Autofy Prime Salon",
+        "access_token": "EAAX_test_permanent_token_999",
+        "token_duration_days": 90,
+        "signup_type": "MANUAL_CLOUD_API"
+    }
+    connect_res = client.post("/api/v1/whatsapp/connect", json=connect_payload, headers=auth_headers_a)
+    assert connect_res.status_code == 200
+    assert connect_res.json()["status"] == "connected"
+    assert connect_res.json()["whatsapp_phone_id"] == "meta_phone_ent_999"
+
+    # 3. Verify status updated to CONNECTED and token health computed
+    status_res2 = client.get("/api/v1/whatsapp/status", headers=auth_headers_a)
+    assert status_res2.status_code == 200
+    data2 = status_res2.json()
+    assert data2["is_connected"] is True
+    assert data2["connection_status"] == "CONNECTED"
+    assert data2["token_health"]["status"] in ("VALID", "PERMANENT_OR_MANAGED")
+    assert data2["token_health"]["days_until_expiry"] >= 80
+
+    # 4. Test connection diagnostics endpoint
+    test_res = client.post("/api/v1/whatsapp/test-connection", headers=auth_headers_a)
+    assert test_res.status_code == 200
+    assert test_res.json()["status"] == "healthy"
+    assert test_res.json()["diagnostics"]["graph_api_ping"] == "SUCCESS"
+
+    # 5. Replace WhatsApp Number
+    replace_payload = {
+        "new_phone_number_id": "meta_phone_ent_1000",
+        "new_phone_number": "+91 99999 88888",
+        "new_display_name": "Autofy Prime Grand",
+        "reason": "Upgraded business SIM"
+    }
+    replace_res = client.post("/api/v1/whatsapp/replace-number", json=replace_payload, headers=auth_headers_a)
+    assert replace_res.status_code == 200
+    assert replace_res.json()["status"] == "number_replaced"
+    assert replace_res.json()["new_phone_number_id"] == "meta_phone_ent_1000"
+
+    # 6. Reconnect / Refresh Token
+    reconnect_res = client.post("/api/v1/whatsapp/reconnect", json={
+        "access_token": "EAAX_refreshed_token_1000",
+        "token_duration_days": 60
+    }, headers=auth_headers_a)
+    assert reconnect_res.status_code == 200
+    assert reconnect_res.json()["status"] == "reconnected"
+
+    # 7. Disconnect WhatsApp
+    dc_res = client.post("/api/v1/whatsapp/disconnect", headers=auth_headers_a)
+    assert dc_res.status_code == 200
+    assert dc_res.json()["status"] == "disconnected"
+
+    # Verify status reflects DISCONNECTED
+    status_res3 = client.get("/api/v1/whatsapp/status", headers=auth_headers_a)
+    assert status_res3.status_code == 200
+    assert status_res3.json()["is_connected"] is False
+
+
+def test_whatsapp_embedded_signup_endpoints(client: TestClient, auth_headers_a: dict):
+    # 1. Fetch Embedded Signup Config
+    config_res = client.get("/api/v1/whatsapp/embedded-signup/config", headers=auth_headers_a)
+    assert config_res.status_code == 200
+    config_data = config_res.json()
+    assert "app_id" in config_data
+    assert "config_id" in config_data
+    assert "scopes" in config_data
+    assert "whatsapp_business_messaging" in config_data["scopes"]
+
+    # 2. Callback from Meta Popup
+    callback_payload = {
+        "code": "meta_oauth_auth_code_xyz123",
+        "waba_id": "waba_embed_123",
+        "phone_number_id": "phone_embed_123"
+    }
+    cb_res = client.post("/api/v1/whatsapp/embedded-signup/callback", json=callback_payload, headers=auth_headers_a)
+    assert cb_res.status_code == 200
+    assert cb_res.json()["status"] == "connected"
+    assert cb_res.json()["signup_type"] == "EMBEDDED_SIGNUP"
+
