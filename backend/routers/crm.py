@@ -179,3 +179,42 @@ def get_crm_analytics(
             "Standard": standard
         }
     }
+
+@router.get("/export")
+def export_crm_customers_csv(
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Exports all CRM customer profiles with tags, LTV, and segments in standard CSV format.
+    """
+    import csv
+    import io
+    from fastapi.responses import StreamingResponse
+
+    profiles = db.query(CustomerProfile).filter(CustomerProfile.business_id == current_user.business_id).all()
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Profile ID", "Name", "Email", "Phone", "Segment", "Lifetime Value (INR)", "Tags", "Notes", "Created At"])
+
+    for p in profiles:
+        writer.writerow([
+            p.id,
+            p.name,
+            p.email or "N/A",
+            p.phone or "N/A",
+            p.segment,
+            p.lifetime_value,
+            p.tags or "",
+            p.notes or "",
+            p.created_at.isoformat() if p.created_at else ""
+        ])
+
+    output.seek(0)
+    filename = f"autofy_customers_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+

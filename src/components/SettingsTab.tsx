@@ -1405,8 +1405,9 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
                               className="bg-[var(--bg)] border border-[var(--border)] rounded-lg text-[var(--text)] font-medium px-2 py-1 text-[11px] focus:outline-none cursor-pointer font-sans"
                             >
                               <option value="Admin">Admin</option>
-                              <option value="Manager">Manager</option>
                               <option value="Support Agent">Support Agent</option>
+                              <option value="Sales Agent">Sales Agent</option>
+                              <option value="Accountant">Accountant</option>
                             </select>
                           )}
                         </td>
@@ -1436,6 +1437,33 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              {/* RBAC PERMISSIONS MATRIX SUMMARY */}
+              <div className="p-4 bg-[var(--bg-elevated)]/20 border border-[var(--border)] rounded-2xl space-y-3">
+                <h4 className="text-xs font-black uppercase text-[var(--text)] tracking-wider">Enterprise RBAC Permissions Matrix</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 text-[10.5px]">
+                  <div className="p-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl space-y-1">
+                    <p className="font-bold text-blue-400 uppercase">Owner</p>
+                    <p className="text-[9.5px] text-[var(--text-subtle)]">Full unrestricted root access to pricing, team, payments, WhatsApp & deletion.</p>
+                  </div>
+                  <div className="p-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl space-y-1">
+                    <p className="font-bold text-purple-400 uppercase">Admin</p>
+                    <p className="text-[9.5px] text-[var(--text-subtle)]">Edit pricing, reply chats, manage payments, export data & WhatsApp config.</p>
+                  </div>
+                  <div className="p-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl space-y-1">
+                    <p className="font-bold text-emerald-400 uppercase">Support Agent</p>
+                    <p className="text-[9.5px] text-[var(--text-subtle)]">Live WhatsApp customer reply & ticket takeover only.</p>
+                  </div>
+                  <div className="p-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl space-y-1">
+                    <p className="font-bold text-amber-400 uppercase">Sales Agent</p>
+                    <p className="text-[9.5px] text-[var(--text-subtle)]">Lead pipeline management, live chat reply & follow-ups.</p>
+                  </div>
+                  <div className="p-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl space-y-1">
+                    <p className="font-bold text-cyan-400 uppercase">Accountant</p>
+                    <p className="text-[9.5px] text-[var(--text-subtle)]">Manage tax invoices, payment disputes, refunds & financial export.</p>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -2137,9 +2165,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
                     onChange={(e) => setInviteRole(e.target.value as any)}
                     className="w-full bg-[var(--bg-elevated)] border border-[var(--border)] p-2.5 rounded-xl text-[var(--text)] focus:outline-none"
                   >
-                    <option value="Admin">Admin (Full Edit Access)</option>
-                    <option value="Manager">Manager (Edit Services & Templates)</option>
-                    <option value="Support Agent">Support Agent (Live Chat Only)</option>
+                    <option value="Admin">Admin (Pricing, WhatsApp, Payments)</option>
+                    <option value="Support Agent">Support Agent (Live Chats & Inbound Tickets)</option>
+                    <option value="Sales Agent">Sales Agent (Leads Pipeline & Follow-ups)</option>
+                    <option value="Accountant">Accountant (Invoices, Payments & Financials)</option>
                   </select>
                 </div>
                 <div className="flex gap-2 pt-2">

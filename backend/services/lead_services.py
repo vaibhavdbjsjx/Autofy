@@ -24,10 +24,17 @@ class LeadCRUD:
             name=obj_in.name,
             email=obj_in.email,
             phone=obj_in.phone,
-            status=obj_in.status,
-            source=obj_in.source,
-            score=obj_in.score,
-            notes=obj_in.notes
+            status=obj_in.status or "New",
+            pipeline_stage=obj_in.pipeline_stage or "New",
+            source=obj_in.source or "WhatsApp",
+            score=obj_in.score or 10,
+            deal_value=obj_in.deal_value or 0,
+            tags=obj_in.tags,
+            notes=obj_in.notes,
+            assigned_to_user_id=obj_in.assigned_to_user_id,
+            assigned_to_name=obj_in.assigned_to_name,
+            follow_up_at=obj_in.follow_up_at,
+            follow_up_notes=obj_in.follow_up_notes
         )
         db.add(db_obj)
         db.commit()

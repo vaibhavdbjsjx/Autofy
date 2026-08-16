@@ -20,12 +20,14 @@ from models.subscription import Subscription
 from models.invoice import Invoice
 from models.appointment import Appointment
 from models.oauth_state import OAuthState
+from models.activity_log import ActivityLog
 
 __all__ = [
     "Base", 
     "Business", 
     "User", 
     "TeamMember",
+    "ActivityLog",
     "Service",
     "Product",
     "MembershipPlan",
