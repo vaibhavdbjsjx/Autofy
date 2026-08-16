@@ -14,6 +14,8 @@ router = APIRouter(prefix="/business", tags=["Business Profiles"])
 class BusinessUpdateSchema(BaseModel):
     name: Optional[str] = None
     classification: Optional[str] = None
+    industry: Optional[str] = None # Alias for classification
+    description: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
     website: Optional[str] = None
@@ -21,6 +23,8 @@ class BusinessUpdateSchema(BaseModel):
     logo_url: Optional[str] = None
     business_hours: Optional[str] = None
     timezone: Optional[str] = None
+    currency: Optional[str] = None
+    language: Optional[str] = None
     is_onboarded: Optional[bool] = None
 
     # Meta WhatsApp Configurations
@@ -28,9 +32,20 @@ class BusinessUpdateSchema(BaseModel):
 
     # AI Behaviors parameters
     config_agent_name: Optional[str] = None
+    ai_assistant_name: Optional[str] = None # Alias for config_agent_name
     config_welcome_message: Optional[str] = None
+    ai_welcome_message: Optional[str] = None # Alias
     config_fallback_message: Optional[str] = None
+    ai_fallback_message: Optional[str] = None # Alias
     config_confidence_threshold: Optional[float] = None
+    confidence_threshold: Optional[float] = None # Alias
+
+    # AI Personality & Tone Controls
+    ai_personality: Optional[str] = None
+    ai_tone: Optional[str] = None
+    ai_sales_behavior: Optional[str] = None
+    ai_reply_style: Optional[str] = None
+    ai_escalation_rules: Optional[str] = None
 
     # AI Auto-Reply Controls
     ai_auto_reply_enabled: Optional[bool] = None
@@ -40,6 +55,7 @@ class BusinessResponseSchema(BaseModel):
     id: str
     name: str
     classification: Optional[str] = None
+    description: Optional[str] = None
     phone: Optional[str] = None
     email: str
     website: Optional[str] = None
@@ -47,12 +63,19 @@ class BusinessResponseSchema(BaseModel):
     logo_url: Optional[str] = None
     business_hours: Optional[str] = None
     timezone: str
+    currency: Optional[str] = "INR (₹)"
+    language: Optional[str] = "English"
     is_onboarded: bool = False
     whatsapp_phone_id: Optional[str] = None
     config_agent_name: str
     config_welcome_message: Optional[str] = None
     config_fallback_message: Optional[str] = None
     config_confidence_threshold: float
+    ai_personality: Optional[str] = "Professional & Helpful"
+    ai_tone: Optional[str] = "Warm & Concise"
+    ai_sales_behavior: Optional[str] = "Consultative & Solution-Oriented"
+    ai_reply_style: Optional[str] = "Structured with Bullet Points"
+    ai_escalation_rules: Optional[str] = None
     ai_auto_reply_enabled: bool = True
     ai_reply_exceptions: Optional[str] = None
 
@@ -94,8 +117,22 @@ def update_business_profile(
 
     # Perform recursive updates on specified non-null values
     update_data = payload.model_dump(exclude_unset=True)
+    
+    # Map frontend alias fields to database columns
+    if "industry" in update_data and update_data["industry"] is not None:
+        business.classification = update_data.pop("industry")
+    if "ai_assistant_name" in update_data and update_data["ai_assistant_name"] is not None:
+        business.config_agent_name = update_data.pop("ai_assistant_name")
+    if "ai_welcome_message" in update_data and update_data["ai_welcome_message"] is not None:
+        business.config_welcome_message = update_data.pop("ai_welcome_message")
+    if "ai_fallback_message" in update_data and update_data["ai_fallback_message"] is not None:
+        business.config_fallback_message = update_data.pop("ai_fallback_message")
+    if "confidence_threshold" in update_data and update_data["confidence_threshold"] is not None:
+        business.config_confidence_threshold = float(update_data.pop("confidence_threshold"))
+
     for key, value in update_data.items():
-        setattr(business, key, value)
+        if hasattr(business, key):
+            setattr(business, key, value)
 
     # If updating business profile, automatically mark onboarding as complete
     if payload.is_onboarded is not None:

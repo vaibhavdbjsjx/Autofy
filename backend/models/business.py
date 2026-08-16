@@ -19,6 +19,10 @@ class Business(Base):
     timezone = Column(String(100), default="IST - Kolkata (GMT+5:30)")
     is_onboarded = Column(Boolean, default=False, nullable=False)
 
+    description = Column(Text, nullable=True)
+    currency = Column(String(10), default="INR (₹)")
+    language = Column(String(50), default="English")
+
     # Meta WhatsApp Configurations
     whatsapp_phone_id = Column(String(100), nullable=True, index=True)
 
@@ -27,6 +31,13 @@ class Business(Base):
     config_welcome_message = Column(Text, nullable=True)
     config_fallback_message = Column(Text, nullable=True)
     config_confidence_threshold = Column(Float, default=0.78)
+    
+    # AI Personality & Tone Controls
+    ai_personality = Column(String(100), default="Professional & Helpful")
+    ai_tone = Column(String(100), default="Warm & Concise")
+    ai_sales_behavior = Column(String(100), default="Consultative & Solution-Oriented")
+    ai_reply_style = Column(String(100), default="Structured with Bullet Points")
+    ai_escalation_rules = Column(Text, nullable=True)
 
     # AI Auto-Reply Global Controls
     ai_auto_reply_enabled = Column(Boolean, default=True, nullable=False)  # Global master switch for all AI replies

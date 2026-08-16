@@ -16,8 +16,8 @@ from models.order import Order
 from models.ai_training import AILog, AIKnowledgeGap, AITrainedAnswer
 from models.customer_profile import CustomerProfile
 from models.marketing import Campaign, BroadcastMessage
-from models.support_ticket import SupportTicket, TicketHistory
 from models.subscription import Subscription
+from models.invoice import Invoice
 from models.appointment import Appointment
 from models.oauth_state import OAuthState
 
@@ -46,6 +46,7 @@ __all__ = [
     "SupportTicket",
     "TicketHistory",
     "Subscription",
+    "Invoice",
     "Appointment",
     "OAuthState"
 ]

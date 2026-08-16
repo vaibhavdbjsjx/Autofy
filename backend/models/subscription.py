@@ -27,8 +27,18 @@ class Subscription(Base):
     # Pricing & Currency snapshot
     normal_price = Column(Numeric(10, 2), nullable=False, default=699.00)
     first_cycle_price = Column(Numeric(10, 2), nullable=False, default=699.00)
+    grandfathered_price = Column(Numeric(10, 2), nullable=True) # Locks pricing for existing subscribers
+    price_locked_at = Column(DateTime, nullable=True)
     currency = Column(String(10), default="INR", nullable=False)
-    billing_interval = Column(String(20), default="monthly", nullable=False)
+    billing_interval = Column(String(20), default="monthly", nullable=False) # monthly, yearly
+
+    # Payment method & Lifecycle recovery
+    payment_method_summary = Column(String(100), default="UPI / Card (Auto-Debit)", nullable=False)
+    last_payment_status = Column(String(50), default="succeeded", nullable=False) # succeeded, failed, pending, refunded
+    last_payment_error = Column(Text, nullable=True)
+    retry_count = Column(String(10), default="0", nullable=False)
+    billing_email = Column(String(255), nullable=True)
+    tax_id = Column(String(50), nullable=True)
 
     # Timestamps
     trial_started_at = Column(DateTime, nullable=True)
