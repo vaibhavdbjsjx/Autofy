@@ -1,8 +1,9 @@
+import logging
 from datetime import datetime, timedelta
 import secrets
-from typing import Optional
+from typing import Optional, Tuple
 from urllib.parse import urlencode
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, Request, Response
 from fastapi.responses import RedirectResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -19,42 +20,120 @@ from auth.security import (
 from auth.google_oauth import GoogleOAuthService
 from auth.dependencies import get_current_active_user
 
+logger = logging.getLogger("autofy.auth")
+
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-OAUTH_STATE_TTL_SECONDS = 600
+OAUTH_STATE_TTL_SECONDS = 600  # 10 minutes TTL
 
 
 def _normalize_email(email: str) -> str:
     return str(email).strip().lower()
 
 
-def _create_oauth_state(db: Session) -> str:
+def _create_oauth_state(db: Session, provider: str = "google") -> str:
     state = secrets.token_urlsafe(32)
     now = datetime.utcnow()
     expires_at = now + timedelta(seconds=OAUTH_STATE_TTL_SECONDS)
+    
+    # 1. Clean up expired states from DB
     try:
         db.query(OAuthState).filter(OAuthState.expires_at <= now).delete(synchronize_session=False)
-    except Exception:
+    except Exception as err:
+        logger.warning(f"[OAuth][StateCleanup] State purge encountered non-fatal error: {err}")
         db.rollback()
-    db.add(OAuthState(state=state, provider="google", expires_at=expires_at))
+
+    # 2. Persist to PostgreSQL database (survives container/server restarts)
+    db_state = OAuthState(
+        state=state,
+        provider=provider,
+        expires_at=expires_at,
+        created_at=now
+    )
+    db.add(db_state)
     db.commit()
+
+    # 3. Store in Redis if enabled
+    if settings.REDIS_ENABLED:
+        try:
+            import redis
+            r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+            r.setex(f"oauth_state:{state}", OAUTH_STATE_TTL_SECONDS, provider)
+            logger.info(f"[OAuth][StateStore] State saved to Redis key 'oauth_state:{state[:8]}...' (TTL: {OAUTH_STATE_TTL_SECONDS}s)")
+        except Exception as r_err:
+            logger.warning(f"[OAuth][StateStore] Redis state storage error: {r_err}")
+
+    logger.info(
+        f"[OAuth][StateGen] Generated state ID='{state[:8]}...{state[-6:]}' "
+        f"provider='{provider}' at='{now.isoformat()}' expires_at='{expires_at.isoformat()}'"
+    )
     return state
 
 
-def _consume_oauth_state(db: Session, state: Optional[str]) -> bool:
+def _consume_oauth_state(db: Session, state: Optional[str], provider: str = "google") -> Tuple[bool, str]:
+    callback_time = datetime.utcnow()
     if not state:
-        return False
-    now = datetime.utcnow()
+        logger.warning(f"[OAuth][StateValidate] State validation failed: missing state parameter at {callback_time.isoformat()}")
+        return False, "Missing state parameter"
+
+    # 1. Query persistent PostgreSQL database
     row = db.query(OAuthState).filter(
         OAuthState.state == state,
-        OAuthState.provider == "google"
+        OAuthState.provider == provider
     ).first()
-    if not row:
-        return False
-    is_valid = row.expires_at > now
-    db.delete(row)
-    db.commit()
-    return is_valid
+
+    # 2. Query Redis fallback if DB record is missing
+    found_in_redis = False
+    if not row and settings.REDIS_ENABLED:
+        try:
+            import redis
+            r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
+            val = r.get(f"oauth_state:{state}")
+            if val:
+                found_in_redis = True
+                r.delete(f"oauth_state:{state}")
+        except Exception as r_err:
+            logger.warning(f"[OAuth][StateValidate] Redis lookup error: {r_err}")
+
+    if not row and not found_in_redis:
+        logger.warning(
+            f"[OAuth][StateValidate] State ID='{state[:8]}...{state[-6:]}' NOT found in persistent storage at {callback_time.isoformat()}. "
+            f"Result=INVALID (Reason: State does not exist or already consumed)"
+        )
+        return False, "State does not exist or already consumed"
+
+    if row:
+        is_expired = row.expires_at <= callback_time
+        stored_ts = row.created_at.isoformat() if row.created_at else "unknown"
+        expires_ts = row.expires_at.isoformat() if row.expires_at else "unknown"
+        
+        # Single-use consumption: delete from DB immediately
+        try:
+            db.delete(row)
+            db.commit()
+        except Exception:
+            db.rollback()
+
+        if is_expired:
+            logger.warning(
+                f"[OAuth][StateValidate] State ID='{state[:8]}...{state[-6:]}' EXPIRED at {callback_time.isoformat()}. "
+                f"Stored at={stored_ts}, expired at={expires_ts}. Result=EXPIRED"
+            )
+            return False, "State expired"
+
+        logger.info(
+            f"[OAuth][StateValidate] State ID='{state[:8]}...{state[-6:]}' VALID. "
+            f"Stored at={stored_ts}, Callback at={callback_time.isoformat()}, Expires at={expires_ts}. Result=VALID"
+        )
+        return True, "Valid"
+
+    if found_in_redis:
+        logger.info(
+            f"[OAuth][StateValidate] State ID='{state[:8]}...{state[-6:]}' validated via Redis at {callback_time.isoformat()}. Result=VALID"
+        )
+        return True, "Valid"
+
+    return False, "Validation failed"
 
 # Inbound Request Schemas
 class SignupRequest(BaseModel):
@@ -165,7 +244,7 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     )
 
 @router.get("/google/authorize")
-def google_authorize(db: Session = Depends(get_db)):
+def google_authorize(request: Request, response: Response, db: Session = Depends(get_db)):
     """
     Exposes the Google OAuth2 OpenID Connect permission redirect URI.
 
@@ -178,12 +257,24 @@ def google_authorize(db: Session = Depends(get_db)):
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Google sign-in isn't configured yet. Please sign up with email, or add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the backend .env.",
         )
-    state = _create_oauth_state(db)
+    state = _create_oauth_state(db, provider="google")
     redirect_url = GoogleOAuthService.get_authorization_url(state=state)
-    return {"authorization_url": redirect_url}
+
+    # Secure HTTPS Cookie fallback for Render/reverse proxies
+    is_secure = (request.url.scheme == "https") or (request.headers.get("x-forwarded-proto") == "https")
+    response.set_cookie(
+        key="autofy_oauth_state",
+        value=state,
+        max_age=OAUTH_STATE_TTL_SECONDS,
+        httponly=True,
+        secure=is_secure,
+        samesite="lax"
+    )
+
+    return {"authorization_url": redirect_url, "state": state}
 
 @router.get("/apple/authorize")
-def apple_authorize(db: Session = Depends(get_db)):
+def apple_authorize(request: Request, response: Response, db: Session = Depends(get_db)):
     """
     Exposes the Sign in with Apple OAuth2 OpenID Connect permission redirect URI.
     """
@@ -192,7 +283,7 @@ def apple_authorize(db: Session = Depends(get_db)):
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Sign in with Apple isn't configured yet. APPLE_CLIENT_ID and APPLE_TEAM_ID are required in .env.",
         )
-    state = _create_oauth_state(db)
+    state = _create_oauth_state(db, provider="apple")
     params = {
         "client_id": settings.APPLE_CLIENT_ID,
         "redirect_uri": getattr(settings, "APPLE_REDIRECT_URI", "https://autofysaas.com/api/v1/auth/apple/callback"),
@@ -202,35 +293,61 @@ def apple_authorize(db: Session = Depends(get_db)):
         "state": state
     }
     redirect_url = f"https://appleid.apple.com/auth/authorize?{urlencode(params)}"
-    return {"authorization_url": redirect_url}
+    return {"authorization_url": redirect_url, "state": state}
 
-def _frontend_redirect(path: str, params: dict) -> RedirectResponse:
+def _frontend_redirect(path: str, params: dict, status_code: int = status.HTTP_307_TEMPORARY_REDIRECT) -> RedirectResponse:
     """
     Builds a browser redirect back into the SPA. Auth params ride in the URL
     fragment (#...) so the token never reaches server access logs / referrers.
     """
     fragment = urlencode(params)
-    return RedirectResponse(url=f"{settings.FRONTEND_URL}{path}#{fragment}")
+    return RedirectResponse(url=f"{settings.FRONTEND_URL}{path}#{fragment}", status_code=status_code)
 
 
 @router.get("/google/callback")
-async def google_callback(code: str, state: Optional[str] = Query(None), db: Session = Depends(get_db)):
+async def google_callback(
+    request: Request,
+    response: Response,
+    code: Optional[str] = Query(None),
+    state: Optional[str] = Query(None),
+    error: Optional[str] = Query(None),
+    db: Session = Depends(get_db)
+):
     """
-    Receives Google's code exchange parameter, verifies sub-id credentials,
+    Receives Google's code exchange parameter, verifies state credentials,
     re-fetches active User account profiles, or registers brand new tenants,
     then redirects the browser back to the SPA with a signed session token.
     """
-    if not _consume_oauth_state(db, state):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid or expired Google OAuth state.",
+    # 1. Check if user cancelled Google consent or Google reported an error
+    if error:
+        logger.warning(f"[OAuth][Callback] Google OAuth returned error parameter: {error}")
+        return _frontend_redirect("/login", {"auth_error": f"Google sign-in was cancelled or encountered an error ({error})."})
+
+    if not code:
+        logger.warning("[OAuth][Callback] Google callback missing authorization code.")
+        return _frontend_redirect("/login", {"auth_error": "Missing authorization code from Google."})
+
+    # 2. Check and consume state from persistent database / Redis
+    cookie_state = request.cookies.get("autofy_oauth_state")
+    effective_state = state or cookie_state
+    is_valid, reason = _consume_oauth_state(db, effective_state, provider="google")
+
+    if not is_valid:
+        logger.warning(f"[OAuth][Callback] State validation failed: {reason}. Gracefully redirecting to login.")
+        return _frontend_redirect(
+            "/login",
+            {"auth_error": "Your Google sign-in session expired or was invalid. Please try signing in again."}
         )
 
+    # 3. Exchange authorization grant code for user identity profile
     try:
         google_profile = await GoogleOAuthService.exchange_code_for_user_info(code)
     except HTTPException as exc:
-        # Surface the failure to the SPA login page instead of a raw JSON error.
+        logger.error(f"[OAuth][Callback] Google userinfo/token exchange error: {exc.detail}")
         return _frontend_redirect("/login", {"auth_error": str(exc.detail)})
+    except Exception as exc:
+        logger.error(f"[OAuth][Callback] Unexpected Google token exchange exception: {exc}")
+        return _frontend_redirect("/login", {"auth_error": "Failed to exchange authorization grant with Google."})
 
     # Check if this third-party user already possesses an active Autofy profile
     normalized_email = _normalize_email(google_profile.email)

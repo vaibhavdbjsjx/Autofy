@@ -151,6 +151,20 @@ export const LoginView: React.FC<LoginProps> = ({
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
+  // Parse any auth_error query/hash params on mount (e.g. from Google OAuth callback)
+  useEffect(() => {
+    try {
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const searchParams = new URLSearchParams(window.location.search);
+      const authErr = hashParams.get("auth_error") || searchParams.get("auth_error");
+      if (authErr) {
+        setError(decodeURIComponent(authErr));
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   // Email Validation State
   const cleanEmail = email.trim();
   const isEmailValid = validateEmail(cleanEmail);
@@ -413,6 +427,20 @@ export const SignUpView: React.FC<SignUpProps> = ({
   // App stores (and privacy law) require explicit consent before an account
   // is created. We record that the user agreed to the Privacy Policy + Terms.
   const [agreed, setAgreed] = useState(false);
+
+  // Parse any auth_error query/hash params on mount
+  useEffect(() => {
+    try {
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const searchParams = new URLSearchParams(window.location.search);
+      const authErr = hashParams.get("auth_error") || searchParams.get("auth_error");
+      if (authErr) {
+        setError(decodeURIComponent(authErr));
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   // Real-time validations
   const cleanEmail = email.trim();
