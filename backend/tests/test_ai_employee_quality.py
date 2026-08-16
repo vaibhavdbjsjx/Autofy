@@ -228,3 +228,34 @@ def test_whatsapp_extract_clean_reply_prevents_json_leakage():
     clean3 = extract_clean_reply(d)
     assert clean3 == "Welcome to our salon!"
 
+
+def test_gemini_chat_output_schema_has_no_defaults():
+    """
+    Verifies that GeminiChatOutput contains NO default values, ensuring full
+    compatibility with Gemini API's response_schema constraint.
+    """
+    from services.conversation_services import GeminiChatOutput
+    from pydantic_core import PydanticUndefined
+
+    for field_name, field_info in GeminiChatOutput.model_fields.items():
+        assert field_info.default is PydanticUndefined, f"Field {field_name} must NOT have a default value in response_schema!"
+        assert field_info.default_factory is None, f"Field {field_name} must NOT have a default_factory in response_schema!"
+
+
+def test_gemini_post_parsing_fallbacks_when_fields_missing():
+    """
+    Verifies that if Gemini returns JSON with missing optional fields (e.g. only 'reply'),
+    Python post-parsing logic correctly assigns default values without schema defaults.
+    """
+    from services.conversation_services import _robust_parse_gemini_response
+
+    # JSON with only reply
+    json_str = '{"reply": "Our store is open from 9 AM to 9 PM."}'
+    parsed = _robust_parse_gemini_response(json_str, "Fallback")
+
+    assert parsed["reply"] == "Our store is open from 9 AM to 9 PM."
+    assert parsed["confidence"] == 0.95
+    assert parsed["escalate"] is False
+    assert parsed["matched_faqs"] == []
+
+

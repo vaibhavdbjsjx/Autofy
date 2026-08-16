@@ -216,11 +216,11 @@ from pydantic import BaseModel, Field
 
 
 class GeminiChatOutput(BaseModel):
-    """Pydantic schema passed to Gemini API for strict structured JSON output."""
+    """Pydantic schema passed to Gemini API for strict structured JSON output (No defaults in schema)."""
     reply: str = Field(description="The direct, helpful, polite response message to the customer")
-    confidence: float = Field(default=0.95, description="Confidence score between 0.0 and 1.0")
-    escalate: bool = Field(default=False, description="Whether to escalate to a human manager")
-    matched_faqs: List[str] = Field(default_factory=list, description="List of matched FAQ questions")
+    confidence: float = Field(description="Confidence score between 0.0 and 1.0")
+    escalate: bool = Field(description="Whether to escalate to a human manager")
+    matched_faqs: List[str] = Field(description="List of matched FAQ questions")
 
 
 def _clean_markdown_fences(text: str) -> str:
@@ -311,6 +311,7 @@ def _robust_parse_gemini_response(raw_text: str, fallback_message: str) -> Dict[
     Recovers structured data from valid, malformed, or truncated JSON.
     Guarantees that raw JSON strings or broken token fragments (e.g. '{\\n "reply": "I')
     never leak to the user.
+    Applies safe post-parsing defaults in Python.
     """
     clean_text = _clean_markdown_fences(raw_text)
     if not clean_text:
@@ -326,9 +327,20 @@ def _robust_parse_gemini_response(raw_text: str, fallback_message: str) -> Dict[
         data = json.loads(clean_text)
         if isinstance(data, dict):
             reply = _extract_reply_text(data).strip()
-            confidence = float(data.get("confidence", 0.9))
-            escalate = bool(data.get("escalate", False))
-            matched_faqs = data.get("matched_faqs", [])
+            
+            # Post-parsing Python fallbacks (no defaults in Pydantic schema)
+            conf_raw = data.get("confidence")
+            try:
+                confidence = float(conf_raw) if conf_raw is not None else 0.95
+            except (ValueError, TypeError):
+                confidence = 0.95
+
+            esc_raw = data.get("escalate")
+            escalate = bool(esc_raw) if esc_raw is not None else False
+
+            faqs_raw = data.get("matched_faqs")
+            matched_faqs = list(faqs_raw) if isinstance(faqs_raw, list) else []
+
             if _is_valid_human_reply(reply):
                 return {
                     "reply": reply,
@@ -343,9 +355,18 @@ def _robust_parse_gemini_response(raw_text: str, fallback_message: str) -> Dict[
     repaired_data = _repair_truncated_json(clean_text)
     if repaired_data and isinstance(repaired_data, dict):
         reply = _extract_reply_text(repaired_data).strip()
-        confidence = float(repaired_data.get("confidence", 0.7))
-        escalate = bool(repaired_data.get("escalate", False))
-        matched_faqs = repaired_data.get("matched_faqs", [])
+        conf_raw = repaired_data.get("confidence")
+        try:
+            confidence = float(conf_raw) if conf_raw is not None else 0.70
+        except (ValueError, TypeError):
+            confidence = 0.70
+
+        esc_raw = repaired_data.get("escalate")
+        escalate = bool(esc_raw) if esc_raw is not None else False
+
+        faqs_raw = repaired_data.get("matched_faqs")
+        matched_faqs = list(faqs_raw) if isinstance(faqs_raw, list) else []
+
         if _is_valid_human_reply(reply):
             return {
                 "reply": reply,
