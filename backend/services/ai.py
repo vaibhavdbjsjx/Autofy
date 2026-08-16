@@ -114,18 +114,34 @@ class GeminiAIService:
                 response = await client.post(url, json=prompt_payload, timeout=12.0)
                 if response.status_code == 200:
                     data = response.json()
-                    text_output = data["candidates"][0]["content"]["parts"][0]["text"]
-                    json_data = json.loads(text_output)
-                    
-                    return {
-                        "response": json_data.get("reply", fallback_msg),
-                        "confidence": float(json_data.get("confidence", 0.9)),
-                        "escalate": bool(json_data.get("escalate_support", False)) or float(json_data.get("confidence", 0.9)) < threshold
-                    }
+                    try:
+                        # Strip markdown fences if Gemini wrapped JSON in ```json
+                        cleaned_text = text_output.strip()
+                        if cleaned_text.startswith("```"):
+                            first_nl = cleaned_text.find("\n")
+                            if first_nl != -1:
+                                cleaned_text = cleaned_text[first_nl + 1:]
+                            if cleaned_text.endswith("```"):
+                                cleaned_text = cleaned_text[:-3]
+                            cleaned_text = cleaned_text.strip()
+
+                        json_data = json.loads(cleaned_text)
+                        
+                        return {
+                            "response": json_data.get("reply", fallback_msg),
+                            "confidence": float(json_data.get("confidence", 0.9)),
+                            "escalate": bool(json_data.get("escalate_support", False)) or float(json_data.get("confidence", 0.9)) < threshold
+                        }
+                    except Exception as parse_err:
+                        return {
+                            "response": fallback_msg,
+                            "confidence": 0.5,
+                            "escalate": True
+                        }
                 else:
                     return {"response": fallback_msg, "confidence": 0.0, "escalate": True}
-            except Exception as exc:
-                return {"response": f"{fallback_msg} (Error: {str(exc)})", "confidence": 0.0, "escalate": True}
+            except Exception:
+                return {"response": fallback_msg, "confidence": 0.0, "escalate": True}
 
 # Singleton instance exporter
 ai_service = GeminiAIService()

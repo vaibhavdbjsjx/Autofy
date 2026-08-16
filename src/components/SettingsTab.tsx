@@ -262,13 +262,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
     paymentMethodCard: "Visa ending in 4242"
   });
 
-  // Billing history list
-  const [invoices] = useState([
-    { id: "inv-05", date: "2026-05-20", amount: "₹14,999", status: "Paid" },
-    { id: "inv-04", date: "2026-04-20", amount: "₹14,999", status: "Paid" },
-    { id: "inv-03", date: "2026-03-20", amount: "₹14,999", status: "Paid" },
-    { id: "inv-02", date: "2026-02-20", amount: "₹9,999", status: "Paid" }
-  ]);
+  // Billing history list — empty initial state
+  const [invoices] = useState<Array<{ id: string; date: string; amount: string; status: string }>>([]);
 
   // 7. DEVELOPER API CREDENTIALS STATES
   const [primaryApiKey] = useState("No API key issued");
@@ -1222,22 +1217,30 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-900/50 text-[var(--text)] font-mono text-[11px]">
-                      {invoices.map((inv) => (
-                        <tr key={inv.id} className="hover:bg-[var(--bg-elevated)]/10 transition">
-                          <td className="py-3 px-4 font-bold text-[var(--text)]">INV-2026-00{inv.id.replace("inv-", "")}</td>
-                          <td className="py-3 px-4 text-[var(--text-muted)]">{inv.date}</td>
-                          <td className="py-3 px-4 text-[var(--text)]">{inv.amount}</td>
-                          <td className="py-3 px-4 text-emerald-450 text-emerald-400">{inv.status}</td>
-                          <td className="py-3 px-4 text-right">
-                            <button
-                              onClick={() => triggerNotification(` Initializing PDF file download for INV-${inv.id}`)}
-                              className="p-1 px-2 hover:bg-[var(--bg-elevated)] rounded transition font-bold font-sans text-blue-500 hover:text-[var(--text)] flex items-center gap-1 ml-auto cursor-pointer"
-                            >
-                              <Download className="w-3.5 h-3.5" /> PDF
-                            </button>
+                      {invoices.length > 0 ? (
+                        invoices.map((inv) => (
+                          <tr key={inv.id} className="hover:bg-[var(--bg-elevated)]/10 transition">
+                            <td className="py-3 px-4 font-bold text-[var(--text)]">INV-2026-00{inv.id.replace("inv-", "")}</td>
+                            <td className="py-3 px-4 text-[var(--text-muted)]">{inv.date}</td>
+                            <td className="py-3 px-4 text-[var(--text)]">{inv.amount}</td>
+                            <td className="py-3 px-4 text-emerald-450 text-emerald-400">{inv.status}</td>
+                            <td className="py-3 px-4 text-right">
+                              <button
+                                onClick={() => triggerNotification(` Initializing PDF file download for INV-${inv.id}`)}
+                                className="p-1 px-2 hover:bg-[var(--bg-elevated)] rounded transition font-bold font-sans text-blue-500 hover:text-[var(--text)] flex items-center gap-1 ml-auto cursor-pointer"
+                              >
+                                <Download className="w-3.5 h-3.5" /> PDF
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="py-8 px-4 text-center text-[var(--text-subtle)] font-sans">
+                            No billing history recorded yet.
                           </td>
                         </tr>
-                      ))}
+                      )}
                     </tbody>
                   </table>
                 </div>

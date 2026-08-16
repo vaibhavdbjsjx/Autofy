@@ -53,17 +53,12 @@ export const CustomerPortalTab: React.FC = () => {
   }, []);
 
   // Support list
-  const [tickets, setTickets] = useState([
-    { id: "T-889", subject: "Upgrade request lock query", status: "Resolved", date: "Yesterday, 3:14 PM" },
-    { id: "T-900", subject: "Invoicing discrepancy double hold", status: "Under Review", date: "Today, 10:45 AM" }
-  ]);
+  const [tickets, setTickets] = useState<Array<{ id: string; subject: string; status: string; date: string }>>([]);
   const [newTicketSubject, setNewTicketSubject] = useState("");
 
-  // Chat conversation simulates active business replies
+  // Chat conversation
   const [chatMessages, setChatMessages] = useState([
-    { id: 1, sender: "bot", text: "Hello! Welcome to Autofy Customer Portal Assistance. How can I guide your journey today?", time: "10:00 AM" },
-    { id: 2, sender: "client", text: "Is my physical card required for workout locker allocations?", time: "10:02 AM" },
-    { id: 3, sender: "bot", text: "Not at all, your digital client portal check-in QR is fully authenticated at the reception!", time: "10:03 AM" }
+    { id: 1, sender: "bot", text: "Hello! Welcome to the Customer Portal. How can we assist you today?", time: "Now" }
   ]);
   const [typedMessage, setTypedMessage] = useState("");
 
@@ -193,23 +188,29 @@ export const CustomerPortalTab: React.FC = () => {
             </div>
 
             <div className="space-y-3">
-              {appointments.map((appt) => (
-                <div key={appt.id} className="p-4 rounded-xl bg-white/[0.02] border border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[var(--border)] transition-colors">
-                  <div className="space-y-1">
-                    <p className="text-xs font-bold text-[var(--text)] font-sans">{appt.service}</p>
-                    <div className="flex items-center gap-3 text-[11px] text-[var(--text-muted)]">
-                      <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {appt.date} at {appt.time}</span>
-                      <span className="text-[var(--text-subtle)]">•</span>
-                      <span>Assigned: {appt.trainer}</span>
+              {appointments.length > 0 ? (
+                appointments.map((appt) => (
+                  <div key={appt.id} className="p-4 rounded-xl bg-white/[0.02] border border-[var(--border)] flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-[var(--border)] transition-colors">
+                    <div className="space-y-1">
+                      <p className="text-xs font-bold text-[var(--text)] font-sans">{appt.service}</p>
+                      <div className="flex items-center gap-3 text-[11px] text-[var(--text-muted)]">
+                        <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> {appt.date} at {appt.time}</span>
+                        <span className="text-[var(--text-subtle)]">•</span>
+                        <span>Assigned: {appt.trainer}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#A3A3A3] bg-white/[0.1] rounded">
+                        {appt.status}
+                      </span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[#A3A3A3] bg-white/[0.1] rounded">
-                      {appt.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-center py-6 text-xs text-[var(--text-subtle)] italic font-sans border border-dashed border-[var(--border)] rounded-xl">
+                  No upcoming appointments scheduled yet.
+                </p>
+              )}
             </div>
           </div>
 
@@ -374,24 +375,30 @@ export const CustomerPortalTab: React.FC = () => {
           <div className="p-6 rounded-2xl bg-white/[0.04] border border-[var(--border)] backdrop-blur-md">
             <h3 className="text-sm font-bold text-[var(--text)] uppercase tracking-wider mb-3">Recent Receipts</h3>
             <div className="space-y-3">
-              {invoices.map((inv) => (
-                <div key={inv.id} className="p-3 bg-[#111112]/50 border border-[var(--border)] rounded-xl flex items-center justify-between">
-                  <div>
-                    <h4 className="text-xs font-bold text-[var(--text)]">{inv.id}</h4>
-                    <p className="text-[10px] text-[var(--text-subtle)]">{inv.date} via {inv.method}</p>
+              {invoices.length > 0 ? (
+                invoices.map((inv) => (
+                  <div key={inv.id} className="p-3 bg-[#111112]/50 border border-[var(--border)] rounded-xl flex items-center justify-between">
+                    <div>
+                      <h4 className="text-xs font-bold text-[var(--text)]">{inv.id}</h4>
+                      <p className="text-[10px] text-[var(--text-subtle)]">{inv.date} via {inv.method}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold font-mono text-[var(--text)]">{inv.amount}</span>
+                      <button 
+                        onClick={() => alert(`Initiating receipt download for ${inv.id}`)}
+                        className="p-1.5 bg-white/[0.05] hover:bg-white/[0.12] border border-[var(--border)] rounded-lg text-[var(--text)] transition-all"
+                        title="Download Invoice"
+                      >
+                        <Download className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold font-mono text-[var(--text)]">{inv.amount}</span>
-                    <button 
-                      onClick={() => alert(`Initiating receipt download for ${inv.id}`)}
-                      className="p-1.5 bg-white/[0.05] hover:bg-white/[0.12] border border-[var(--border)] rounded-lg text-[var(--text)] transition-all"
-                      title="Download Invoice"
-                    >
-                      <Download className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-center py-4 text-xs text-[var(--text-subtle)] italic font-sans border border-dashed border-[var(--border)] rounded-xl">
+                  No payment receipts recorded yet.
+                </p>
+              )}
             </div>
           </div>
 

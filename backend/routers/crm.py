@@ -1,4 +1,5 @@
 from typing import List, Optional, Dict, Any
+from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from database import get_db
@@ -82,7 +83,7 @@ def create_crm_profile(
         tags=payload.get("tags", ""),
         purchase_history_json=json.dumps(payload.get("purchase_history", [])),
         interaction_history_json=json.dumps([
-            {"event": "Profile Configured", "date": "2026-06-20", "notes": "Customer CRM profile initiated."}
+            {"event": "Profile Configured", "date": datetime.utcnow().strftime("%Y-%m-%d"), "notes": "Customer CRM profile initiated."}
         ])
     )
     
@@ -141,7 +142,7 @@ def add_interaction_event(
     history = json.loads(profile.interaction_history_json or "[]")
     history.append({
         "event": event,
-        "date": "2026-06-20",
+        "date": payload.get("date") or datetime.utcnow().strftime("%Y-%m-%d"),
         "notes": notes
     })
     

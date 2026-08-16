@@ -227,20 +227,15 @@ class WhatsAppService:
                     target_business.whatsapp_phone_id = phone_number_id
                     db.commit()
 
-        # 4. Fallback: Auto-bind to primary/owner or first business with unassigned whatsapp_phone_id
+        # 4. Fallback: If only 1 business exists in the system (single-tenant local setup) and has no phone ID set
         if not target_business:
-            owner_biz = db.query(Business).filter(Business.email.in_(["vaibhav.sg18@gmail.com"])).first()
-            if owner_biz:
-                target_business = owner_biz
-                logger.info(f"[WHATSAPP WEBHOOK] Database lookup result: Auto-binding to owner workspace '{owner_biz.name}' (ID: {owner_biz.id})")
-            else:
-                target_business = db.query(Business).order_by(Business.created_at.asc()).first()
-                if target_business:
-                    logger.info(f"[WHATSAPP WEBHOOK] Database lookup result: Auto-binding to default workspace '{target_business.name}' (ID: {target_business.id})")
-
-            if target_business and phone_number_id:
-                target_business.whatsapp_phone_id = phone_number_id
-                db.commit()
+            all_biz = db.query(Business).all()
+            if len(all_biz) == 1 and phone_number_id:
+                target_business = all_biz[0]
+                if not target_business.whatsapp_phone_id:
+                    target_business.whatsapp_phone_id = phone_number_id
+                    db.commit()
+                logger.info(f"[WHATSAPP WEBHOOK] Single tenant auto-bound to '{target_business.name}' (ID: {target_business.id})")
 
         if not target_business:
             logger.warning(f"[WHATSAPP WEBHOOK] Unmapped WhatsApp webhook received for phone_number_id='{phone_number_id}'. Database lookup result: No business found in database.")

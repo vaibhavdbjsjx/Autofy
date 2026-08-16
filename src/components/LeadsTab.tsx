@@ -162,7 +162,8 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
   // Dynamic statistics calculator
   const stats = useMemo(() => {
     const total = crmLeads.length;
-    const newToday = crmLeads.filter(l => l.createdDate === "2026-06-20").length;
+    const todayStr = new Date().toISOString().substring(0, 10);
+    const newToday = crmLeads.filter(l => l.createdDate === todayStr).length;
     const convertedCount = crmLeads.filter(l => l.status === "Converted").length;
     const rate = total ? Math.round((convertedCount / total) * 100) : 0;
     
@@ -312,7 +313,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
       status: "New Lead",
       businessType: newLeadBizType,
       assignedTo: "Self (Owner)",
-      createdDate: "2026-06-20",
+      createdDate: new Date().toISOString().substring(0, 10),
       insights: [
         `Captured from ${newLeadSource} live sync.`,
         "Recommended pricing pitch with custom checkout link."

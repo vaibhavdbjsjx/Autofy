@@ -315,9 +315,10 @@ export const AppointmentsTab: React.FC = () => {
                   {/* Empty offsets to start June 2026 on Monday */}
                   <div className="bg-[var(--bg-elevated)]/10 border border-transparent h-14 rounded-2xl opacity-10" />
                   {currentDaysInMonth.map(day => {
-                    const dateStr = `2026-06-${day < 10 ? `0${day}` : day}`;
+                    const ym = activeDate.substring(0, 7);
+                    const dateStr = `${ym}-${day < 10 ? `0${day}` : day}`;
                     const dayBookings = appointments.filter(a => a.date === dateStr);
-                    const isToday = day === 20;
+                    const isToday = dateStr === new Date().toISOString().substring(0, 10);
 
                     return (
                       <div
@@ -389,17 +390,39 @@ export const AppointmentsTab: React.FC = () => {
               </div>
             )}
 
+            {/* DAY PREVIEW DRAWER UNDER MONTH VIEW */}
+            {calendarView === "Month" && (
+              <div className="p-4 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-2xl space-y-3">
+                <p className="text-xs font-black uppercase text-[var(--text)] tracking-wider font-mono">Day schedule: {activeDate}</p>
+                <div className="space-y-2">
+                  {appointments.filter(a => a.date === activeDate).map(apt => (
+                    <div key={apt.id} className="p-3 bg-[var(--bg-card)] border border-[var(--border)] rounded-xl flex items-center justify-between">
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-bold text-[var(--text)]">{apt.customerName} — {apt.service}</p>
+                        <p className="text-[10px] text-[var(--text-subtle)] font-mono">{apt.time} ({apt.durationMinutes} mins) • Assigned: {apt.assignedStaff}</p>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        apt.status === "Confirmed" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                      }`}>{apt.status}</span>
+                    </div>
+                  ))}
+                  {appointments.filter(a => a.date === activeDate).length === 0 && (
+                    <p className="text-center py-6 text-[var(--text-subtle)] text-xs italic font-sans">No bookings scheduled on selected day.</p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {calendarView === "Week" && (
               <div className="grid grid-cols-7 gap-2">
-                {[
-                  { name: "Mon 15", date: "2026-06-15" },
-                  { name: "Tue 16", date: "2026-06-16" },
-                  { name: "Wed 17", date: "2026-06-17" },
-                  { name: "Thu 18", date: "2026-06-18" },
-                  { name: "Fri 19", date: "2026-06-19" },
-                  { name: "Sat 20", date: "2026-06-20" },
-                  { name: "Sun 21", date: "2026-06-21" },
-                ].map((wkDay, idx) => {
+                {Array.from({ length: 7 }, (_, i) => {
+                  const curr = new Date();
+                  const first = curr.getDate() - curr.getDay() + 1 + i;
+                  const dayDate = new Date(curr.setDate(first));
+                  const dStr = dayDate.toISOString().substring(0, 10);
+                  const dayName = dayDate.toLocaleDateString("en-US", { weekday: "short", day: "numeric" });
+                  return { name: dayName, date: dStr };
+                }).map((wkDay, idx) => {
                   const bks = appointments.filter(a => a.date === wkDay.date);
                   return (
                     <div key={idx} className="p-2 bg-[var(--bg-elevated)]/35 border border-[var(--border)] rounded-xl text-center font-sans space-y-2 min-h-24">
