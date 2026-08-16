@@ -355,55 +355,76 @@ class WhatsAppService:
             lead.status = "Qualified"
         db.commit()
 
-        # 5. Process AI automated reply — enforce global and per-number controls
-        # Check 1: Global AI master switch on the business
+        # 5. Process AI automated reply — evaluate global, phone-exception, and conversation states
         import json as _json
-        if not getattr(target_business, 'ai_auto_reply_enabled', True):
-            logger.info(f"AI auto-reply globally disabled for Business {business_id}. Skipping AI reply.")
-            cust_msg_in = MessageCreate(
-                sender_type="Customer",
-                sender_id=from_phone,
-                message_type=msg_type,
-                content=message_content,
-                media_url=media_url,
-                whatsapp_message_id=msg_id,
-                status="read"
-            )
-            MessageCRUD.create(db, conv.id, cust_msg_in)
-            return {
-                "status": "ai_globally_disabled",
-                "conversation_id": conv.id,
-                "message": message_content
-            }
 
-        # Check 2: Per-number AI exceptions list
+        biz_ai_enabled = getattr(target_business, 'ai_auto_reply_enabled', True)
+        conv_ai_enabled = bool(conv.ai_enabled)
+
+        # Check phone exception list
         exception_phones = []
         if getattr(target_business, 'ai_reply_exceptions', None):
             try:
                 exception_phones = _json.loads(target_business.ai_reply_exceptions)
             except (ValueError, TypeError):
                 exception_phones = []
-        if from_phone in exception_phones:
-            logger.info(f"AI reply skipped for excluded phone {from_phone} in Business {business_id}.")
-            cust_msg_in = MessageCreate(
-                sender_type="Customer",
-                sender_id=from_phone,
-                message_type=msg_type,
-                content=message_content,
-                media_url=media_url,
-                whatsapp_message_id=msg_id,
-                status="read"
-            )
-            MessageCRUD.create(db, conv.id, cust_msg_in)
-            return {
-                "status": "ai_exception_skipped",
-                "conversation_id": conv.id,
-                "excluded_phone": from_phone,
-                "message": message_content
-            }
+        is_exception_phone = from_phone in exception_phones
 
-        # Check 3: Per-conversation AI toggle
-        if conv.ai_enabled:
+        # Auto-recover / re-enable AI for resolved threads or stale automated escalations
+        if biz_ai_enabled and not is_exception_phone:
+            # If thread was marked Resolved, new incoming message starts a fresh inquiry
+            if conv.status == "Resolved":
+                conv.status = "Active"
+                conv.ai_enabled = True
+                conv_ai_enabled = True
+                db.commit()
+                logger.info(f"Re-activated resolved conversation {conv.id} for new incoming customer message.")
+            elif not conv_ai_enabled:
+                # Check if this thread was explicitly taken over by a live human agent
+                # (i.e. an Agent message exists in this conversation thread)
+                has_human_agent_reply = db.query(Message).filter(
+                    Message.conversation_id == conv.id,
+                    Message.sender_type.in_(["Agent", "Admin", "Owner", "Staff"])
+                ).first() is not None
+
+                if not has_human_agent_reply:
+                    # Thread was only auto-escalated by a past low-confidence AI query, not an active human takeover.
+                    # Re-enable AI so new incoming customer queries can be answered automatically.
+                    conv.status = "Active"
+                    conv.ai_enabled = True
+                    conv_ai_enabled = True
+                    db.commit()
+                    logger.info(f"Auto-recovered stale escalated conversation {conv.id} to Active AI mode.")
+
+        # Determine final decision
+        should_run_ai = False
+        decision_reason = ""
+
+        if not biz_ai_enabled:
+            should_run_ai = False
+            decision_reason = "Business global AI auto-reply is disabled"
+        elif is_exception_phone:
+            should_run_ai = False
+            decision_reason = f"Phone {from_phone} is in business AI exceptions list"
+        elif not conv_ai_enabled:
+            should_run_ai = False
+            decision_reason = f"Conversation AI is disabled (status={conv.status}, active human takeover)"
+        else:
+            should_run_ai = True
+            decision_reason = "All AI conditions met"
+
+        # Mandatory detailed log showing all states and final decision
+        logger.info(
+            f"[WhatsApp AI Decision] conversation_id={conv.id} | "
+            f"business_id={business_id} | "
+            f"business.ai_auto_reply_enabled={biz_ai_enabled} | "
+            f"conversation.ai_enabled={conv_ai_enabled} | "
+            f"conversation.status={conv.status} | "
+            f"decision={'RUN_AI' if should_run_ai else 'SKIP_AI'} | "
+            f"reason='{decision_reason}'"
+        )
+
+        if should_run_ai:
             # Generates reply using our ConversationalAIService with full business and memory context
             ai_data = ConversationalAIService.reply_with_ai(db, conv.id, message_content, whatsapp_message_id=msg_id)
 
@@ -442,9 +463,7 @@ class WhatsAppService:
                 "escalate": ai_data.get("escalate") if isinstance(ai_data, dict) else getattr(ai_data, "escalate", False)
             }
         else:
-            # If AI is disabled (e.g. human representative took over / escalated state)
-            # We record client messages for human review, and keep wait
-            logger.info(f"AI disabled for Conversation {conv.id}. Received message recorded for live agent.")
+            # If AI is skipped (e.g. global kill-switch, exception phone, or active human takeover)
             cust_msg_in = MessageCreate(
                 sender_type="Customer",
                 sender_id=from_phone,
@@ -456,12 +475,9 @@ class WhatsAppService:
             )
             MessageCRUD.create(db, conv.id, cust_msg_in)
             
-            # Send notification update to manager view or trigger alarm
-            conv.status = "Escalated"
-            db.commit()
-
             return {
-                "status": "human_handling_logged",
+                "status": "ai_skipped",
                 "conversation_id": conv.id,
+                "reason": decision_reason,
                 "message": message_content
             }

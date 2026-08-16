@@ -580,7 +580,8 @@ Return output in strictly valid JSON format with keys:
 
         # Post-process response to double check human-escalation keywords
         human_keywords = ["human", "agent", "representative", "operator", "person", "manager", "support team", "live support", "speak to someone"]
-        if any(kw in incoming_message.lower() for kw in human_keywords):
+        explicit_human_request = any(kw in incoming_message.lower() for kw in human_keywords)
+        if explicit_human_request:
             escalate = True
             confidence = 0.20
             reply_text = fallback_msg
@@ -605,7 +606,8 @@ Return output in strictly valid JSON format with keys:
         # Trigger database escalation updates if escalate flag is high
         if escalate:
             conv.status = "Escalated"
-            conv.ai_enabled = False
+            if explicit_human_request:
+                conv.ai_enabled = False
             db.commit()
 
         # Save AI assistant message in database

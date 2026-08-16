@@ -259,3 +259,128 @@ def test_gemini_post_parsing_fallbacks_when_fields_missing():
     assert parsed["matched_faqs"] == []
 
 
+@pytest.mark.asyncio
+async def test_whatsapp_ai_decision_recovers_stale_escalation(db_session: Session):
+    """
+    Verifies that a conversation left in Escalated state with ai_enabled=False
+    due to a past automated low-confidence query auto-recovers to Active and replies with AI
+    when a new customer message arrives.
+    """
+    from services.whatsapp_services import WhatsAppService
+
+    biz = Business(
+        name="AutoSpares Co",
+        email="spares@example.com",
+        ai_auto_reply_enabled=True,
+        config_fallback_message="Thanks for contacting AutoSpares. How may we assist?"
+    )
+    db_session.add(biz)
+    db_session.flush()
+
+    conv = Conversation(
+        business_id=biz.id,
+        platform_sender_id="919811122233",
+        channel="WhatsApp",
+        status="Escalated",
+        ai_enabled=False
+    )
+    db_session.add(conv)
+    db_session.commit()
+
+    webhook_payload = {
+        "object": "whatsapp_business_account",
+        "entry": [{
+            "id": "BIZ_ACCT_123",
+            "changes": [{
+                "value": {
+                    "messaging_product": "whatsapp",
+                    "metadata": {"phone_number_id": "PN_123"},
+                    "contacts": [{"wa_id": "919811122233", "profile": {"name": "Rohan"}}],
+                    "messages": [{
+                        "from": "919811122233",
+                        "id": "wamid.stale.recovery.1",
+                        "timestamp": "1786880000",
+                        "text": {"body": "What are your store hours?"},
+                        "type": "text"
+                    }]
+                },
+                "field": "messages"
+            }]
+        }]
+    }
+
+    result = await WhatsAppService.process_incoming_webhook(db_session, biz.id, webhook_payload)
+
+    assert result["status"] == "ai_replied"
+    db_session.refresh(conv)
+    assert conv.ai_enabled is True
+
+
+@pytest.mark.asyncio
+async def test_whatsapp_ai_decision_respects_active_human_takeover(db_session: Session):
+    """
+    Verifies that if a real human Agent has sent a message in the thread,
+    the webhook respects the live human takeover and logs the incoming message without AI reply.
+    """
+    from services.whatsapp_services import WhatsAppService
+
+    biz = Business(
+        name="HumanCare Clinic",
+        email="care@example.com",
+        ai_auto_reply_enabled=True
+    )
+    db_session.add(biz)
+    db_session.flush()
+
+    conv = Conversation(
+        business_id=biz.id,
+        platform_sender_id="919833344455",
+        channel="WhatsApp",
+        status="Escalated",
+        ai_enabled=False
+    )
+    db_session.add(conv)
+    db_session.flush()
+
+    # Human agent message exists
+    agent_msg = Message(
+        conversation_id=conv.id,
+        sender_type="Agent",
+        sender_id="agent-dr-sharma",
+        message_type="text",
+        content="Hello Rohan, Dr. Sharma here. I am reviewing your chart now."
+    )
+    db_session.add(agent_msg)
+    db_session.commit()
+
+    webhook_payload = {
+        "object": "whatsapp_business_account",
+        "entry": [{
+            "id": "BIZ_ACCT_123",
+            "changes": [{
+                "value": {
+                    "messaging_product": "whatsapp",
+                    "metadata": {"phone_number_id": "PN_123"},
+                    "contacts": [{"wa_id": "919833344455", "profile": {"name": "Patient"}}],
+                    "messages": [{
+                        "from": "919833344455",
+                        "id": "wamid.human.takeover.1",
+                        "timestamp": "1786880001",
+                        "text": {"body": "Thank you Doctor, waiting for your reply."},
+                        "type": "text"
+                    }]
+                },
+                "field": "messages"
+            }]
+        }]
+    }
+
+    result = await WhatsAppService.process_incoming_webhook(db_session, biz.id, webhook_payload)
+
+    assert result["status"] == "ai_skipped"
+    assert "human takeover" in result["reason"]
+    db_session.refresh(conv)
+    assert conv.ai_enabled is False
+
+
+

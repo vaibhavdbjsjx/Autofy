@@ -5,6 +5,7 @@ from pydantic import BaseModel, EmailStr, Field
 from database import get_db
 from models.user import User
 from models.business import Business
+from models.conversation import Conversation
 from auth.dependencies import get_current_active_user, RoleChecker
 
 router = APIRouter(prefix="/business", tags=["Business Profiles"])
@@ -102,6 +103,12 @@ def update_business_profile(
     elif payload.name or payload.classification or payload.phone:
         business.is_onboarded = True
 
+    # If re-enabling AI auto replies on business level, re-enable active conversations
+    if payload.ai_auto_reply_enabled is True:
+        db.query(Conversation).filter(
+            Conversation.business_id == business.id
+        ).update({"ai_enabled": True}, synchronize_session=False)
+
     db.commit()
     db.refresh(business)
     return business
@@ -118,11 +125,17 @@ def toggle_ai_kill_switch(
     """
     Emergency endpoint to instantly enable/disable all AI auto-replies for this business.
     Does NOT disconnect WhatsApp — only controls whether AI generates automated responses.
+    When enabled, unlocks and synchronizes conversation-level AI states.
     """
     business = db.query(Business).filter(Business.id == current_user.business_id).first()
     if not business:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Business not found.")
     business.ai_auto_reply_enabled = payload.enabled
+    if payload.enabled:
+        # Synchronize conversation-level AI state so existing threads resume automated assistance
+        db.query(Conversation).filter(
+            Conversation.business_id == business.id
+        ).update({"ai_enabled": True}, synchronize_session=False)
     db.commit()
     db.refresh(business)
     return {
