@@ -43,6 +43,9 @@ def extract_clean_reply(response_obj: Any) -> str:
     # 3. String responses (could be plain text or a JSON string)
     if isinstance(response_obj, str):
         trimmed = response_obj.strip()
+        # Strip UTF-8 BOM
+        if trimmed.startswith("\ufeff"):
+            trimmed = trimmed[1:].strip()
         # Strip markdown code fences if wrapped in ```json ... ```
         if trimmed.startswith("```"):
             first_nl = trimmed.find("\n")
@@ -53,20 +56,34 @@ def extract_clean_reply(response_obj: Any) -> str:
             trimmed = trimmed.strip()
 
         # Check if it looks like a JSON object or contains structured reply keys
-        if ("{" in trimmed or '"reply"' in trimmed or '"content"' in trimmed or '"text"' in trimmed):
+        if ("{" in trimmed or '"reply"' in trimmed or '"content"' in trimmed or '"text"' in trimmed or '"response"' in trimmed):
             try:
                 parsed = json.loads(trimmed)
                 if isinstance(parsed, dict):
                     return extract_clean_reply(parsed)
             except Exception:
                 pass
-            
-            # Regex fallback if json.loads fails or syntax is partial/broken
-            match = re.search(r'"(?:reply|content|text|message)"\s*:\s*"((?:[^"\\]|\\.)*)"', trimmed)
-            if match:
-                return match.group(1).replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\')
 
-        return response_obj
+            # Regex full match (closed quote)
+            match = re.search(r'"(?:reply|content|text|message|response)"\s*:\s*"((?:[^"\\]|\\.)*)"', trimmed, re.DOTALL)
+            if match:
+                clean = match.group(1).replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\').strip()
+                if len(clean) >= 2 and not clean.startswith("{") and '"reply":' not in clean:
+                    return clean
+
+            # Regex partial match (for unterminated quotes like '"reply": "Hello there...')
+            partial_match = re.search(r'"(?:reply|content|text|message|response)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)', trimmed, re.DOTALL)
+            if partial_match:
+                clean_partial = partial_match.group(1).replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\').strip()
+                if len(clean_partial.split()) >= 3 and not clean_partial.startswith("{") and '"reply":' not in clean_partial:
+                    return clean_partial
+
+            # If it still contains raw JSON or brackets (e.g. '{\n  "reply": "I'), do not leak it to customer
+            if trimmed.startswith("{") or trimmed.startswith("[") or '"reply":' in trimmed:
+                logger.warning(f"Prevented broken JSON fragment from leaking to WhatsApp: {trimmed[:60]}")
+                return "Thank you for reaching out! Our team has received your message and will assist you shortly."
+
+        return trimmed if len(trimmed) >= 2 else "Thank you for reaching out! How can we help you today?"
 
     return str(response_obj)
 

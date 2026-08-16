@@ -114,28 +114,50 @@ class GeminiAIService:
                 response = await client.post(url, json=prompt_payload, timeout=12.0)
                 if response.status_code == 200:
                     data = response.json()
-                    try:
-                        # Strip markdown fences if Gemini wrapped JSON in ```json
-                        cleaned_text = text_output.strip()
-                        if cleaned_text.startswith("```"):
-                            first_nl = cleaned_text.find("\n")
-                            if first_nl != -1:
-                                cleaned_text = cleaned_text[first_nl + 1:]
-                            if cleaned_text.endswith("```"):
-                                cleaned_text = cleaned_text[:-3]
-                            cleaned_text = cleaned_text.strip()
+                    candidates = data.get("candidates", [])
+                    raw_text = ""
+                    if candidates:
+                        parts = candidates[0].get("content", {}).get("parts", [])
+                        if parts:
+                            raw_text = parts[0].get("text", "")
 
-                        json_data = json.loads(cleaned_text)
-                        
+                    if not raw_text:
+                        return {"response": fallback_msg, "confidence": 0.0, "escalate": True}
+
+                    # Clean markdown code fences
+                    cleaned = raw_text.strip()
+                    if cleaned.startswith("```"):
+                        first_nl = cleaned.find("\n")
+                        if first_nl != -1:
+                            cleaned = cleaned[first_nl + 1:]
+                        if cleaned.endswith("```"):
+                            cleaned = cleaned[:-3]
+                        cleaned = cleaned.strip()
+
+                    try:
+                        json_data = json.loads(cleaned)
+                        reply_val = json_data.get("reply", fallback_msg) if isinstance(json_data, dict) else fallback_msg
+                        conf_val = float(json_data.get("confidence", 0.9)) if isinstance(json_data, dict) else 0.5
+                        esc_val = bool(json_data.get("escalate_support", False)) if isinstance(json_data, dict) else False
                         return {
-                            "response": json_data.get("reply", fallback_msg),
-                            "confidence": float(json_data.get("confidence", 0.9)),
-                            "escalate": bool(json_data.get("escalate_support", False)) or float(json_data.get("confidence", 0.9)) < threshold
+                            "response": reply_val,
+                            "confidence": conf_val,
+                            "escalate": esc_val or conf_val < threshold
                         }
-                    except Exception as parse_err:
+                    except Exception:
+                        # Regex extraction fallback for unclosed strings
+                        import re
+                        match = re.search(r'"(?:reply|response|content|text)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)', cleaned)
+                        if match and len(match.group(1).strip()) >= 3 and not match.group(1).startswith("{"):
+                            extracted = match.group(1).replace('\\n', '\n').replace('\\"', '"').strip()
+                            return {
+                                "response": extracted,
+                                "confidence": 0.7,
+                                "escalate": False
+                            }
                         return {
                             "response": fallback_msg,
-                            "confidence": 0.5,
+                            "confidence": 0.0,
                             "escalate": True
                         }
                 else:

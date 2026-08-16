@@ -172,3 +172,59 @@ def test_ai_malformed_and_edge_case_inputs(db_session: Session):
     )
     assert res_huge is not None
     assert "reply" in res_huge
+
+
+def test_robust_parse_gemini_truncated_unterminated_string():
+    """
+    Tests the exact Render log bug: Gemini returns truncated/unterminated JSON
+    e.g. '{\n  "reply": "I' -> must not crash and must return clean fallback.
+    """
+    from services.conversation_services import _robust_parse_gemini_response
+
+    fallback = "Thank you for reaching out to Autofy. How can we help you?"
+    
+    # 1. Truncated single token fragment: {"reply": "I
+    res1 = _robust_parse_gemini_response('{\n  "reply": "I', fallback)
+    assert res1["reply"] == fallback
+    assert "{" not in res1["reply"]
+    assert '"reply":' not in res1["reply"]
+
+    # 2. Unterminated multi-word reply: {"reply": "Hello! Welcome to our store. We are open until 8 PM
+    res2 = _robust_parse_gemini_response('{\n  "reply": "Hello! Welcome to our store. We are open until 8 PM', fallback)
+    assert "Hello! Welcome to our store. We are open until 8 PM" in res2["reply"]
+    assert "{" not in res2["reply"]
+
+    # 3. Code-fenced markdown JSON
+    fenced = '```json\n{\n  "reply": "Our gym opens at 6 AM every day.",\n  "confidence": 0.95,\n  "escalate": false\n}\n```'
+    res3 = _robust_parse_gemini_response(fenced, fallback)
+    assert res3["reply"] == "Our gym opens at 6 AM every day."
+    assert res3["confidence"] == 0.95
+
+    # 4. Pure plain text from model
+    plain = "Hello! We offer premium car wash and detailing services."
+    res4 = _robust_parse_gemini_response(plain, fallback)
+    assert res4["reply"] == plain
+
+
+def test_whatsapp_extract_clean_reply_prevents_json_leakage():
+    """
+    Verifies that extract_clean_reply in whatsapp_services never sends raw JSON syntax or broken token fragments to WhatsApp users.
+    """
+    from services.whatsapp_services import extract_clean_reply
+
+    # 1. Broken JSON snippet
+    broken = '{\n  "reply": "I'
+    clean = extract_clean_reply(broken)
+    assert "{" not in clean
+    assert '"reply"' not in clean
+
+    # 2. Full JSON string
+    full_json = '{"reply": "Appointments start at ₹500.", "confidence": 0.9}'
+    clean2 = extract_clean_reply(full_json)
+    assert clean2 == "Appointments start at ₹500."
+
+    # 3. Dict with reply key
+    d = {"reply": "Welcome to our salon!", "confidence": 0.95}
+    clean3 = extract_clean_reply(d)
+    assert clean3 == "Welcome to our salon!"
+

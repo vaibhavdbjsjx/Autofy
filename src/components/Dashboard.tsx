@@ -873,7 +873,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* DESKTOP FIXED SIDEBAR */}
       <aside
-        className="hidden h-screen w-[280px] shrink-0 flex-col p-6 md:flex lg:w-[300px] overflow-hidden select-none"
+        id="autofy-sidebar"
+        className="hidden h-screen h-[100dvh] w-[280px] shrink-0 flex-col p-6 md:flex lg:w-[300px] overflow-hidden select-none"
         style={{
           background: "var(--sidebar)",
           backdropFilter: "blur(24px)",
@@ -883,11 +884,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <SidebarContent />
       </aside>
 
-      {/* MAIN COLUMN */}
-      <main className="relative z-10 flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
-        {/* TOP NAVIGATION (FIXED/STICKY) */}
+      {/* RIGHT SECTION: Main Column with sticky header and independent scrollable content */}
+      <main
+        id="autofy-main-section"
+        className="relative z-10 flex h-screen h-[100dvh] min-w-0 flex-1 flex-col overflow-hidden"
+      >
+        {/* TOP NAVIGATION (FIXED/STICKY AT TOP) */}
         <header
-          className="shrink-0 z-30 sticky top-0 grid h-[64px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 sm:px-6 glass-nav"
+          id="autofy-dashboard-header"
+          className="shrink-0 z-30 grid h-[64px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 sm:px-6 glass-nav"
           style={{ borderColor: "var(--border)" }}
         >
           <div className="flex min-w-0 items-center gap-3">
@@ -1075,8 +1080,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </header>
 
-        {/* PAGE BODY — single spacing rhythm, single max width */}
-        <div className="relative z-10 mx-auto w-full max-w-[1480px] flex-1 min-h-0 overflow-y-auto px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 scrollbar-thin">
+        {/* CONTENT CONTAINER: The ONLY vertical scrolling area for dashboard content */}
+        <div
+          id="dashboard-scroll-viewport"
+          className="relative z-10 flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden scrollbar-thin"
+          style={{
+            WebkitOverflowScrolling: "touch",
+            overscrollBehavior: "contain",
+          }}
+        >
+          <div className="mx-auto w-full max-w-[1480px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
 
           {/* Toast alert */}
           <AnimatePresence>
@@ -1878,6 +1891,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </AnimatePresence>
           )}
 
+          </div>
         </div>
       </main>
 

@@ -212,32 +212,190 @@ class BusinessKnowledgeService:
         }
 
 
-def _extract_reply_text(data: dict) -> str:
-    """Safely extract only the human-readable reply string from the parsed AI response dict.
-    Handles: plain str, nested dict with 'reply' key, Pydantic-like objects, and fallback."""
+from pydantic import BaseModel, Field
+
+
+class GeminiChatOutput(BaseModel):
+    """Pydantic schema passed to Gemini API for strict structured JSON output."""
+    reply: str = Field(description="The direct, helpful, polite response message to the customer")
+    confidence: float = Field(default=0.95, description="Confidence score between 0.0 and 1.0")
+    escalate: bool = Field(default=False, description="Whether to escalate to a human manager")
+    matched_faqs: List[str] = Field(default_factory=list, description="List of matched FAQ questions")
+
+
+def _clean_markdown_fences(text: str) -> str:
+    """Strips markdown code fences (```json ... ```), BOMs, and leading/trailing whitespace."""
+    if not text:
+        return ""
+    cleaned = text.strip()
+    if cleaned.startswith("\ufeff"):
+        cleaned = cleaned[1:].strip()
+    if cleaned.startswith("```"):
+        first_nl = cleaned.find("\n")
+        if first_nl != -1:
+            cleaned = cleaned[first_nl + 1:]
+        else:
+            cleaned = cleaned[3:]
+        if cleaned.endswith("```"):
+            cleaned = cleaned[:-3]
+        cleaned = cleaned.strip()
+    return cleaned
+
+
+def _is_valid_human_reply(text: str) -> bool:
+    """Validates that a candidate reply is human-readable and not a raw JSON snippet, empty string, or truncated token."""
+    if not text or not isinstance(text, str):
+        return False
+    trimmed = text.strip()
+    if len(trimmed) < 2:
+        return False
+    # Reject raw JSON syntax or opening bracket fragments
+    if trimmed.startswith("{") or trimmed.startswith("[") or trimmed.endswith("}"):
+        return False
+    if '"reply":' in trimmed or '"confidence":' in trimmed or '"escalate":' in trimmed:
+        return False
+    return True
+
+
+def _repair_truncated_json(raw_json: str) -> Optional[dict]:
+    """Attempts to repair common JSON truncation and syntax anomalies (e.g. missing quotes/braces)."""
+    if not raw_json or "{" not in raw_json:
+        return None
+
+    candidate = raw_json.strip()
+    
+    # 1. Direct parse attempt
+    try:
+        data = json.loads(candidate)
+        if isinstance(data, dict):
+            return data
+    except Exception:
+        pass
+
+    # 2. Try completing unclosed string quotes and curly braces
+    repairs = [
+        candidate + '"}',
+        candidate + '"}}',
+        candidate + '"]}',
+        candidate + '}',
+        candidate + '"}'
+    ]
+    for rep in repairs:
+        try:
+            data = json.loads(rep)
+            if isinstance(data, dict) and "reply" in data:
+                return data
+        except Exception:
+            continue
+
+    return None
+
+
+def _extract_reply_text(data: Any) -> str:
+    """Safely extract only the human-readable reply string from parsed data."""
+    if not isinstance(data, dict):
+        return ""
     raw = data.get("reply", "")
-    # If reply is a nested dict (rare edge case from Gemini), dig into it
     if isinstance(raw, dict):
         return str(raw.get("reply", raw.get("text", raw.get("message", str(raw)))))
-    # If reply is some other non-string type, coerce safely
     if not isinstance(raw, str):
-        # Pydantic model or dataclass
         if hasattr(raw, "reply"):
             return str(raw.reply)
         return str(raw)
     return raw
 
 
-def _extract_reply_from_raw(raw_text: str) -> str:
-    """Last-resort extraction: try to pull the 'reply' value from a raw JSON-like string
-    using regex when json.loads fails (e.g., trailing commas, broken formatting)."""
-    # Try regex extraction for the reply field
-    match = re.search(r'"reply"\s*:\s*"((?:[^"\\]|\\.)*)"', raw_text)
-    if match:
-        # Unescape basic JSON escapes
-        return match.group(1).replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\')
-    # If regex also fails, return the raw text as-is (better than nothing)
-    return raw_text
+def _robust_parse_gemini_response(raw_text: str, fallback_message: str) -> Dict[str, Any]:
+    """
+    Multi-tier resilient extractor that parses Gemini responses.
+    Recovers structured data from valid, malformed, or truncated JSON.
+    Guarantees that raw JSON strings or broken token fragments (e.g. '{\\n "reply": "I')
+    never leak to the user.
+    """
+    clean_text = _clean_markdown_fences(raw_text)
+    if not clean_text:
+        return {
+            "reply": fallback_message,
+            "confidence": 0.0,
+            "escalate": True,
+            "matched_faqs": []
+        }
+
+    # Tier 1: Direct JSON parsing
+    try:
+        data = json.loads(clean_text)
+        if isinstance(data, dict):
+            reply = _extract_reply_text(data).strip()
+            confidence = float(data.get("confidence", 0.9))
+            escalate = bool(data.get("escalate", False))
+            matched_faqs = data.get("matched_faqs", [])
+            if _is_valid_human_reply(reply):
+                return {
+                    "reply": reply,
+                    "confidence": confidence,
+                    "escalate": escalate,
+                    "matched_faqs": matched_faqs
+                }
+    except Exception:
+        pass
+
+    # Tier 2: Truncated JSON Repair
+    repaired_data = _repair_truncated_json(clean_text)
+    if repaired_data and isinstance(repaired_data, dict):
+        reply = _extract_reply_text(repaired_data).strip()
+        confidence = float(repaired_data.get("confidence", 0.7))
+        escalate = bool(repaired_data.get("escalate", False))
+        matched_faqs = repaired_data.get("matched_faqs", [])
+        if _is_valid_human_reply(reply):
+            return {
+                "reply": reply,
+                "confidence": confidence,
+                "escalate": escalate,
+                "matched_faqs": matched_faqs
+            }
+
+    # Tier 3: Regex Extraction with complete quotes
+    match_full = re.search(r'"(?:reply|response|content|text|message)"\s*:\s*"((?:[^"\\]|\\.)*)"', clean_text, re.DOTALL)
+    if match_full:
+        unescaped = match_full.group(1).replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\').strip()
+        if _is_valid_human_reply(unescaped):
+            return {
+                "reply": unescaped,
+                "confidence": 0.75,
+                "escalate": False,
+                "matched_faqs": []
+            }
+
+    # Tier 4: Regex Extraction for unterminated quotes (e.g. '"reply": "Hello how can I...')
+    match_partial = re.search(r'"(?:reply|response|content|text|message)"\s*:\s*"([^"\\]*(?:\\.[^"\\]*)*)', clean_text, re.DOTALL)
+    if match_partial:
+        unescaped = match_partial.group(1).replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\').strip()
+        if _is_valid_human_reply(unescaped) and len(unescaped.split()) >= 3:
+            return {
+                "reply": unescaped,
+                "confidence": 0.70,
+                "escalate": False,
+                "matched_faqs": []
+            }
+
+    # Tier 5: Pure plain text (if Gemini generated normal text without JSON wrapping)
+    if not clean_text.startswith("{") and not clean_text.startswith("[") and '"reply"' not in clean_text:
+        if _is_valid_human_reply(clean_text):
+            return {
+                "reply": clean_text,
+                "confidence": 0.80,
+                "escalate": False,
+                "matched_faqs": []
+            }
+
+    # Safe Fallback: Never return broken JSON fragments (like '{\n  "reply": "I') to customer
+    logger.warning(f"Unrecoverable Gemini output or truncated fragment. Using fallback. Raw text was: {clean_text[:100]}")
+    return {
+        "reply": fallback_message,
+        "confidence": 0.0,
+        "escalate": True,
+        "matched_faqs": []
+    }
 
 
 class ConversationalAIService:
@@ -365,42 +523,28 @@ Return output in strictly valid JSON format with keys:
                     http_options={"headers": {"User-Agent": "aistudio-build"}}
                 )
                 
-                # Fetch output from gemini-3.5-flash with bounded token limit
+                # Fetch output from gemini-3.5-flash with structured schema enforcement & generous token bounds
                 response = client.models.generate_content(
                     model="gemini-3.5-flash",
                     contents=system_prompt,
                     config=types.GenerateContentConfig(
                         response_mime_type="application/json",
+                        response_schema=GeminiChatOutput,
                         temperature=0.1,
-                        max_output_tokens=600
+                        max_output_tokens=1200
                     )
                 )
 
                 if response and response.text:
-                    clean_res = response.text.strip()
-                    # Strip markdown code fences if Gemini wraps output in ```json ... ```
-                    if clean_res.startswith("```"):
-                        # Remove opening fence (```json or ```)
-                        first_newline = clean_res.find("\n")
-                        if first_newline != -1:
-                            clean_res = clean_res[first_newline + 1:]
-                        # Remove closing fence
-                        if clean_res.endswith("```"):
-                            clean_res = clean_res[:-3]
-                        clean_res = clean_res.strip()
-                    # Parse JSON safely
-                    try:
-                        data = json.loads(clean_res)
-                        reply_text = _extract_reply_text(data)
-                        confidence = float(data.get("confidence", 0.5))
-                        escalate = bool(data.get("escalate", False))
-                        matched_faqs = data.get("matched_faqs", [])
-                    except Exception as parse_err:
-                        logger.warning(f"Error parsing Gemini JSON: {parse_err}. Raw text: {clean_res}")
-                        # Attempt to extract just the reply field even on parse failure
-                        reply_text = _extract_reply_from_raw(clean_res)
-                        if "escalate" in clean_res.lower() or "human" in incoming_message.lower():
-                            escalate = True
+                    parsed_result = _robust_parse_gemini_response(response.text, fallback_msg)
+                    reply_text = parsed_result.get("reply", fallback_msg)
+                    confidence = float(parsed_result.get("confidence", 0.9))
+                    escalate = bool(parsed_result.get("escalate", False))
+                    matched_faqs = parsed_result.get("matched_faqs", [])
+                else:
+                    reply_text = fallback_msg
+                    confidence = 0.0
+                    escalate = True
             except Exception as gem_err:
                 logger.error(f"Gemini generation failure: {gem_err}")
                 reply_text = fallback_msg
