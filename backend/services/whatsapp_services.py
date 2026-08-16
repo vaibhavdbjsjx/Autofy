@@ -1,4 +1,6 @@
 import os
+import re
+import json
 import logging
 from typing import Optional, Dict, Any, List
 import httpx
@@ -8,6 +10,66 @@ from schemas.conversations import ConversationCreate, MessageCreate
 from models.lead import Lead
 
 logger = logging.getLogger("autofy_whatsapp_services")
+
+
+def extract_clean_reply(response_obj: Any) -> str:
+    """
+    Extracts purely the customer-facing reply text from various AI response structures:
+    - Dicts: {"reply": "...", "confidence": ...} -> "..."
+    - Pydantic models: AIResponseOutput, MessageCreate, etc. -> extracts .reply or .content
+    - JSON strings: '{"reply": "...", ...}' -> extracts reply field
+    - Plain strings / other objects -> clean string
+    """
+    if response_obj is None:
+        return ""
+
+    # 1. Pydantic BaseModel or object with attributes
+    if hasattr(response_obj, "reply") and not isinstance(response_obj, (dict, str)):
+        return extract_clean_reply(getattr(response_obj, "reply"))
+    if hasattr(response_obj, "content") and not isinstance(response_obj, (dict, str)):
+        return extract_clean_reply(getattr(response_obj, "content"))
+    if hasattr(response_obj, "model_dump") and callable(getattr(response_obj, "model_dump")):
+        return extract_clean_reply(response_obj.model_dump())
+    if hasattr(response_obj, "dict") and callable(getattr(response_obj, "dict")):
+        return extract_clean_reply(response_obj.dict())
+
+    # 2. Dictionary responses
+    if isinstance(response_obj, dict):
+        for key in ("reply", "content", "text", "message", "response"):
+            if key in response_obj and response_obj[key]:
+                return extract_clean_reply(response_obj[key])
+        return str(response_obj)
+
+    # 3. String responses (could be plain text or a JSON string)
+    if isinstance(response_obj, str):
+        trimmed = response_obj.strip()
+        # Strip markdown code fences if wrapped in ```json ... ```
+        if trimmed.startswith("```"):
+            first_nl = trimmed.find("\n")
+            if first_nl != -1:
+                trimmed = trimmed[first_nl + 1:]
+            if trimmed.endswith("```"):
+                trimmed = trimmed[:-3]
+            trimmed = trimmed.strip()
+
+        # Check if it looks like a JSON object or contains structured reply keys
+        if ("{" in trimmed or '"reply"' in trimmed or '"content"' in trimmed or '"text"' in trimmed):
+            try:
+                parsed = json.loads(trimmed)
+                if isinstance(parsed, dict):
+                    return extract_clean_reply(parsed)
+            except Exception:
+                pass
+            
+            # Regex fallback if json.loads fails or syntax is partial/broken
+            match = re.search(r'"(?:reply|content|text|message)"\s*:\s*"((?:[^"\\]|\\.)*)"', trimmed)
+            if match:
+                return match.group(1).replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\')
+
+        return response_obj
+
+    return str(response_obj)
+
 
 class WhatsAppService:
     @staticmethod
@@ -31,20 +93,25 @@ class WhatsAppService:
     async def send_whatsapp_message(
         phone_number_id: Optional[str],
         to_phone: str,
-        message_body: str,
+        message_body: Any,
         media_url: Optional[str] = None,
         media_type: Optional[str] = None # 'image', 'document', 'audio', 'video'
     ) -> Dict[str, Any]:
         """
         Transmits outgoing messages to the WhatsApp Business Graph API endpoints.
+        Automatically cleans and extracts only the plain text reply if a dict,
+        JSON string, or Pydantic model is supplied as message_body.
         """
         from config import settings
         token = WhatsAppService.get_token()
         pid = phone_number_id or getattr(settings, "WHATSAPP_PHONE_ID", "1256189660910549")
 
+        # Sanitize message_body to extract plain text string
+        clean_text = extract_clean_reply(message_body)
+
         # If token is missing, log message and return dev fallback
         if not token or "MOCK" in pid:
-            logger.info(f"[WHATSAPP MOCK] Outgoing message to {to_phone}: {message_body} (Media: {media_url})")
+            logger.info(f"[WHATSAPP MOCK] Outgoing message to {to_phone}: {clean_text} (Media: {media_url})")
             import uuid
             return {
                 "messaging_product": "whatsapp",
@@ -65,20 +132,20 @@ class WhatsAppService:
         if media_url:
             if media_type == "image":
                 payload["type"] = "image"
-                payload["image"] = {"link": media_url, "caption": message_body}
+                payload["image"] = {"link": media_url, "caption": clean_text}
             elif media_type == "document":
                 payload["type"] = "document"
-                payload["document"] = {"link": media_url, "caption": message_body, "filename": "DocumentFile"}
+                payload["document"] = {"link": media_url, "caption": clean_text, "filename": "DocumentFile"}
             elif media_type == "video":
                 payload["type"] = "video"
-                payload["video"] = {"link": media_url, "caption": message_body}
+                payload["video"] = {"link": media_url, "caption": clean_text}
             else:
                 # Default text messaging
                 payload["type"] = "text"
-                payload["text"] = {"preview_url": True, "body": f"{message_body}\nAttachment: {media_url}"}
+                payload["text"] = {"preview_url": True, "body": f"{clean_text}\nAttachment: {media_url}"}
         else:
             payload["type"] = "text"
-            payload["text"] = {"preview_url": True, "body": message_body}
+            payload["text"] = {"preview_url": True, "body": clean_text}
 
         async with httpx.AsyncClient() as client:
             try:
@@ -332,12 +399,15 @@ class WhatsAppService:
             phone_metadata = value.get("metadata", {})
             phone_number_id = phone_metadata.get("phone_number_id", "MOCK_PHONE_ID")
 
+            # Extract purely the plain text reply (safely handles dict, Pydantic, JSON string, etc.)
+            clean_reply = extract_clean_reply(ai_data)
+
             try:
                 # Dispatch real API POST request to WhatsApp
                 whatsapp_res = await WhatsAppService.send_whatsapp_message(
                     phone_number_id=phone_number_id,
                     to_phone=from_phone,
-                    message_body=ai_data["reply"]
+                    message_body=clean_reply
                 )
                 
                 # Fetch output message records to update the WhatsApp message ID
@@ -355,9 +425,9 @@ class WhatsAppService:
             return {
                 "status": "ai_replied",
                 "conversation_id": conv.id,
-                "reply": ai_data["reply"],
-                "confidence": ai_data["confidence"],
-                "escalate": ai_data["escalate"]
+                "reply": clean_reply,
+                "confidence": ai_data.get("confidence") if isinstance(ai_data, dict) else getattr(ai_data, "confidence", 0.5),
+                "escalate": ai_data.get("escalate") if isinstance(ai_data, dict) else getattr(ai_data, "escalate", False)
             }
         else:
             # If AI is disabled (e.g. human representative took over / escalated state)

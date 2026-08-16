@@ -1526,6 +1526,15 @@ function OAuthCallback() {
       });
 
       const isOnboarded = params.get("is_onboarded") === "true";
+      try {
+        sessionStorage.setItem(
+          "autofy_onboarded_state",
+          JSON.stringify({ is_onboarded: isOnboarded, timestamp: Date.now() })
+        );
+      } catch {
+        /* storage unavailable — ignore */
+      }
+
       if (!isOnboarded) {
         navigate("/onboarding", { replace: true });
       } else {
@@ -1537,11 +1546,30 @@ function OAuthCallback() {
   }, [navigate]);
 
   return (
-    <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex",
-      alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: 36, height: 36, border: "3px solid var(--border)",
-        borderTopColor: "var(--brand)", borderRadius: "50%",
-        animation: "spin 0.8s linear infinite" }} />
+    <div
+      style={{
+        minHeight: "100vh",
+        background: "var(--bg)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "16px",
+      }}
+    >
+      <div
+        style={{
+          width: 40,
+          height: 40,
+          border: "3px solid var(--border)",
+          borderTopColor: "var(--brand)",
+          borderRadius: "50%",
+          animation: "spin 0.8s linear infinite",
+        }}
+      />
+      <p style={{ color: "var(--text-muted)", fontSize: "14px", fontWeight: 600 }}>
+        Authenticating & launching Autofy OS...
+      </p>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );

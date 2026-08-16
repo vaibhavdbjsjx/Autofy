@@ -362,3 +362,124 @@ def test_message_status_update_webhook(client: TestClient, db_session):
 
     db_session.refresh(msg)
     assert msg.status == "delivered"
+
+
+def test_extract_clean_reply_formats():
+    from services.whatsapp_services import extract_clean_reply
+    from schemas.conversations import AIResponseOutput
+
+    # 1. Plain string
+    assert extract_clean_reply("Hello customer!") == "Hello customer!"
+
+    # 2. Dictionary with reply key
+    dict_resp = {
+        "reply": "Welcome to Vaibhav's Studio! How can I help?",
+        "confidence": 0.95,
+        "escalate": False,
+        "matched_faqs": []
+    }
+    assert extract_clean_reply(dict_resp) == "Welcome to Vaibhav's Studio! How can I help?"
+
+    # 3. JSON string
+    json_str = '{"reply": "We are open from 9 AM to 6 PM.", "confidence": 0.9}'
+    assert extract_clean_reply(json_str) == "We are open from 9 AM to 6 PM."
+
+    # 4. Markdown code fenced JSON string
+    fenced_json = """```json
+{
+  "reply": "Fenced markdown reply to customer.",
+  "confidence": 0.98,
+  "escalate": false
+}
+```"""
+    assert extract_clean_reply(fenced_json) == "Fenced markdown reply to customer."
+
+    # 5. Pydantic Model
+    pydantic_obj = AIResponseOutput(
+        content="Pydantic response message content.",
+        confidence_score=0.92,
+        matched_faqs=[],
+        escalated_to_human=False
+    )
+    assert extract_clean_reply(pydantic_obj) == "Pydantic response message content."
+
+    # 6. Malformed JSON with regex fallback
+    malformed = '{"reply": "Parsed with regex successfully!", "confidence": 0.85, broken_json_here'
+    assert extract_clean_reply(malformed) == "Parsed with regex successfully!"
+
+
+def test_webhook_dispatches_only_plain_text_reply(client: TestClient, db_session, monkeypatch):
+    """
+    Verifies that when AI returns a full metadata dictionary, the outgoing WhatsApp message
+    sent to the customer contains ONLY the clean text reply and not JSON keys or metadata.
+    """
+    biz = Business(
+        id="biz-clean-reply-1",
+        name="Clean Studio",
+        classification="Studio",
+        email="studio@autofy.com",
+        phone="+919999988888",
+        whatsapp_phone_id="phone_id_clean_studio"
+    )
+    db_session.add(biz)
+    db_session.commit()
+
+    captured_outbound = {}
+
+    async def mock_send_whatsapp_message(phone_number_id, to_phone, message_body, **kwargs):
+        captured_outbound["phone_number_id"] = phone_number_id
+        captured_outbound["to_phone"] = to_phone
+        captured_outbound["message_body"] = message_body
+        return {
+            "messaging_product": "whatsapp",
+            "messages": [{"id": "wamid.outbound_clean_test"}]
+        }
+
+    monkeypatch.setattr("services.whatsapp_services.WhatsAppService.send_whatsapp_message", mock_send_whatsapp_message)
+
+    # Return full AI dictionary from ConversationalAIService
+    def mock_full_ai_dict(*args, **kwargs):
+        return {
+            "reply": "Hello! Welcome to Clean Studio. How can I assist you?",
+            "confidence": 0.97,
+            "escalate": False,
+            "matched_faqs": ["Hours FAQ"]
+        }
+
+    monkeypatch.setattr("services.conversation_services.ConversationalAIService.reply_with_ai", mock_full_ai_dict)
+
+    payload = {
+        "object": "whatsapp_business_account",
+        "entry": [{
+            "id": "waba_clean",
+            "changes": [{
+                "value": {
+                    "messaging_product": "whatsapp",
+                    "metadata": {"phone_number_id": "phone_id_clean_studio"},
+                    "contacts": [{"profile": {"name": "Test User"}, "wa_id": "919988776655"}],
+                    "messages": [{
+                        "from": "919988776655",
+                        "id": "wamid.inbound_clean_1",
+                        "type": "text",
+                        "text": {"body": "Hi there!"}
+                    }]
+                },
+                "field": "messages"
+            }]
+        }]
+    }
+
+    res = client.post("/api/v1/whatsapp/webhook", json=payload)
+    assert res.status_code == 200
+    res_data = res.json()
+
+    # The webhook response retains internal metadata
+    assert res_data["status"] == "ai_replied"
+    assert res_data["confidence"] == 0.97
+    assert res_data["escalate"] is False
+
+    # The outbound WhatsApp message sent to the customer MUST be strictly the plain text string
+    assert captured_outbound["message_body"] == "Hello! Welcome to Clean Studio. How can I assist you?"
+    assert "{" not in captured_outbound["message_body"]
+    assert "confidence" not in captured_outbound["message_body"]
+    assert "escalate" not in captured_outbound["message_body"]

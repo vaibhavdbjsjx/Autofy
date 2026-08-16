@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import logging
 from typing import List, Optional, Tuple, Dict, Any
@@ -211,6 +212,34 @@ class BusinessKnowledgeService:
         }
 
 
+def _extract_reply_text(data: dict) -> str:
+    """Safely extract only the human-readable reply string from the parsed AI response dict.
+    Handles: plain str, nested dict with 'reply' key, Pydantic-like objects, and fallback."""
+    raw = data.get("reply", "")
+    # If reply is a nested dict (rare edge case from Gemini), dig into it
+    if isinstance(raw, dict):
+        return str(raw.get("reply", raw.get("text", raw.get("message", str(raw)))))
+    # If reply is some other non-string type, coerce safely
+    if not isinstance(raw, str):
+        # Pydantic model or dataclass
+        if hasattr(raw, "reply"):
+            return str(raw.reply)
+        return str(raw)
+    return raw
+
+
+def _extract_reply_from_raw(raw_text: str) -> str:
+    """Last-resort extraction: try to pull the 'reply' value from a raw JSON-like string
+    using regex when json.loads fails (e.g., trailing commas, broken formatting)."""
+    # Try regex extraction for the reply field
+    match = re.search(r'"reply"\s*:\s*"((?:[^"\\]|\\.)*)"', raw_text)
+    if match:
+        # Unescape basic JSON escapes
+        return match.group(1).replace('\\n', '\n').replace('\\"', '"').replace('\\\\', '\\')
+    # If regex also fails, return the raw text as-is (better than nothing)
+    return raw_text
+
+
 class ConversationalAIService:
     @staticmethod
     def reply_with_ai(db: Session, conversation_id: str, incoming_message: str, whatsapp_message_id: Optional[str] = None) -> Dict[str, Any]:
@@ -345,16 +374,27 @@ Return output in strictly valid JSON format with keys:
 
                 if response and response.text:
                     clean_res = response.text.strip()
+                    # Strip markdown code fences if Gemini wraps output in ```json ... ```
+                    if clean_res.startswith("```"):
+                        # Remove opening fence (```json or ```)
+                        first_newline = clean_res.find("\n")
+                        if first_newline != -1:
+                            clean_res = clean_res[first_newline + 1:]
+                        # Remove closing fence
+                        if clean_res.endswith("```"):
+                            clean_res = clean_res[:-3]
+                        clean_res = clean_res.strip()
                     # Parse JSON safely
                     try:
                         data = json.loads(clean_res)
-                        reply_text = data.get("reply", "")
+                        reply_text = _extract_reply_text(data)
                         confidence = float(data.get("confidence", 0.5))
                         escalate = bool(data.get("escalate", False))
                         matched_faqs = data.get("matched_faqs", [])
                     except Exception as parse_err:
                         logger.warning(f"Error parsing Gemini JSON: {parse_err}. Raw text: {clean_res}")
-                        reply_text = clean_res
+                        # Attempt to extract just the reply field even on parse failure
+                        reply_text = _extract_reply_from_raw(clean_res)
                         if "escalate" in clean_res.lower() or "human" in incoming_message.lower():
                             escalate = True
             except Exception as gem_err:

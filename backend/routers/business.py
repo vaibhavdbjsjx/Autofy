@@ -351,10 +351,11 @@ def get_dashboard_summary(
     month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     prev_month_start = (month_start - timedelta(days=1)).replace(day=1)
 
-    # 1. Revenue: Only count paid payments
+    # 1. Revenue: Only count paid customer transactions (exclude platform subscription billing)
     paid_payments = db.query(Payment).filter(
         Payment.business_id == biz_id,
-        Payment.status == "paid"
+        Payment.status == "paid",
+        Payment.billing_type != "subscription"
     ).all()
     
     current_paid = [p for p in paid_payments if p.created_at >= month_start]

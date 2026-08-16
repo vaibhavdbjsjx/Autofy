@@ -20,10 +20,31 @@ export function ProtectedRoute({ children, requireOnboarded, requireUnonboarded 
         setStatus('unauthenticated');
         return;
       }
+
+      // Check fast session cache first to eliminate blocking network latency
+      try {
+        const cached = sessionStorage.getItem('autofy_onboarded_state');
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (typeof parsed?.is_onboarded === 'boolean' && Date.now() - (parsed.timestamp || 0) < 5 * 60 * 1000) {
+            setIsOnboarded(parsed.is_onboarded);
+            setStatus('authenticated');
+            return;
+          }
+        }
+      } catch {
+        /* storage unavailable — fall through */
+      }
+
       try {
         const me = await api.get<{ is_onboarded?: boolean; business?: { is_onboarded?: boolean } }>('/api/v1/auth/me');
         const onboardedState = me.is_onboarded ?? me.business?.is_onboarded ?? true;
         setIsOnboarded(onboardedState);
+        try {
+          sessionStorage.setItem('autofy_onboarded_state', JSON.stringify({ is_onboarded: onboardedState, timestamp: Date.now() }));
+        } catch {
+          /* ignore */
+        }
       } catch {
         // Fallback gracefully if API is temporarily unavailable
         setIsOnboarded(true);

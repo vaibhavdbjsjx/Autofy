@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   DollarSign, TrendingUp, Clock, CheckCircle2, AlertTriangle,
@@ -34,12 +34,23 @@ export const PaymentsTab: React.FC<{
   onboardingData?: any;
   triggerNotification: (msg: string) => void;
 }> = ({ onboardingData, triggerNotification }) => {
-  const stats = {
-    totalRevenue: "₹0",
-    monthlyRevenue: "₹0",
-    pendingPayments: "₹0",
-    successfulPayments: "₹0"
-  };
+  // Transactions ledger state — loaded from backend API
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+
+  const stats = useMemo(() => {
+    // Only count customer transactions (exclude subscription billing)
+    const paidTxs = transactions.filter(t => t.status === "Paid" && t.planName !== "Autofy Pro");
+    const totalRev = paidTxs.reduce((sum, t) => sum + (t.amount || 0), 0);
+    const pendingTxs = transactions.filter(t => t.status === "Pending");
+    const pendingRev = pendingTxs.reduce((sum, t) => sum + (t.amount || 0), 0);
+
+    return {
+      totalRevenue: `₹${totalRev.toLocaleString("en-IN")}`,
+      monthlyRevenue: `₹${totalRev.toLocaleString("en-IN")}`,
+      pendingPayments: `₹${pendingRev.toLocaleString("en-IN")}`,
+      successfulPayments: String(paidTxs.length)
+    };
+  }, [transactions]);
 
   // Gateway integrations in React component state
   const [activeGateway, setActiveGateway] = useState<"Razorpay" | "PhonePe" | "Cashfree" | "Stripe">("Razorpay");
@@ -153,9 +164,6 @@ export const PaymentsTab: React.FC<{
     setFormInvoiceNo(`INV-2026-00${invoices.length + 2}`);
     triggerNotification(` Generated Professional Invoice ${newInv.invoiceNo}`);
   };
-
-  // Transactions ledger state — loaded from backend API
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
     const fetchPayments = async () => {

@@ -873,7 +873,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* DESKTOP FIXED SIDEBAR */}
       <aside
-        className="hidden h-screen w-[280px] shrink-0 flex-col p-6 md:flex lg:w-[300px]"
+        className="hidden h-screen w-[280px] shrink-0 flex-col p-6 md:flex lg:w-[300px] overflow-hidden select-none"
         style={{
           background: "var(--sidebar)",
           backdropFilter: "blur(24px)",
@@ -885,9 +885,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* MAIN COLUMN */}
       <main className="relative z-10 flex h-screen min-w-0 flex-1 flex-col overflow-hidden">
-        {/* TOP NAVIGATION */}
+        {/* TOP NAVIGATION (FIXED/STICKY) */}
         <header
-          className="shrink-0 z-30 grid h-[64px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 sm:px-6 glass-nav"
+          className="shrink-0 z-30 sticky top-0 grid h-[64px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b px-4 sm:px-6 glass-nav"
           style={{ borderColor: "var(--border)" }}
         >
           <div className="flex min-w-0 items-center gap-3">
@@ -1361,24 +1361,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <div className="relative mt-auto w-full">
                           <div className="flex gap-3">
                             <div className="flex h-[168px] w-9 shrink-0 flex-col justify-between text-[9px] font-mono text-[var(--text-subtle)] select-none">
-                              <span>₹30K</span>
-                              <span>₹20K</span>
-                              <span>₹10K</span>
+                              <span>{revCount > 30000 ? `₹${Math.round(revCount / 1000)}K` : "₹30K"}</span>
+                              <span>{revCount > 20000 ? `₹${Math.round((revCount * 0.66) / 1000)}K` : "₹20K"}</span>
+                              <span>{revCount > 10000 ? `₹${Math.round((revCount * 0.33) / 1000)}K` : "₹10K"}</span>
                               <span>₹0</span>
                             </div>
                             <div className="relative h-[168px] min-w-0 flex-1">
-                              <svg viewBox="0 0 500 160" className="h-full w-full overflow-visible" preserveAspectRatio="none">
-                                <path d="M0 130 Q125 120 250 85 T500 20 L500 160 L0 160Z" fill="url(#revMasterGrad)" opacity="0.25" />
-                                <path d="M0 130 Q125 120 250 85 T500 20" fill="none" stroke="var(--brand)" strokeWidth="3.5" strokeLinecap="round" />
-                                <circle cx="500" cy="20" r="5" fill="var(--brand)" />
-                                <circle cx="500" cy="20" r="9" fill="var(--brand)" opacity="0.3" className="animate-ping" />
-                                <defs>
-                                  <linearGradient id="revMasterGrad" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stopColor="var(--brand)" />
-                                    <stop offset="100%" stopColor="transparent" />
-                                  </linearGradient>
-                                </defs>
-                              </svg>
+                              {revCount > 0 && summaryData?.revenue_series && summaryData.revenue_series.length > 0 ? (
+                                <svg viewBox="0 0 500 160" className="h-full w-full overflow-visible" preserveAspectRatio="none">
+                                  <path d="M0 130 Q125 120 250 85 T500 20 L500 160 L0 160Z" fill="url(#revMasterGrad)" opacity="0.25" />
+                                  <path d="M0 130 Q125 120 250 85 T500 20" fill="none" stroke="var(--brand)" strokeWidth="3.5" strokeLinecap="round" />
+                                  <circle cx="500" cy="20" r="5" fill="var(--brand)" />
+                                  <circle cx="500" cy="20" r="9" fill="var(--brand)" opacity="0.3" className="animate-ping" />
+                                  <defs>
+                                    <linearGradient id="revMasterGrad" x1="0" y1="0" x2="0" y2="1">
+                                      <stop offset="0%" stopColor="var(--brand)" />
+                                      <stop offset="100%" stopColor="transparent" />
+                                    </linearGradient>
+                                  </defs>
+                                </svg>
+                              ) : (
+                                <svg viewBox="0 0 500 160" className="h-full w-full overflow-visible" preserveAspectRatio="none">
+                                  <line x1="0" y1="150" x2="500" y2="150" stroke="var(--border-strong)" strokeWidth="2" strokeDasharray="6 6" />
+                                  <circle cx="500" cy="150" r="4" fill="var(--text-subtle)" />
+                                </svg>
+                              )}
                             </div>
                           </div>
                           <div className="ml-12 mt-2 flex justify-between text-[10px] font-mono text-[var(--text-subtle)]">
@@ -1405,8 +1412,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           {
                             label: "Active Leads",
                             value: String(leadsCount),
-                            hint: summaryData?.metrics.revenue_change_percent != null ? "Active pipeline" : "Live leads",
-                            hintTone: "text-emerald-500",
+                            hint: leadsCount > 0 ? "Active pipeline" : "No active leads yet",
+                            hintTone: leadsCount > 0 ? "text-emerald-500" : "",
                             icon: Users,
                             fg: "var(--brand)",
                             bg: "var(--brand-subtle)",
@@ -1414,7 +1421,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           {
                             label: "AI Resolution Rate",
                             value: summaryData?.metrics.ai_resolution_rate != null ? `${summaryData.metrics.ai_resolution_rate}%` : "—",
-                            hint: summaryData?.metrics.ai_resolution_rate != null ? "Automated response rate" : "Not measured yet",
+                            hint: summaryData?.metrics.ai_resolution_rate != null ? "Automated response rate" : "No data yet",
                             hintTone: summaryData?.metrics.ai_resolution_rate != null ? "text-emerald-500" : "",
                             icon: Activity,
                             fg: "var(--accent-green)",
@@ -1423,7 +1430,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           {
                             label: "WhatsApp Chats",
                             value: String(convsCount),
-                            hint: "Meta Cloud API",
+                            hint: convsCount > 0 ? "Meta Cloud API" : "No active chats",
                             hintTone: "",
                             icon: Phone,
                             fg: "var(--whatsapp-green)",
@@ -1432,7 +1439,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           {
                             label: "Appointments",
                             value: String(apptsCount),
-                            hint: "Scheduled / booked",
+                            hint: apptsCount > 0 ? "Scheduled / booked" : "No bookings yet",
                             hintTone: "",
                             icon: Calendar,
                             fg: "var(--accent-amber)",
@@ -1506,7 +1513,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                                   border: "1px solid var(--border-strong)",
                                 }}
                               >
-                                ● {summaryData?.metrics.ai_resolution_rate != null && summaryData.metrics.ai_resolution_rate > 0 ? `${summaryData.metrics.ai_resolution_rate}%` : '100%'} Autonomous
+                                ● {summaryData?.metrics.ai_resolution_rate != null ? `${summaryData.metrics.ai_resolution_rate}% Autonomous` : 'No data yet'}
                               </span>
                             </div>
                           </div>
@@ -1781,7 +1788,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <MarketingAutomationTab triggerNotification={triggerDashboardNotification} />
                   } />
                   <Route path="owner_center" element={
-                    <OwnerControlCenter triggerNotification={triggerDashboardNotification} />
+                    <OwnerControlCenter summaryData={summaryData} triggerNotification={triggerDashboardNotification} />
                   } />
                   <Route path="support_tickets" element={
                     <SupportTicketsTab triggerNotification={triggerDashboardNotification} />
@@ -1829,6 +1836,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <Route path="analytics" element={
                     <AnalyticsTab
                       onboardingData={data}
+                      summaryData={summaryData}
                       triggerNotification={triggerDashboardNotification}
                     />
                   } />
