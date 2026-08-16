@@ -511,10 +511,18 @@ export const AppointmentsTab: React.FC = () => {
                   <Calendar className="w-8 h-8" />
                 </div>
                 <div className="space-y-1.5 max-w-md mx-auto">
-                  <h3 className="text-base font-black text-[var(--text)]">No appointments yet</h3>
+                  <h3 className="text-base font-black text-[var(--text)]">No appointments scheduled yet</h3>
                   <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-                    When customers book appointments through WhatsApp or your website they will appear here automatically.
+                    When customers book appointments through WhatsApp or your website they will appear here automatically. You can also book a consultation manually.
                   </p>
+                  <div className="pt-2">
+                    <button
+                      onClick={() => setIsCreateModalOpen(true)}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 cursor-pointer shadow-lg"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Book Appointment
+                    </button>
+                  </div>
                 </div>
               </div>
             ) : (

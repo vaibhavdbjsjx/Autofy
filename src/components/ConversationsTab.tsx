@@ -492,11 +492,25 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
               <MessageSquare className="w-8 h-8" />
             </div>
             
-            <div className="space-y-1.5">
-              <h3 className="text-lg font-black text-[var(--text)]">No conversations yet</h3>
+            <div className="space-y-2">
+              <h3 className="text-lg font-black text-[var(--text)]">No customer conversations yet</h3>
               <p className="text-xs text-[var(--text-muted)] max-w-md mx-auto leading-relaxed">
-                Your WhatsApp conversations will appear here automatically once customers start messaging your AI assistant. Connect WhatsApp in Settings to begin.
+                Your incoming WhatsApp messages will appear here in real-time with automated AI replies. Connect your WhatsApp line or run a test in AI Playground.
               </p>
+              <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
+                <button
+                  onClick={() => window.location.hash = "#/dashboard/whatsapp_setup"}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg"
+                >
+                  <Phone className="w-3.5 h-3.5" /> Connect WhatsApp
+                </button>
+                <button
+                  onClick={() => window.location.hash = "#/dashboard/ai_playground"}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg"
+                >
+                  <Sparkles className="w-3.5 h-3.5" /> Test in AI Playground
+                </button>
+              </div>
             </div>
           </motion.div>
         ) : (

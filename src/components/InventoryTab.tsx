@@ -809,17 +809,27 @@ export const InventoryTab: React.FC<InventoryTabProps> = ({
                 Currently, your catalog query returned 0 rows matching search parameters. Try resetting your search metrics or adjusting categories filters.
               </p>
             </div>
-            <button 
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedCategory("All");
-                setFilterLowStockOnly(false);
-                setFilterUnavailableOnly(false);
-              }}
-              className="px-4 py-2 text-[10.5px] font-extrabold uppercase tracking-wide text-[var(--text)] bg-white/[0.04] border border-[var(--border)] hover:bg-white/[0.08] rounded-xl transition-colors cursor-pointer"
-            >
-              Reset Filters
-            </button>
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+              <button 
+                onClick={handleOpenAddModal}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 cursor-pointer shadow-lg"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Product
+              </button>
+              {products.length > 0 && (
+                <button 
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedCategory("All");
+                    setFilterLowStockOnly(false);
+                    setFilterUnavailableOnly(false);
+                  }}
+                  className="px-4 py-2 text-[10.5px] font-extrabold uppercase tracking-wide text-[var(--text)] bg-white/[0.04] border border-[var(--border)] hover:bg-white/[0.08] rounded-xl transition-colors cursor-pointer"
+                >
+                  Reset Filters
+                </button>
+              )}
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

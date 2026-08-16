@@ -716,14 +716,22 @@ export const OrdersTab: React.FC<OrdersTabProps> = ({
           {/* ADMIN LIST OF ORDERS */}
           {filteredOrders.length === 0 ? (
             <div className="text-center p-14 border border-[var(--border)] rounded-3xl bg-[var(--bg-card)] max-w-md mx-auto space-y-4">
-              <div className="w-11 h-11 bg-white/[0.02] border border-[var(--border)] rounded-xl flex items-center justify-center mx-auto text-[var(--text-muted)]">
-                <Search className="w-[22px] h-[22px]" />
+              <div className="w-12 h-12 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded-2xl flex items-center justify-center mx-auto">
+                <ShoppingBag className="w-6 h-6" />
               </div>
               <div className="space-y-1">
-                <p className="text-[var(--text)] text-xs font-bold">No Shipments Match Query</p>
-                <p className="text-[10.5px] text-[var(--text-muted)] leading-normal">
-                  Try clearing searches or picking alternative phase status logs above.
+                <p className="text-[var(--text)] text-sm font-bold">No orders found</p>
+                <p className="text-[11px] text-[var(--text-muted)] leading-relaxed">
+                  Orders placed by customers through WhatsApp catalog checkouts will appear here. You can also create an order manually.
                 </p>
+              </div>
+              <div className="pt-2">
+                <button
+                  onClick={() => setActiveTab("create")}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition inline-flex items-center gap-1.5 cursor-pointer shadow-lg"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Create New Order
+                </button>
               </div>
             </div>
           ) : (

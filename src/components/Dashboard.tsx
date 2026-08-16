@@ -1351,6 +1351,90 @@ export const Dashboard: React.FC<DashboardProps> = ({
                       </div>
                     </section>
 
+                    {/* ══ ONBOARDING GUIDANCE & SETUP READINESS LAUNCHPAD ══ */}
+                    <div className="p-5 sm:p-6 rounded-3xl bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-pink-500/10 border border-blue-500/20 backdrop-blur-md space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[var(--border)] pb-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+                            <Sparkles className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider">Quick Setup & Launch Checklist</h3>
+                            <p className="text-[11px] text-[var(--text-muted)]">Complete these 3 essential steps to start automating customer chats and bookings.</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-mono px-2.5 py-1 rounded-full bg-[var(--bg-elevated)] border border-[var(--border)] text-blue-400 font-bold self-start sm:self-auto">
+                          Setup Guidance
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                        {/* Step 1: WhatsApp */}
+                        <div className="p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] flex flex-col justify-between gap-3 text-left">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-black uppercase text-blue-400 font-mono">Step 1</span>
+                              {data.whatsappConnected === "connected" ? (
+                                <span className="text-[9.5px] font-bold text-emerald-400 flex items-center gap-1"><Check className="w-3 h-3" /> Connected</span>
+                              ) : (
+                                <span className="text-[9.5px] font-bold text-amber-400">No WhatsApp connected</span>
+                              )}
+                            </div>
+                            <h4 className="text-xs font-black text-[var(--text)]">WhatsApp Business Line</h4>
+                            <p className="text-[10.5px] text-[var(--text-muted)] leading-relaxed">
+                              {data.whatsappConnected === "connected" ? "Your phone number is active and receiving live messages." : "Connect WhatsApp to start receiving and answering customer inquiries."}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => navigate("/dashboard/whatsapp_setup")}
+                            className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                          >
+                            <Phone className="w-3.5 h-3.5" /> Connect WhatsApp
+                          </button>
+                        </div>
+
+                        {/* Step 2: Knowledge Base */}
+                        <div className="p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] flex flex-col justify-between gap-3 text-left">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-black uppercase text-purple-400 font-mono">Step 2</span>
+                              <span className="text-[9.5px] font-bold text-purple-400">AI Knowledge</span>
+                            </div>
+                            <h4 className="text-xs font-black text-[var(--text)]">Business Knowledge Base</h4>
+                            <p className="text-[10.5px] text-[var(--text-muted)] leading-relaxed">
+                              Upload your service prices, timing FAQs, policy documents, and brochures to ground your AI.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => navigate("/dashboard/kb")}
+                            className="w-full py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                          >
+                            <Database className="w-3.5 h-3.5" /> Add Knowledge
+                          </button>
+                        </div>
+
+                        {/* Step 3: Test in Simulator */}
+                        <div className="p-4 rounded-2xl bg-[var(--bg-card)] border border-[var(--border)] flex flex-col justify-between gap-3 text-left">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-black uppercase text-pink-400 font-mono">Step 3</span>
+                              <span className="text-[9.5px] font-bold text-pink-400">Simulator</span>
+                            </div>
+                            <h4 className="text-xs font-black text-[var(--text)]">Test AI Playground</h4>
+                            <p className="text-[10.5px] text-[var(--text-muted)] leading-relaxed">
+                              Chat with your AI employee in the sandbox to preview exactly how it answers customer questions.
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => navigate("/dashboard/ai_playground")}
+                            className="w-full py-2 bg-pink-600 hover:bg-pink-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+                          >
+                            <Sparkles className="w-3.5 h-3.5" /> Open Playground
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
                     {/* ══ 02 — REVENUE ANALYTICS + KPI GRID ══ */}
                     <section className="grid grid-cols-1 gap-5 lg:grid-cols-12 lg:items-stretch">
                       {/* Revenue */}
