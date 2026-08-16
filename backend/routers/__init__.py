@@ -25,6 +25,7 @@ from routers import (
     marketing,
     tickets,
     email,
+    system,
 )
 
 __all__ = [
@@ -43,4 +44,5 @@ __all__ = [
     "marketing",
     "tickets",
     "email",
+    "system",
 ]

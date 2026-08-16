@@ -6,7 +6,8 @@ import models # Forces the registry of SQLAlchemy entities
 from middleware.logging_middleware import StructuredLoggingMiddleware
 from middleware.error_handler import register_error_handlers
 from middleware.rate_limit_middleware import RateLimiterMiddleware
-from routers import auth, business, team_member, knowledge, leads, conversations, whatsapp, payments, product, orders, ai_training, crm, marketing, tickets, email, subscriptions, appointments
+from routers import auth, business, team_member, knowledge, leads, conversations, whatsapp, payments, product, orders, ai_training, crm, marketing, tickets, email, subscriptions, appointments, system
+from services.queue_services import JobQueueService
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 from database import get_db
@@ -36,10 +37,14 @@ app.add_middleware(RateLimiterMiddleware)
 # 4. Integrate central global exception parser
 register_error_handlers(app)
 
-# 5. Startup hook (Alembic manages production database schema lifecycle)
+# 5. Startup & Shutdown lifecycle hooks for Background Job Workers
 @app.on_event("startup")
-def on_startup():
-    pass
+async def on_startup():
+    await JobQueueService.start_workers()
+
+@app.on_event("shutdown")
+async def on_shutdown():
+    await JobQueueService.stop_workers()
 
 # 6. Bind core routes pipelines
 app.include_router(auth.router, prefix=settings.API_V1_STR)
@@ -59,6 +64,7 @@ app.include_router(tickets.router, prefix=settings.API_V1_STR)
 app.include_router(email.router, prefix=settings.API_V1_STR)
 app.include_router(subscriptions.router, prefix=settings.API_V1_STR)
 app.include_router(appointments.router, prefix=settings.API_V1_STR)
+app.include_router(system.router, prefix=settings.API_V1_STR)
 
 @app.get("/", tags=["System Index"])
 def system_root():

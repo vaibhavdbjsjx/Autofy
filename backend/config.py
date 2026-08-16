@@ -14,11 +14,26 @@ class Settings(BaseSettings):
     # 8000 keeps the API off the Vite dev server's port 3000 (they used to collide).
     PORT: int = 8000
 
-    # Database connection.
-    # Defaults to a local SQLite file so the backend runs with zero setup.
-    # For production, set DATABASE_URL in .env to your Postgres instance, e.g.
-    #   postgresql://user:password@host:5432/autofy
+    # Database connection & pooling for 1000+ tenants.
+    # Defaults to local SQLite file for development.
+    # For production Postgres, connection pooling parameters apply automatically.
     DATABASE_URL: str = "sqlite:///./autofy.db"
+    DB_POOL_SIZE: int = 25
+    DB_MAX_OVERFLOW: int = 50
+    DB_POOL_TIMEOUT: int = 30
+    DB_POOL_RECYCLE: int = 1800
+
+    # Redis & Background Queue System
+    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_ENABLED: bool = False
+    QUEUE_MAX_CONCURRENCY: int = 20
+    QUEUE_MAX_RETRIES: int = 3
+    QUEUE_RETRY_BACKOFF_SECONDS: float = 1.5
+
+    # Rate Limiting Controls
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_DEFAULT_PER_MINUTE: int = 120
+    RATE_LIMIT_WEBHOOK_PER_MINUTE: int = 600
 
     # Cryptographic JWT Secret Keys
     # Must be set via environment variable JWT_SECRET_KEY in production.
