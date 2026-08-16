@@ -222,77 +222,14 @@ export const WhatsAppSetupTab: React.FC = () => {
     }, 1000);
   };
 
-  // Webhook Events logger — initialized empty for fresh-account zero state
-  const [webhookLogs, setWebhookLogs] = useState<WebhookLog[]>([]);
-
-  const addNewWebhookLog = (
-    type: WebhookLog["eventType"],
-    details: string,
-    success: boolean = true
-  ) => {
-    const freshLog: WebhookLog = {
-      id: `wl-${Date.now()}`,
-      timestamp: "Just Now",
-      eventType: type,
-      details: details,
-      success: success
-    };
-    setWebhookLogs(prev => [freshLog, ...prev.slice(0, 14)]);
-  };
-
   const copyToClipboard = (text: string, setter: (val: boolean) => void) => {
     navigator.clipboard.writeText(text);
     setter(true);
     setTimeout(() => setter(false), 2000);
   };
 
-  // ─── Compute connection tier from current state ─────────────────
-  const computeConnectionTier = (
-    phone: string,
-    baId: string,
-    appId: string,
-    appSecret: string,
-    platformVerified: boolean,
-    aiEnabled: boolean
-  ): ConnectionTier => {
-    const phoneValid = validatePhone(phone).ok;
-    if (!phoneValid) return "Disconnected";
-    if (!baId.trim() || !appId.trim() || !appSecret.trim()) return "Number Saved";
-    if (!platformVerified) return "Number Saved";
-    if (aiEnabled) return "AI Active";
-    return "Platform Connected";
-  };
-
   // Track platform verification state separately
   const [platformVerified, setPlatformVerified] = useState(false);
-
-  // Update connection tier whenever relevant state changes
-  useEffect(() => {
-    setConnectionTier(computeConnectionTier(
-      phoneNumber, businessAccountId, metaAppId, metaAppSecret, platformVerified, aiAutoReplyEnabled
-    ));
-  }, [phoneNumber, businessAccountId, metaAppId, metaAppSecret, platformVerified, aiAutoReplyEnabled]);
-
-  // Load AI settings from backend on mount
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        const { api, isAuthenticated } = await import("../lib/api");
-        if (isAuthenticated()) {
-          const res: any = await api.get("/api/v1/business/profile");
-          if (res) {
-            setAiAutoReplyEnabled(res.ai_auto_reply_enabled ?? true);
-            if (res.ai_reply_exceptions) {
-              try {
-                setAiExceptions(JSON.parse(res.ai_reply_exceptions));
-              } catch { /* ignore parse errors */ }
-            }
-          }
-        }
-      } catch { /* silent on load failure */ }
-    };
-    loadSettings();
-  }, []);
 
   // Connection Triggers — requires all credentials and valid phone number
   const handleConnect = async () => {
@@ -311,9 +248,13 @@ export const WhatsAppSetupTab: React.FC = () => {
     try {
       const { api, isAuthenticated } = await import("../lib/api");
       if (isAuthenticated()) {
-        await api.get("/health");
+        await api.put("/api/v1/business/profile", {
+          whatsapp_phone_id: pVal.normalized,
+          phone: pVal.normalized
+        });
       }
       setPlatformVerified(true);
+      setIsEditMode(false);
       addNewWebhookLog("Message Received", "Meta Webhook challenge verified. WhatsApp API Connected.", true);
     } catch {
       setPlatformVerified(false);
@@ -321,9 +262,23 @@ export const WhatsAppSetupTab: React.FC = () => {
     }
   };
 
-  const handleDisconnect = () => {
+  const handleConfirmDisconnect = async () => {
+    try {
+      const { api, isAuthenticated } = await import("../lib/api");
+      if (isAuthenticated()) {
+        await api.put("/api/v1/business/profile", {
+          whatsapp_phone_id: null
+        });
+      }
+    } catch { /* ignore */ }
     setPlatformVerified(false);
-    addNewWebhookLog("Error Logs", "WhatsApp session closed by owner administration request.", false);
+    setIsEditMode(true);
+    setIsDisconnectModalOpen(false);
+    addNewWebhookLog("Error Logs", "WhatsApp session closed. AI auto-replies paused until reconnected.", false);
+  };
+
+  const handleDisconnect = () => {
+    setIsDisconnectModalOpen(true);
   };
 
   const handleTestPing = async () => {
@@ -663,34 +618,94 @@ export const WhatsAppSetupTab: React.FC = () => {
 
             {/* ACTION TRIGGERS ROW */}
             <div className="flex flex-wrap gap-2 pt-2">
-              <button
-                onClick={handleConnect}
-                disabled={connectionTier === "Platform Connected" || connectionTier === "AI Active"}
-                className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
-                  connectionTier === "Platform Connected" || connectionTier === "AI Active"
-                    ? "bg-[var(--bg-elevated)] text-[var(--text-subtle)] border border-transparent cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-550 text-[var(--text)] shadow-lg shadow-blue-500/10"
-                }`}
-              >
-                Connect WhatsApp Business
-              </button>
+              {(!platformVerified || isEditMode) ? (
+                <button
+                  onClick={handleConnect}
+                  className="px-4 py-2.5 text-xs font-bold bg-blue-600 hover:bg-blue-550 text-white rounded-xl shadow-lg shadow-blue-500/10 transition-all cursor-pointer"
+                >
+                  {platformVerified ? "Save & Reconnect WhatsApp" : "Connect WhatsApp Business"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsEditMode(true)}
+                  className="px-4 py-2.5 text-xs font-bold bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl text-[var(--text)] cursor-pointer transition-all"
+                >
+                  Edit Credentials / Reconnect Number
+                </button>
+              )}
               <button
                 onClick={handleTestPing}
                 className="px-4 py-2.5 text-xs font-bold bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] border border-[var(--border)] rounded-xl text-[var(--text)] cursor-pointer"
               >
                 Test Connection Ping
               </button>
-              <button
-                onClick={handleDisconnect}
-                disabled={connectionTier === "Disconnected"}
-                className={`px-4 py-2.5 text-xs font-bold bg-[var(--bg-card)] hover:bg-red-500/10 hover:border-red-500/20 border border-[var(--border)] rounded-xl text-[var(--text-subtle)] hover:text-red-400 cursor-pointer ${
-                  connectionTier === "Disconnected" && "opacity-50 cursor-not-allowed"
-                }`}
-              >
-                Disconnect Line
-              </button>
+              {platformVerified && (
+                <button
+                  onClick={handleDisconnect}
+                  className="px-4 py-2.5 text-xs font-bold bg-[var(--bg-card)] hover:bg-red-500/10 hover:border-red-500/20 border border-[var(--border)] rounded-xl text-[var(--text-subtle)] hover:text-red-400 cursor-pointer transition-all"
+                >
+                  Disconnect Line
+                </button>
+              )}
             </div>
           </div>
+
+          {/* DISCONNECT / RECONNECT WARNING MODAL */}
+          <AnimatePresence>
+            {isDisconnectModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setIsDisconnectModalOpen(false)}
+                  className="fixed inset-0 bg-black/70 backdrop-blur-sm"
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                  className="relative w-full max-w-md bg-[var(--modal-bg)] border border-[var(--border)] rounded-3xl p-6 shadow-2xl space-y-4 z-10 text-left"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+                      <ShieldAlert className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-[var(--text)] font-display">Disconnect or Change WhatsApp Line?</h3>
+                      <p className="text-[11px] text-[var(--text-muted)] font-sans">Active connection modification warning</p>
+                    </div>
+                  </div>
+
+                  <div className="bg-amber-500/10 border border-amber-500/25 rounded-2xl p-4 text-xs leading-relaxed text-amber-200/90 space-y-2">
+                    <p className="font-bold text-amber-300">
+                      ⚠️ Changing WhatsApp connection will stop AI replies temporarily until the new account is verified.
+                    </p>
+                    <p className="text-[11px] text-[var(--text-muted)]">
+                      Incoming messages from customers will not receive automated AI replies until you connect and verify your new number.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2.5 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setIsDisconnectModalOpen(false)}
+                      className="px-4 py-2 text-xs font-bold rounded-xl border border-[var(--border)] text-[var(--text-muted)] hover:text-[var(--text)] transition cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleConfirmDisconnect}
+                      className="px-4 py-2 text-xs font-bold rounded-xl bg-red-600 hover:bg-red-550 text-white shadow-lg shadow-red-500/20 transition cursor-pointer"
+                    >
+                      Confirm Disconnect
+                    </button>
+                  </div>
+                </motion.div>
+              </div>
+            )}
+          </AnimatePresence>
 
           {/* MESSAGE TEMPLATES CARD */}
           <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 backdrop-blur-md space-y-4">

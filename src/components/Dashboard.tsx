@@ -188,6 +188,26 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [subStatus, setSubStatus] = useState<any>(null);
 
+  // Lock body & html scrolling so ONLY the dashboard content viewport scrolls
+  useEffect(() => {
+    const origHtmlOverflow = document.documentElement.style.overflow;
+    const origBodyOverflow = document.body.style.overflow;
+    const origHtmlHeight = document.documentElement.style.height;
+    const origBodyHeight = document.body.style.height;
+
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.height = "100%";
+    document.body.style.height = "100%";
+
+    return () => {
+      document.documentElement.style.overflow = origHtmlOverflow;
+      document.body.style.overflow = origBodyOverflow;
+      document.documentElement.style.height = origHtmlHeight;
+      document.body.style.height = origBodyHeight;
+    };
+  }, []);
+
   useEffect(() => {
     if (isAuthenticated()) {
       api.get("/api/v1/subscriptions/status")
@@ -830,7 +850,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div
       id="autofy-main-dashboard"
-      className="relative flex h-screen w-full overflow-hidden font-sans md:flex-row"
+      className="fixed inset-0 flex h-screen h-[100dvh] w-screen overflow-hidden font-sans select-none md:flex-row z-0"
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
       {/* Ambient Autofy atmosphere (pink → violet → blue) */}
@@ -874,7 +894,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* DESKTOP FIXED SIDEBAR */}
       <aside
         id="autofy-sidebar"
-        className="hidden h-screen h-[100dvh] w-[280px] shrink-0 flex-col p-6 md:flex lg:w-[300px] overflow-hidden select-none"
+        className="hidden md:flex h-screen h-[100dvh] w-[280px] lg:w-[300px] shrink-0 flex-col p-6 overflow-hidden select-none"
         style={{
           background: "var(--sidebar)",
           backdropFilter: "blur(24px)",
