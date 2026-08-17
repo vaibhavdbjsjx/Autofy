@@ -213,12 +213,10 @@ export async function signInWithEmail(email: string, password: string): Promise<
   }
 }
 
-export async function signInWithGoogle(): Promise<AuthResult> {
-  // Real OAuth: ask the backend for Google's consent URL, then hand the browser off.
-  // NOTE: completing this loop requires GOOGLE_CLIENT_ID/SECRET to be set and the
-  // backend /auth/google/callback to redirect back to the SPA with the token.
+export async function signInWithGoogle(intent: "signup" | "login" = "login"): Promise<AuthResult> {
+  // Real OAuth: ask the backend for Google's consent URL with intent tracking, then hand the browser off.
   try {
-    const res = await api.get<{ authorization_url: string }>("/api/v1/auth/google/authorize");
+    const res = await api.get<{ authorization_url: string }>(`/api/v1/auth/google/authorize?intent=${intent}`);
     if (res?.authorization_url) {
       window.location.assign(res.authorization_url);
       return { data: null, error: null };

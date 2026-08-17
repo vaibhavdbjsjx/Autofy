@@ -32,7 +32,7 @@ def _normalize_email(email: str) -> str:
     return str(email).strip().lower()
 
 
-def _create_oauth_state(db: Session, provider: str = "google") -> str:
+def _create_oauth_state(db: Session, provider: str = "google", user_intent: str = "login") -> str:
     state = secrets.token_urlsafe(32)
     now = datetime.utcnow()
     expires_at = now + timedelta(seconds=OAUTH_STATE_TTL_SECONDS)
@@ -44,10 +44,11 @@ def _create_oauth_state(db: Session, provider: str = "google") -> str:
         logger.warning(f"[OAuth][StateCleanup] State purge encountered non-fatal error: {err}")
         db.rollback()
 
-    # 2. Persist to PostgreSQL database (survives container/server restarts)
+    # 2. Persist to database (survives container/server restarts)
     db_state = OAuthState(
         state=state,
         provider=provider,
+        user_intent=user_intent,
         expires_at=expires_at,
         created_at=now
     )
@@ -58,26 +59,28 @@ def _create_oauth_state(db: Session, provider: str = "google") -> str:
     if settings.REDIS_ENABLED:
         try:
             import redis
+            import json
             r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
-            r.setex(f"oauth_state:{state}", OAUTH_STATE_TTL_SECONDS, provider)
+            r.setex(f"oauth_state:{state}", OAUTH_STATE_TTL_SECONDS, json.dumps({"provider": provider, "user_intent": user_intent}))
             logger.info(f"[OAuth][StateStore] State saved to Redis key 'oauth_state:{state[:8]}...' (TTL: {OAUTH_STATE_TTL_SECONDS}s)")
         except Exception as r_err:
             logger.warning(f"[OAuth][StateStore] Redis state storage error: {r_err}")
 
     logger.info(
         f"[OAuth][StateGen] Generated state ID='{state[:8]}...{state[-6:]}' "
-        f"provider='{provider}' at='{now.isoformat()}' expires_at='{expires_at.isoformat()}'"
+        f"provider='{provider}' intent='{user_intent}' at='{now.isoformat()}' expires_at='{expires_at.isoformat()}'"
     )
     return state
 
 
-def _consume_oauth_state(db: Session, state: Optional[str], provider: str = "google") -> Tuple[bool, str]:
+def _consume_oauth_state(db: Session, state: Optional[str], provider: str = "google") -> Tuple[bool, str, str]:
     callback_time = datetime.utcnow()
+    default_intent = "login"
     if not state:
         logger.warning(f"[OAuth][StateValidate] State validation failed: missing state parameter at {callback_time.isoformat()}")
-        return False, "Missing state parameter"
+        return False, "Missing state parameter", default_intent
 
-    # 1. Query persistent PostgreSQL database
+    # 1. Query persistent database
     row = db.query(OAuthState).filter(
         OAuthState.state == state,
         OAuthState.provider == provider
@@ -85,14 +88,21 @@ def _consume_oauth_state(db: Session, state: Optional[str], provider: str = "goo
 
     # 2. Query Redis fallback if DB record is missing
     found_in_redis = False
+    redis_intent = default_intent
     if not row and settings.REDIS_ENABLED:
         try:
             import redis
+            import json
             r = redis.Redis.from_url(settings.REDIS_URL, decode_responses=True)
             val = r.get(f"oauth_state:{state}")
             if val:
                 found_in_redis = True
                 r.delete(f"oauth_state:{state}")
+                try:
+                    parsed = json.loads(val)
+                    redis_intent = parsed.get("user_intent", default_intent)
+                except Exception:
+                    pass
         except Exception as r_err:
             logger.warning(f"[OAuth][StateValidate] Redis lookup error: {r_err}")
 
@@ -101,9 +111,10 @@ def _consume_oauth_state(db: Session, state: Optional[str], provider: str = "goo
             f"[OAuth][StateValidate] State ID='{state[:8]}...{state[-6:]}' NOT found in persistent storage at {callback_time.isoformat()}. "
             f"Result=INVALID (Reason: State does not exist or already consumed)"
         )
-        return False, "State does not exist or already consumed"
+        return False, "State does not exist or already consumed", default_intent
 
     if row:
+        intent = row.user_intent or default_intent
         is_expired = row.expires_at <= callback_time
         stored_ts = row.created_at.isoformat() if row.created_at else "unknown"
         expires_ts = row.expires_at.isoformat() if row.expires_at else "unknown"
@@ -120,21 +131,21 @@ def _consume_oauth_state(db: Session, state: Optional[str], provider: str = "goo
                 f"[OAuth][StateValidate] State ID='{state[:8]}...{state[-6:]}' EXPIRED at {callback_time.isoformat()}. "
                 f"Stored at={stored_ts}, expired at={expires_ts}. Result=EXPIRED"
             )
-            return False, "State expired"
+            return False, "State expired", intent
 
         logger.info(
-            f"[OAuth][StateValidate] State ID='{state[:8]}...{state[-6:]}' VALID. "
+            f"[OAuth][StateValidate] State ID='{state[:8]}...{state[-6:]}' VALID (intent={intent}). "
             f"Stored at={stored_ts}, Callback at={callback_time.isoformat()}, Expires at={expires_ts}. Result=VALID"
         )
-        return True, "Valid"
+        return True, "Valid", intent
 
     if found_in_redis:
         logger.info(
             f"[OAuth][StateValidate] State ID='{state[:8]}...{state[-6:]}' validated via Redis at {callback_time.isoformat()}. Result=VALID"
         )
-        return True, "Valid"
+        return True, "Valid", redis_intent
 
-    return False, "Validation failed"
+    return False, "Validation failed", default_intent
 
 # Inbound Request Schemas
 class SignupRequest(BaseModel):
@@ -256,20 +267,22 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
     )
 
 @router.get("/google/authorize")
-def google_authorize(request: Request, response: Response, db: Session = Depends(get_db)):
+def google_authorize(
+    request: Request,
+    response: Response,
+    intent: Optional[str] = Query("login"),
+    db: Session = Depends(get_db)
+):
     """
-    Exposes the Google OAuth2 OpenID Connect permission redirect URI.
-
-    If Google credentials aren't configured, fail with a clear message so the
-    SPA shows "Google sign-in isn't set up" instead of sending the user to a
-    broken Google error page (empty client_id).
+    Exposes the Google OAuth2 OpenID Connect permission redirect URI with intent tracking.
     """
     if not settings.GOOGLE_CLIENT_ID or not settings.GOOGLE_CLIENT_SECRET:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Google sign-in isn't configured yet. Please sign up with email, or add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the backend .env.",
         )
-    state = _create_oauth_state(db, provider="google")
+    user_intent = "signup" if intent == "signup" else "login"
+    state = _create_oauth_state(db, provider="google", user_intent=user_intent)
     redirect_url = GoogleOAuthService.get_authorization_url(state=state)
 
     # Secure HTTPS Cookie fallback for Render/reverse proxies
@@ -283,7 +296,7 @@ def google_authorize(request: Request, response: Response, db: Session = Depends
         samesite="lax"
     )
 
-    return {"authorization_url": redirect_url, "state": state}
+    return {"authorization_url": redirect_url, "state": state, "intent": user_intent}
 
 @router.get("/apple/authorize")
 def apple_authorize(request: Request, response: Response, db: Session = Depends(get_db)):
@@ -295,7 +308,7 @@ def apple_authorize(request: Request, response: Response, db: Session = Depends(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="Sign in with Apple isn't configured yet. APPLE_CLIENT_ID and APPLE_TEAM_ID are required in .env.",
         )
-    state = _create_oauth_state(db, provider="apple")
+    state = _create_oauth_state(db, provider="apple", user_intent="login")
     params = {
         "client_id": settings.APPLE_CLIENT_ID,
         "redirect_uri": getattr(settings, "APPLE_REDIRECT_URI", "https://autofysaas.com/api/v1/auth/apple/callback"),
@@ -309,12 +322,14 @@ def apple_authorize(request: Request, response: Response, db: Session = Depends(
 
 def _frontend_redirect(path: str, params: dict, status_code: int = status.HTTP_307_TEMPORARY_REDIRECT) -> RedirectResponse:
     """
-    Builds a browser redirect back into the SPA. Auth params ride in the URL
-    fragment (#...) so the token never reaches server access logs / referrers.
+    Builds a browser redirect back into the SPA.
+    Embeds parameters in both the query string and the URL fragment (#...)
+    so that both BrowserRouter and HashRouter receive the authentication payload.
     """
-    fragment = urlencode(params)
+    encoded_params = urlencode(params)
     frontend_base = (settings.FRONTEND_URL or "http://localhost:3000").rstrip("/")
-    target_url = f"{frontend_base}{path}#{fragment}"
+    separator = "&" if "?" in path else "?"
+    target_url = f"{frontend_base}{path}{separator}{encoded_params}#{encoded_params}"
     return RedirectResponse(url=target_url, status_code=status_code)
 
 
@@ -337,22 +352,22 @@ async def google_callback(
     # 1. Check if user cancelled Google consent or Google reported an error
     if error:
         logger.warning(f"[OAuth Callback] Step 0: Google OAuth returned error parameter: {error}")
-        return _frontend_redirect("/login", {"auth_error": f"Google sign-in was cancelled or encountered an error ({error})."})
+        return _frontend_redirect("/login", {"error": "oauth_failed", "detail": f"Google sign-in was cancelled or encountered an error ({error})."})
 
     if not code:
         logger.warning("[OAuth Callback] Step 0: Google callback missing authorization code.")
-        return _frontend_redirect("/login", {"auth_error": "Missing authorization code from Google."})
+        return _frontend_redirect("/login", {"error": "oauth_failed", "detail": "Missing authorization code from Google."})
 
     # 2. Check and consume state from persistent database / Redis
     cookie_state = request.cookies.get("autofy_oauth_state")
     effective_state = state or cookie_state
-    is_valid, reason = _consume_oauth_state(db, effective_state, provider="google")
+    is_valid, reason, intent = _consume_oauth_state(db, effective_state, provider="google")
 
     if not is_valid:
         logger.warning(f"[OAuth Callback] Step 0: State validation failed: {reason}. Gracefully redirecting to login.")
         return _frontend_redirect(
             "/login",
-            {"auth_error": "Your Google sign-in session expired or was invalid. Please try signing in again."}
+            {"error": "oauth_failed", "detail": "Your Google sign-in session expired or was invalid. Please try signing in again."}
         )
 
     email_hash = "unknown"
@@ -363,10 +378,10 @@ async def google_callback(
             google_profile = await GoogleOAuthService.exchange_code_for_user_info(code)
         except HTTPException as exc:
             logger.error(f"[OAuth Callback] Step 1 FAILED: Google token exchange HTTPException: {exc.detail}")
-            return _frontend_redirect("/login", {"auth_error": "Google sign-in failed during identity verification. Please try again."})
+            return _frontend_redirect("/login", {"error": "oauth_failed", "detail": "Google sign-in failed during identity verification. Please try again."})
         except Exception as exc:
             logger.exception(f"[OAuth Callback] Step 1 FAILED: Unexpected exception during Google exchange: {exc}")
-            return _frontend_redirect("/login", {"auth_error": "Google sign-in failed during identity verification. Please try again."})
+            return _frontend_redirect("/login", {"error": "oauth_failed", "detail": "Google sign-in failed during identity verification. Please try again."})
 
         # Step 2: Normalize and hash email for safe logging
         normalized_email = _normalize_email(google_profile.email)
@@ -376,12 +391,14 @@ async def google_callback(
         # Step 3: Existing user lookup
         logger.info(f"[OAuth Callback] Step 3: Querying database for existing user (email_hash={email_hash})...")
         user = db.query(User).filter(func.lower(User.email) == normalized_email).first()
+        user_exists = bool(user)
 
         # Step 4 & 5: Business and User resolution
         if not user:
             logger.info(f"[OAuth Callback] Step 4: No existing user found for email_hash={email_hash}. Resolving business workspace...")
             # Check if an existing business is registered under this email (e.g. from prior invite or orphan)
             biz = db.query(Business).filter(func.lower(Business.email) == normalized_email).first()
+            business_exists = bool(biz)
             if not biz:
                 logger.info(f"[OAuth Callback] Step 4a: Creating new Business entity for email_hash={email_hash}...")
                 biz = Business(
@@ -409,14 +426,18 @@ async def google_callback(
             db.commit()
             db.refresh(user)
             logger.info(f"[OAuth Callback] Step 5 SUCCESS: User created user_id={user.id}, business_id={biz.id}")
+            status_param = "new_user"
         else:
+            biz = db.query(Business).filter(Business.id == user.business_id).first()
+            business_exists = bool(biz)
             logger.info(f"[OAuth Callback] Step 3 SUCCESS: Existing user found user_id={user.id}, status={user.status}")
             if user.status != "Active":
                 logger.warning(f"[OAuth Callback] User account is deactivated user_id={user.id}, status={user.status}")
                 return _frontend_redirect(
                     "/login",
-                    {"auth_error": "Your third-party federated account is currently deactivated. Please contact support."}
+                    {"error": "oauth_failed", "detail": "Your third-party federated account is currently deactivated. Please contact support."}
                 )
+            status_param = "success"
 
         # Step 6: Verify Business relationship
         biz = db.query(Business).filter(Business.id == user.business_id).first()
@@ -448,11 +469,18 @@ async def google_callback(
         except Exception as act_err:
             logger.warning(f"[OAuth Callback] Non-fatal: ActivityService audit log skipped: {act_err}")
 
+        # Required backend structured log format:
+        final_redirect_path = f"/auth/callback?status={status_param}"
+        logger.info(
+            f"[OAuth Callback] intent={intent} email={user.email} user_exists={user_exists} "
+            f"business_exists={business_exists} final_redirect={final_redirect_path}"
+        )
+
         # Step 8: Frontend redirect
-        logger.info(f"[OAuth Callback] Step 8: Redirecting user to SPA /auth/callback (email_hash={email_hash})...")
         return _frontend_redirect(
             "/auth/callback",
             {
+                "status": status_param,
                 "access_token": token,
                 "user_id": user.id,
                 "business_id": user.business_id,
@@ -460,6 +488,7 @@ async def google_callback(
                 "email": user.email,
                 "name": user.name or "",
                 "is_onboarded": is_onboarded_str,
+                "source": intent,
             }
         )
 
@@ -471,7 +500,7 @@ async def google_callback(
             pass
         return _frontend_redirect(
             "/login",
-            {"auth_error": "Google login failed. Please try again."}
+            {"error": "oauth_failed", "detail": "Google login failed. Please try again."}
         )
 
 class AccountDeletionRequest(BaseModel):

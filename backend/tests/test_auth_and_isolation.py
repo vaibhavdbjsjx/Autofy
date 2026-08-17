@@ -278,13 +278,13 @@ def test_google_oauth_state_is_required_validated_and_single_use(client: TestCli
 
     missing_state = client.get("/api/v1/auth/google/callback?code=code_missing", follow_redirects=False)
     assert missing_state.status_code == 307
-    assert "/login#" in missing_state.headers["location"]
-    assert "auth_error=" in missing_state.headers["location"]
+    assert "/login" in missing_state.headers["location"]
+    assert "error=oauth_failed" in missing_state.headers["location"]
 
     mismatched_state = client.get("/api/v1/auth/google/callback?code=code_bad&state=attacker_state", follow_redirects=False)
     assert mismatched_state.status_code == 307
-    assert "/login#" in mismatched_state.headers["location"]
-    assert "auth_error=" in mismatched_state.headers["location"]
+    assert "/login" in mismatched_state.headers["location"]
+    assert "error=oauth_failed" in mismatched_state.headers["location"]
 
     state = _google_oauth_state(client, monkeypatch)
     valid = client.get(f"/api/v1/auth/google/callback?code=code_good&state={state}", follow_redirects=False)
@@ -293,16 +293,16 @@ def test_google_oauth_state_is_required_validated_and_single_use(client: TestCli
 
     replay = client.get(f"/api/v1/auth/google/callback?code=code_replay&state={state}", follow_redirects=False)
     assert replay.status_code == 307
-    assert "/login#" in replay.headers["location"]
-    assert "auth_error=" in replay.headers["location"]
+    assert "/login" in replay.headers["location"]
+    assert "error=oauth_failed" in replay.headers["location"]
 
     expired_value = "expired_state_for_test"
     db_session.add(OAuthState(state=expired_value, provider="google", expires_at=datetime.utcnow() - timedelta(seconds=1)))
     db_session.commit()
     expired = client.get(f"/api/v1/auth/google/callback?code=code_expired&state={expired_value}", follow_redirects=False)
     assert expired.status_code == 307
-    assert "/login#" in expired.headers["location"]
-    assert "auth_error=" in expired.headers["location"]
+    assert "/login" in expired.headers["location"]
+    assert "error=oauth_failed" in expired.headers["location"]
 
 def test_google_oauth_email_collision_is_case_insensitive(client: TestClient, monkeypatch):
     from auth.google_oauth import GoogleUserSchema

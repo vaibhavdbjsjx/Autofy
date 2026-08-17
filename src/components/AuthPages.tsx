@@ -151,14 +151,18 @@ export const LoginView: React.FC<LoginProps> = ({
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Parse any auth_error query/hash params on mount (e.g. from Google OAuth callback)
+  // Parse any auth_error/error query/hash params on mount (e.g. from Google OAuth callback)
   useEffect(() => {
     try {
-      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+      const hashClean = window.location.hash.replace(/^#\/?/, "");
+      const hashParams = new URLSearchParams(hashClean.includes("?") ? hashClean.split("?")[1] : hashClean);
       const searchParams = new URLSearchParams(window.location.search);
-      const authErr = hashParams.get("auth_error") || searchParams.get("auth_error");
+      const authErr = hashParams.get("detail") || searchParams.get("detail") || hashParams.get("auth_error") || searchParams.get("auth_error");
+      const errCode = hashParams.get("error") || searchParams.get("error");
       if (authErr) {
         setError(decodeURIComponent(authErr));
+      } else if (errCode === "oauth_failed") {
+        setError("Google authentication was cancelled or encountered an error. Please try again.");
       }
     } catch {
       /* ignore */
@@ -199,7 +203,7 @@ export const LoginView: React.FC<LoginProps> = ({
     setError("");
     setIsLoadingGoogle(true);
     try {
-      const { error: authError } = await signInWithGoogle();
+      const { error: authError } = await signInWithGoogle("login");
       if (authError) {
         setError(authError.message || "Google sign in failed.");
         setIsLoadingGoogle(false);
@@ -512,7 +516,7 @@ export const SignUpView: React.FC<SignUpProps> = ({
       localStorage.setItem("autofy-consent", JSON.stringify({ agreed: true, at: new Date().toISOString() }));
     } catch { /* ignore */ }
     try {
-      const { error: authError } = await signInWithGoogle();
+      const { error: authError } = await signInWithGoogle("signup");
       if (authError) {
         setError(authError.message || "Google sign in failed.");
         setIsLoadingGoogle(false);

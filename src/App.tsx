@@ -1511,39 +1511,35 @@ function OAuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fullUrl = window.location.href;
-    console.info(`[OAuth Frontend] callback URL received: ${fullUrl}`);
-
     // Parse parameters from both hash fragment and search query string
     let hashClean = window.location.hash.replace(/^#\/?/, "");
-    // If hash contains a nested query (e.g. #/auth/callback?access_token=...), extract query
     if (hashClean.includes("?")) {
       hashClean = hashClean.split("?")[1] || "";
     }
     const hashParams = new URLSearchParams(hashClean);
     const searchParams = new URLSearchParams(window.location.search);
 
+    const statusParam = hashParams.get("status") || searchParams.get("status") || "success";
     const accessToken = hashParams.get("access_token") || searchParams.get("access_token");
     const userId = hashParams.get("user_id") || searchParams.get("user_id") || "";
     const businessId = hashParams.get("business_id") || searchParams.get("business_id") || "";
     const role = hashParams.get("role") || searchParams.get("role") || "";
     const email = hashParams.get("email") || searchParams.get("email") || "";
     const name = hashParams.get("name") || searchParams.get("name") || "";
+    const sourceParam = hashParams.get("source") || searchParams.get("source") || "login";
     const isOnboardedParam = hashParams.get("is_onboarded") || searchParams.get("is_onboarded");
-    const authError = hashParams.get("auth_error") || searchParams.get("auth_error");
-
-    const tokenDetected = Boolean(accessToken);
-    console.info(`[OAuth Frontend] token detected: ${tokenDetected ? "YES" : "NO"}`);
+    const errCode = hashParams.get("error") || searchParams.get("error");
+    const errDetail = hashParams.get("detail") || searchParams.get("detail") || hashParams.get("auth_error") || searchParams.get("auth_error");
 
     if (!accessToken) {
-      const errorMsg = authError || "No authentication token was received from Google.";
-      console.warn(`[OAuth Frontend] token detected: NO. Redirecting to /login with error: ${errorMsg}`);
-      navigate(`/login#auth_error=${encodeURIComponent(errorMsg)}`, { replace: true });
+      const errorMsg = errDetail || (errCode === "oauth_failed" ? "Google login failed" : "No authentication token was received from Google.");
+      console.warn(`[OAuth] Error encountered. Redirecting to /login with error: ${errorMsg}`);
+      navigate(`/login?error=oauth_failed&detail=${encodeURIComponent(errorMsg)}`, { replace: true });
       return;
     }
 
     // 1. Establish session across storage layers (localStorage, sessionStorage, cookie, memory)
-    const user = completeOAuthLogin({
+    completeOAuthLogin({
       access_token: accessToken,
       user_id: userId,
       business_id: businessId,
@@ -1551,11 +1547,10 @@ function OAuthCallback() {
       email: email,
       name: name,
     });
-    console.info(`[OAuth Frontend] token saved: YES (user_id=${user.id}, business_id=${user.business_id})`);
 
     // 2. Fetch fresh /api/v1/auth/me to verify server-side session and onboarding status
     (async () => {
-      let resolvedOnboarded = isOnboardedParam === "true";
+      let resolvedOnboarded = statusParam === "new_user" ? false : isOnboardedParam === "true";
       try {
         const me = await api.get<{
           user_id: string;
@@ -1565,14 +1560,13 @@ function OAuthCallback() {
           is_onboarded: boolean;
           business?: { id: string; name: string; is_onboarded: boolean };
         }>("/api/v1/auth/me");
-        console.info("[OAuth Frontend] /auth/me response: SUCCESS", me);
         if (typeof me?.is_onboarded === "boolean") {
           resolvedOnboarded = me.is_onboarded;
         } else if (typeof me?.business?.is_onboarded === "boolean") {
           resolvedOnboarded = me.business.is_onboarded;
         }
       } catch (meErr) {
-        console.warn("[OAuth Frontend] /auth/me call error (falling back to token payload):", meErr);
+        console.warn("[OAuth] /auth/me call error (falling back to token payload):", meErr);
       }
 
       try {
@@ -1582,9 +1576,14 @@ function OAuthCallback() {
         );
       } catch {}
 
-      // 3. Final navigation
-      const destination = resolvedOnboarded ? "/dashboard" : "/onboarding";
-      console.info(`[OAuth Frontend] final redirect destination: ${destination}`);
+      // 3. Final navigation: new users go to onboarding; existing users go to dashboard if onboarded
+      const destination = statusParam === "new_user" || !resolvedOnboarded ? "/onboarding" : "/dashboard";
+
+      // 4. Structured log format
+      console.info(
+        `[OAuth]\nsource=${sourceParam}\ngoogle_email=${email}\nexisting_user=${statusParam === "success"}\nredirect_target=${destination}`
+      );
+
       navigate(destination, { replace: true });
     })();
   }, [navigate]);
