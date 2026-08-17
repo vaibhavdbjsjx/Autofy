@@ -44,41 +44,66 @@ interface AuthResult {
 }
 
 const USER_KEY = "autofy-user";
+let _memoryUser: AuthUser | null = null;
 
 // ─── Session storage helpers ───────────────────────────────────
 function saveUser(user: AuthUser): void {
+  _memoryUser = user;
   try {
     localStorage.setItem(USER_KEY, JSON.stringify(user));
-  } catch {
-    /* storage unavailable — non-fatal */
-  }
+  } catch {}
+  try {
+    sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+  } catch {}
 }
 
 function readUser(): AuthUser | null {
+  if (_memoryUser) return _memoryUser;
   try {
     const raw = localStorage.getItem(USER_KEY);
-    return raw ? (JSON.parse(raw) as AuthUser) : null;
-  } catch {
-    return null;
-  }
+    if (raw) {
+      const u = JSON.parse(raw) as AuthUser;
+      _memoryUser = u;
+      return u;
+    }
+  } catch {}
+  try {
+    const raw = sessionStorage.getItem(USER_KEY);
+    if (raw) {
+      const u = JSON.parse(raw) as AuthUser;
+      _memoryUser = u;
+      return u;
+    }
+  } catch {}
+  return null;
 }
 
 function clearUser(): void {
+  _memoryUser = null;
   try {
     localStorage.removeItem(USER_KEY);
-  } catch {
-    /* ignore */
-  }
+  } catch {}
+  try {
+    sessionStorage.removeItem(USER_KEY);
+  } catch {}
 }
 
 // Lightweight, unverified JWT expiry check (signature is verified server-side).
 // Returns true if the token is missing or past its `exp` claim.
 function isTokenExpired(token: string): boolean {
   try {
-    const [, payload] = token.split(".");
-    const claims = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+    const parts = token.split(".");
+    if (parts.length < 2) return false;
+    const payload = parts[1];
+    // Proper base64url decode with padding
+    const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
+    const padLen = (4 - (base64.length % 4)) % 4;
+    const padded = base64.padEnd(base64.length + padLen, "=");
+    const decodedStr = atob(padded);
+    const claims = JSON.parse(decodedStr);
     if (typeof claims.exp !== "number") return false; // no exp → treat as non-expiring
-    return Date.now() >= claims.exp * 1000;
+    // Add 60s clock skew tolerance
+    return Date.now() >= (claims.exp + 60) * 1000;
   } catch {
     return false; // can't parse → let the server be the judge
   }

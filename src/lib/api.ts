@@ -17,32 +17,69 @@
 // Vite proxy (see vite.config.ts). In production set VITE_API_URL to the API origin.
 export const API_BASE: string = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
-// localStorage key holding the backend JWT access token. The real-auth flow
-// (C3) writes here on login; until then requests simply go out unauthenticated.
+// localStorage/sessionStorage/cookie key holding the backend JWT access token.
 const TOKEN_KEY = "autofy-access-token";
+let _memoryToken: string | null = null;
 
 export function getAuthToken(): string | null {
+  if (_memoryToken) return _memoryToken;
   try {
-    return localStorage.getItem(TOKEN_KEY);
-  } catch {
-    return null;
-  }
+    const local = localStorage.getItem(TOKEN_KEY);
+    if (local) {
+      _memoryToken = local;
+      return local;
+    }
+  } catch {}
+  try {
+    const sess = sessionStorage.getItem(TOKEN_KEY);
+    if (sess) {
+      _memoryToken = sess;
+      return sess;
+    }
+  } catch {}
+  try {
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(new RegExp(`(?:^|; )${TOKEN_KEY}=([^;]*)`));
+      if (match && match[1]) {
+        const decoded = decodeURIComponent(match[1]);
+        _memoryToken = decoded;
+        return decoded;
+      }
+    }
+  } catch {}
+  return null;
 }
 
 export function setAuthToken(token: string): void {
+  _memoryToken = token;
   try {
     localStorage.setItem(TOKEN_KEY, token);
-  } catch {
-    /* storage unavailable — ignore */
-  }
+  } catch {}
+  try {
+    sessionStorage.setItem(TOKEN_KEY, token);
+  } catch {}
+  try {
+    if (typeof document !== "undefined") {
+      const isHttps = typeof window !== "undefined" && window.location.protocol === "https:";
+      const secureFlag = isHttps ? "; Secure" : "";
+      document.cookie = `${TOKEN_KEY}=${encodeURIComponent(token)}; path=/; max-age=${48 * 3600}; SameSite=Lax${secureFlag}`;
+    }
+  } catch {}
 }
 
 export function clearAuthToken(): void {
+  _memoryToken = null;
   try {
     localStorage.removeItem(TOKEN_KEY);
-  } catch {
-    /* ignore */
-  }
+  } catch {}
+  try {
+    sessionStorage.removeItem(TOKEN_KEY);
+  } catch {}
+  try {
+    if (typeof document !== "undefined") {
+      document.cookie = `${TOKEN_KEY}=; path=/; max-age=0; SameSite=Lax`;
+    }
+  } catch {}
 }
 
 export function isAuthenticated(): boolean {
@@ -91,13 +128,18 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      res = await fetch(url, { ...rest, headers: finalHeaders, body: finalBody });
+      res = await fetch(url, {
+        credentials: "include",
+        ...rest,
+        headers: finalHeaders,
+        body: finalBody,
+      });
       break; // Request succeeded (HTTP response received)
     } catch (networkErr) {
       lastError = networkErr;
       if (attempt < maxRetries) {
         // Wait 1 second before retrying to allow backend cold-start / socket reconnect
-        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
       }
     }
   }
@@ -116,7 +158,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   if (!res.ok) {
     if (res.status === 401) {
       clearAuthToken();
-      if (typeof window !== "undefined" && !window.location.pathname.includes("/login")) {
+      if (
+        typeof window !== "undefined" &&
+        !window.location.pathname.includes("/login") &&
+        !window.location.pathname.includes("/auth/callback")
+      ) {
         // Redirect cleanly to login without infinite loop
         window.location.href = "/login";
       }

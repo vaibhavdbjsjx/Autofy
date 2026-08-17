@@ -14,7 +14,7 @@ import { PrivacyPolicy, TermsOfService, RefundPolicy, ContactUs } from "./compon
 import { PublicAccountDeletionPage } from "./components/PublicAccountDeletionPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { INITIAL_ONBOARDING_DATA, OnboardingData } from "./types";
-import { getCurrentUser, signOut, completeOAuthLogin, AuthUser } from "./lib/auth";
+import { getCurrentUser, signOut, completeOAuthLogin, onAuthStateChange, AuthUser } from "./lib/auth";
 import { api } from "./lib/api";
 import {
   loadTenantOnboardingData,
@@ -1511,38 +1511,82 @@ function OAuthCallback() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Token + profile ride in the URL fragment (never sent to the server).
-    const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-    const accessToken = params.get("access_token");
+    const fullUrl = window.location.href;
+    console.info(`[OAuth Frontend] callback URL received: ${fullUrl}`);
 
-    if (accessToken) {
-      completeOAuthLogin({
-        access_token: accessToken,
-        user_id: params.get("user_id") || "",
-        business_id: params.get("business_id") || "",
-        role: params.get("role") || "",
-        email: params.get("email") || "",
-        name: params.get("name") || "",
-      });
+    // Parse parameters from both hash fragment and search query string
+    let hashClean = window.location.hash.replace(/^#\/?/, "");
+    // If hash contains a nested query (e.g. #/auth/callback?access_token=...), extract query
+    if (hashClean.includes("?")) {
+      hashClean = hashClean.split("?")[1] || "";
+    }
+    const hashParams = new URLSearchParams(hashClean);
+    const searchParams = new URLSearchParams(window.location.search);
 
-      const isOnboarded = params.get("is_onboarded") === "true";
+    const accessToken = hashParams.get("access_token") || searchParams.get("access_token");
+    const userId = hashParams.get("user_id") || searchParams.get("user_id") || "";
+    const businessId = hashParams.get("business_id") || searchParams.get("business_id") || "";
+    const role = hashParams.get("role") || searchParams.get("role") || "";
+    const email = hashParams.get("email") || searchParams.get("email") || "";
+    const name = hashParams.get("name") || searchParams.get("name") || "";
+    const isOnboardedParam = hashParams.get("is_onboarded") || searchParams.get("is_onboarded");
+    const authError = hashParams.get("auth_error") || searchParams.get("auth_error");
+
+    const tokenDetected = Boolean(accessToken);
+    console.info(`[OAuth Frontend] token detected: ${tokenDetected ? "YES" : "NO"}`);
+
+    if (!accessToken) {
+      const errorMsg = authError || "No authentication token was received from Google.";
+      console.warn(`[OAuth Frontend] token detected: NO. Redirecting to /login with error: ${errorMsg}`);
+      navigate(`/login#auth_error=${encodeURIComponent(errorMsg)}`, { replace: true });
+      return;
+    }
+
+    // 1. Establish session across storage layers (localStorage, sessionStorage, cookie, memory)
+    const user = completeOAuthLogin({
+      access_token: accessToken,
+      user_id: userId,
+      business_id: businessId,
+      role: role,
+      email: email,
+      name: name,
+    });
+    console.info(`[OAuth Frontend] token saved: YES (user_id=${user.id}, business_id=${user.business_id})`);
+
+    // 2. Fetch fresh /api/v1/auth/me to verify server-side session and onboarding status
+    (async () => {
+      let resolvedOnboarded = isOnboardedParam === "true";
+      try {
+        const me = await api.get<{
+          user_id: string;
+          name: string;
+          email: string;
+          role: string;
+          is_onboarded: boolean;
+          business?: { id: string; name: string; is_onboarded: boolean };
+        }>("/api/v1/auth/me");
+        console.info("[OAuth Frontend] /auth/me response: SUCCESS", me);
+        if (typeof me?.is_onboarded === "boolean") {
+          resolvedOnboarded = me.is_onboarded;
+        } else if (typeof me?.business?.is_onboarded === "boolean") {
+          resolvedOnboarded = me.business.is_onboarded;
+        }
+      } catch (meErr) {
+        console.warn("[OAuth Frontend] /auth/me call error (falling back to token payload):", meErr);
+      }
+
       try {
         sessionStorage.setItem(
           "autofy_onboarded_state",
-          JSON.stringify({ is_onboarded: isOnboarded, timestamp: Date.now() })
+          JSON.stringify({ is_onboarded: resolvedOnboarded, timestamp: Date.now() })
         );
-      } catch {
-        /* storage unavailable — ignore */
-      }
+      } catch {}
 
-      if (!isOnboarded) {
-        navigate("/onboarding", { replace: true });
-      } else {
-        navigate("/dashboard", { replace: true });
-      }
-    } else {
-      navigate("/login", { replace: true });
-    }
+      // 3. Final navigation
+      const destination = resolvedOnboarded ? "/dashboard" : "/onboarding";
+      console.info(`[OAuth Frontend] final redirect destination: ${destination}`);
+      navigate(destination, { replace: true });
+    })();
   }, [navigate]);
 
   return (
@@ -1599,6 +1643,20 @@ export default function App() {
   // Preload Razorpay checkout SDK in background on mount
   useEffect(() => {
     loadRazorpayScript().catch(() => {});
+  }, []);
+
+  // Listen to auth events (sign in, completeOAuthLogin, sign out)
+  useEffect(() => {
+    const { data: { subscription } } = onAuthStateChange((_event, session) => {
+      const authSession = session as { user: AuthUser } | null;
+      setCurrentUser(authSession?.user ?? null);
+      if (authSession?.user?.business_id) {
+        setOnboardingData(loadTenantOnboardingData(authSession.user.business_id));
+      }
+    });
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Re-sync user session & re-hydrate tenant-scoped onboarding draft on route change or business switch
