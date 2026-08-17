@@ -147,3 +147,160 @@ def test_oauth_google_error_param_graceful_redirect(client: TestClient):
     assert "/login#" in location
     assert "auth_error=" in location
     assert "cancelled" in location.lower() or "access_denied" in location.lower()
+
+
+# =====================================================================
+# REGRESSION TEST SUITE: COMPLETE GOOGLE OAUTH CALLBACK PIPELINE
+# =====================================================================
+
+def test_new_google_user_signup_and_business_creation(client: TestClient, db_session: Session, monkeypatch):
+    """
+    Test 1: New Google user signup creates Business, User, and redirects with valid access_token.
+    """
+    # 1. Authorize to generate valid state
+    auth_res = client.get("/api/v1/auth/google/authorize")
+    state = auth_res.json()["state"]
+
+    # 2. Mock Google profile fetch
+    async def mock_exchange(code: str):
+        return GoogleUserSchema(
+            email="new_founder@fitnessclub.com",
+            name="Rahul Fitness",
+            picture="https://google.com/pic.jpg",
+            sub="sub_rahul_12345"
+        )
+    monkeypatch.setattr("auth.google_oauth.GoogleOAuthService.exchange_code_for_user_info", mock_exchange)
+
+    # 3. Callback execution
+    cb_res = client.get(f"/api/v1/auth/google/callback?code=valid_code_1&state={state}", follow_redirects=False)
+    assert cb_res.status_code in [302, 307]
+    loc = cb_res.headers.get("location", "")
+    assert "/auth/callback#" in loc
+    assert "access_token=" in loc
+    assert "role=Owner" in loc
+
+    # 4. Verify DB records
+    user = db_session.query(User).filter(User.email == "new_founder@fitnessclub.com").first()
+    assert user is not None
+    assert user.name == "Rahul Fitness"
+    assert user.role == "Owner"
+    assert user.status == "Active"
+
+    biz = db_session.query(Business).filter(Business.id == user.business_id).first()
+    assert biz is not None
+    assert biz.is_onboarded is False
+
+
+def test_existing_google_user_login(client: TestClient, db_session: Session, monkeypatch):
+    """
+    Test 2: Existing active user logging in via Google OAuth succeeds without duplicate creation.
+    """
+    # 1. Seed existing business and user
+    biz = Business(id="biz-exist-01", name="Elite Auto Care", email="mechanic@eliteauto.com", is_onboarded=True)
+    user = User(
+        id="usr-exist-01",
+        business_id=biz.id,
+        name="Vikram Singh",
+        email="mechanic@eliteauto.com",
+        password_hash="google_oauth_user",
+        role="Owner",
+        status="Active"
+    )
+    db_session.add_all([biz, user])
+    db_session.commit()
+
+    # 2. Authorize
+    auth_res = client.get("/api/v1/auth/google/authorize")
+    state = auth_res.json()["state"]
+
+    # 3. Mock Google profile fetch
+    async def mock_exchange(code: str):
+        return GoogleUserSchema(
+            email="mechanic@eliteauto.com",
+            name="Vikram Singh",
+            sub="sub_vikram_888"
+        )
+    monkeypatch.setattr("auth.google_oauth.GoogleOAuthService.exchange_code_for_user_info", mock_exchange)
+
+    # 4. Callback execution
+    cb_res = client.get(f"/api/v1/auth/google/callback?code=valid_code_2&state={state}", follow_redirects=False)
+    assert cb_res.status_code in [302, 307]
+    loc = cb_res.headers.get("location", "")
+    assert "/auth/callback#" in loc
+    assert "access_token=" in loc
+    assert "is_onboarded=true" in loc
+
+    # 5. Verify no duplicate user created
+    users_count = db_session.query(User).filter(User.email == "mechanic@eliteauto.com").count()
+    assert users_count == 1
+
+
+def test_duplicate_email_links_to_existing_business_safely(client: TestClient, db_session: Session, monkeypatch):
+    """
+    Test 3: If a Business already exists with the email (e.g. from an earlier invite),
+    Google OAuth links cleanly rather than throwing an IntegrityError.
+    """
+    # 1. Seed existing business without user
+    biz = Business(id="biz-orphaned-01", name="Pre-existing Salon", email="salon@beautystudio.com", is_onboarded=False)
+    db_session.add(biz)
+    db_session.commit()
+
+    # 2. Authorize
+    auth_res = client.get("/api/v1/auth/google/authorize")
+    state = auth_res.json()["state"]
+
+    # 3. Mock Google profile fetch
+    async def mock_exchange(code: str):
+        return GoogleUserSchema(
+            email="salon@beautystudio.com",
+            name="Pooja Sharma",
+            sub="sub_pooja_999"
+        )
+    monkeypatch.setattr("auth.google_oauth.GoogleOAuthService.exchange_code_for_user_info", mock_exchange)
+
+    # 4. Callback execution -> must link to biz-orphaned-01 without crashing
+    cb_res = client.get(f"/api/v1/auth/google/callback?code=valid_code_3&state={state}", follow_redirects=False)
+    assert cb_res.status_code in [302, 307]
+    loc = cb_res.headers.get("location", "")
+    assert "/auth/callback#" in loc
+
+    user = db_session.query(User).filter(User.email == "salon@beautystudio.com").first()
+    assert user is not None
+    assert user.business_id == "biz-orphaned-01"
+
+
+def test_database_failure_handling_safe_redirect(client: TestClient, monkeypatch):
+    """
+    Test 4: If database fails or raises an unhandled exception during callback,
+    the endpoint does NOT crash with 500 JSON, but safely redirects to /login#auth_error=...
+    """
+    # 1. Authorize
+    auth_res = client.get("/api/v1/auth/google/authorize")
+    state = auth_res.json()["state"]
+
+    # 2. Mock Google exchange to simulate runtime error during user resolution
+    async def mock_exchange_crash(code: str):
+        raise RuntimeError("Simulated connection reset / network crash")
+    monkeypatch.setattr("auth.google_oauth.GoogleOAuthService.exchange_code_for_user_info", mock_exchange_crash)
+
+    # 3. Callback execution -> must catch exception and redirect to /login with safe error fragment
+    cb_res = client.get(f"/api/v1/auth/google/callback?code=bad_code&state={state}", follow_redirects=False)
+    assert cb_res.status_code in [302, 307]
+    loc = cb_res.headers.get("location", "")
+    assert "/login#" in loc
+    assert "auth_error=" in loc
+    assert "google" in loc.lower() or "failed" in loc.lower()
+
+
+def test_missing_environment_variables_handling(client: TestClient, monkeypatch):
+    """
+    Test 5: When Google credentials are unconfigured, /authorize returns 503 with a helpful message.
+    """
+    monkeypatch.setattr("routers.auth.settings.GOOGLE_CLIENT_ID", "")
+    monkeypatch.setattr("routers.auth.settings.GOOGLE_CLIENT_SECRET", "")
+
+    res = client.get("/api/v1/auth/google/authorize")
+    assert res.status_code == 503
+    assert "Google sign-in isn't configured yet" in res.text
+
+

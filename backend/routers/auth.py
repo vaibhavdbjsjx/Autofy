@@ -1,4 +1,5 @@
 import logging
+import hashlib
 from datetime import datetime, timedelta
 import secrets
 from typing import Optional, Tuple
@@ -312,7 +313,9 @@ def _frontend_redirect(path: str, params: dict, status_code: int = status.HTTP_3
     fragment (#...) so the token never reaches server access logs / referrers.
     """
     fragment = urlencode(params)
-    return RedirectResponse(url=f"{settings.FRONTEND_URL}{path}#{fragment}", status_code=status_code)
+    frontend_base = (settings.FRONTEND_URL or "http://localhost:3000").rstrip("/")
+    target_url = f"{frontend_base}{path}#{fragment}"
+    return RedirectResponse(url=target_url, status_code=status_code)
 
 
 @router.get("/google/callback")
@@ -329,13 +332,15 @@ async def google_callback(
     re-fetches active User account profiles, or registers brand new tenants,
     then redirects the browser back to the SPA with a signed session token.
     """
+    logger.info("[OAuth Callback] Received incoming Google OAuth callback request.")
+
     # 1. Check if user cancelled Google consent or Google reported an error
     if error:
-        logger.warning(f"[OAuth][Callback] Google OAuth returned error parameter: {error}")
+        logger.warning(f"[OAuth Callback] Step 0: Google OAuth returned error parameter: {error}")
         return _frontend_redirect("/login", {"auth_error": f"Google sign-in was cancelled or encountered an error ({error})."})
 
     if not code:
-        logger.warning("[OAuth][Callback] Google callback missing authorization code.")
+        logger.warning("[OAuth Callback] Step 0: Google callback missing authorization code.")
         return _frontend_redirect("/login", {"auth_error": "Missing authorization code from Google."})
 
     # 2. Check and consume state from persistent database / Redis
@@ -344,92 +349,130 @@ async def google_callback(
     is_valid, reason = _consume_oauth_state(db, effective_state, provider="google")
 
     if not is_valid:
-        logger.warning(f"[OAuth][Callback] State validation failed: {reason}. Gracefully redirecting to login.")
+        logger.warning(f"[OAuth Callback] Step 0: State validation failed: {reason}. Gracefully redirecting to login.")
         return _frontend_redirect(
             "/login",
             {"auth_error": "Your Google sign-in session expired or was invalid. Please try signing in again."}
         )
 
-    # 3. Exchange authorization grant code for user identity profile
+    email_hash = "unknown"
     try:
-        google_profile = await GoogleOAuthService.exchange_code_for_user_info(code)
-    except HTTPException as exc:
-        logger.error(f"[OAuth][Callback] Google userinfo/token exchange error: {exc.detail}")
-        return _frontend_redirect("/login", {"auth_error": str(exc.detail)})
-    except Exception as exc:
-        logger.error(f"[OAuth][Callback] Unexpected Google token exchange exception: {exc}")
-        return _frontend_redirect("/login", {"auth_error": "Failed to exchange authorization grant with Google."})
+        # Step 1: Google code exchange & profile fetch
+        logger.info("[OAuth Callback] Step 1: Initiating Google authorization code exchange...")
+        try:
+            google_profile = await GoogleOAuthService.exchange_code_for_user_info(code)
+        except HTTPException as exc:
+            logger.error(f"[OAuth Callback] Step 1 FAILED: Google token exchange HTTPException: {exc.detail}")
+            return _frontend_redirect("/login", {"auth_error": "Google sign-in failed during identity verification. Please try again."})
+        except Exception as exc:
+            logger.exception(f"[OAuth Callback] Step 1 FAILED: Unexpected exception during Google exchange: {exc}")
+            return _frontend_redirect("/login", {"auth_error": "Google sign-in failed during identity verification. Please try again."})
 
-    # Check if this third-party user already possesses an active Autofy profile
-    normalized_email = _normalize_email(google_profile.email)
-    user = db.query(User).filter(func.lower(User.email) == normalized_email).first()
+        # Step 2: Normalize and hash email for safe logging
+        normalized_email = _normalize_email(google_profile.email)
+        email_hash = hashlib.sha256(normalized_email.encode("utf-8")).hexdigest()[:12]
+        logger.info(f"[OAuth Callback] Step 2: Google profile validated successfully (email_hash={email_hash})")
 
-    if not user:
-        # Create a new Business workspace and Active User dynamically if not found (Needs onboarding)
-        # We do NOT set default fallback strings like "Studio Suite" — business name must come from onboarding.
-        new_business = Business(
-            name=google_profile.name or "New Business",
-            email=normalized_email,
-            is_onboarded=False
-        )
-        db.add(new_business)
-        db.flush()
-        
-        # Salt-hash dummy codes for federated SSO users
-        dummy_pwd = get_password_hash(f"sso_google_{google_profile.sub}_auth_safe_2026")
-        user = User(
-            business_id=new_business.id,
-            name=google_profile.name or normalized_email.split("@")[0],
-            email=normalized_email,
-            password_hash=dummy_pwd,
-            role="Owner",
-            status="Active"
-        )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-    else:
-        if user.status != "Active":
-            return _frontend_redirect(
-                "/login",
-                {"auth_error": "Your third-party federated account is currently deactivated."}
+        # Step 3: Existing user lookup
+        logger.info(f"[OAuth Callback] Step 3: Querying database for existing user (email_hash={email_hash})...")
+        user = db.query(User).filter(func.lower(User.email) == normalized_email).first()
+
+        # Step 4 & 5: Business and User resolution
+        if not user:
+            logger.info(f"[OAuth Callback] Step 4: No existing user found for email_hash={email_hash}. Resolving business workspace...")
+            # Check if an existing business is registered under this email (e.g. from prior invite or orphan)
+            biz = db.query(Business).filter(func.lower(Business.email) == normalized_email).first()
+            if not biz:
+                logger.info(f"[OAuth Callback] Step 4a: Creating new Business entity for email_hash={email_hash}...")
+                biz = Business(
+                    name=google_profile.name or "New Business",
+                    email=normalized_email,
+                    is_onboarded=False
+                )
+                db.add(biz)
+                db.flush()
+                logger.info(f"[OAuth Callback] Step 4a SUCCESS: Created Business id={biz.id}")
+            else:
+                logger.info(f"[OAuth Callback] Step 4b: Linked to existing Business id={biz.id}")
+
+            logger.info(f"[OAuth Callback] Step 5: Creating User entity for email_hash={email_hash}...")
+            dummy_pwd = get_password_hash(f"sso_google_{google_profile.sub}_auth_safe_2026")
+            user = User(
+                business_id=biz.id,
+                name=google_profile.name or normalized_email.split("@")[0],
+                email=normalized_email,
+                password_hash=dummy_pwd,
+                role="Owner",
+                status="Active"
             )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            logger.info(f"[OAuth Callback] Step 5 SUCCESS: User created user_id={user.id}, business_id={biz.id}")
+        else:
+            logger.info(f"[OAuth Callback] Step 3 SUCCESS: Existing user found user_id={user.id}, status={user.status}")
+            if user.status != "Active":
+                logger.warning(f"[OAuth Callback] User account is deactivated user_id={user.id}, status={user.status}")
+                return _frontend_redirect(
+                    "/login",
+                    {"auth_error": "Your third-party federated account is currently deactivated. Please contact support."}
+                )
 
-    token = create_access_token(
-        subject=user.id,
-        additional_claims={
-            "business_id": user.business_id,
-            "role": user.role
-        }
-    )
+        # Step 6: Verify Business relationship
+        biz = db.query(Business).filter(Business.id == user.business_id).first()
+        is_onboarded_str = "true" if (biz and biz.is_onboarded) else "false"
 
-    from services.activity_services import ActivityService
-    ActivityService.log(
-        db=db,
-        business_id=user.business_id,
-        action="GOOGLE_AUTH_LOGIN",
-        entity_type="User",
-        entity_id=user.id,
-        details=f"User {user.name} ({user.email}) signed in via Google OAuth SSO",
-        user=user
-    )
+        # Step 7: JWT/access token generation
+        logger.info(f"[OAuth Callback] Step 7: Generating signed JWT access token for user_id={user.id}...")
+        token = create_access_token(
+            subject=user.id,
+            additional_claims={
+                "business_id": user.business_id,
+                "role": user.role
+            }
+        )
+        logger.info(f"[OAuth Callback] Step 7 SUCCESS: Access token generated successfully.")
 
-    # Hand the browser back to the SPA with the session token + profile.
-    biz = db.query(Business).filter(Business.id == user.business_id).first()
-    is_onboarded_str = "true" if (biz and biz.is_onboarded) else "false"
+        # Log Activity audit record safely (non-blocking)
+        try:
+            from services.activity_services import ActivityService
+            ActivityService.log(
+                db=db,
+                business_id=user.business_id,
+                action="GOOGLE_AUTH_LOGIN",
+                entity_type="User",
+                entity_id=user.id,
+                details=f"User {user.name} signed in via Google OAuth SSO",
+                user=user
+            )
+        except Exception as act_err:
+            logger.warning(f"[OAuth Callback] Non-fatal: ActivityService audit log skipped: {act_err}")
 
-    return _frontend_redirect(
-        "/auth/callback",
-        {
-            "access_token": token,
-            "user_id": user.id,
-            "business_id": user.business_id,
-            "role": user.role,
-            "email": user.email,
-            "name": user.name or "",
-            "is_onboarded": is_onboarded_str,
-        }
-    )
+        # Step 8: Frontend redirect
+        logger.info(f"[OAuth Callback] Step 8: Redirecting user to SPA /auth/callback (email_hash={email_hash})...")
+        return _frontend_redirect(
+            "/auth/callback",
+            {
+                "access_token": token,
+                "user_id": user.id,
+                "business_id": user.business_id,
+                "role": user.role,
+                "email": user.email,
+                "name": user.name or "",
+                "is_onboarded": is_onboarded_str,
+            }
+        )
+
+    except Exception as exc:
+        logger.exception(f"[OAuth Callback] FATAL unhandled exception during callback execution (email_hash={email_hash}): {exc}")
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        return _frontend_redirect(
+            "/login",
+            {"auth_error": "Google login failed. Please try again."}
+        )
 
 class AccountDeletionRequest(BaseModel):
     confirmation_text: str

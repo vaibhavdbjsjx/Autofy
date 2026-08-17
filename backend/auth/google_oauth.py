@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 
 class GoogleUserSchema(BaseModel):
     email: str
-    name: str
+    name: Optional[str] = None
     picture: Optional[str] = None
     sub: str  # Google User ID
 
@@ -38,7 +38,6 @@ class GoogleOAuthService:
         then queries the userinfo endpoint to fetch email, name, and profile values.
         """
         token_url = "https://oauth2.googleapis.com/token"
-        headers = {"Host": "oauth2.googleapis.com"}
         data = {
             "code": code,
             "client_id": settings.GOOGLE_CLIENT_ID,
@@ -47,10 +46,10 @@ class GoogleOAuthService:
             "grant_type": "authorization_code"
         }
 
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        async with httpx.AsyncClient(timeout=15.0) as client:
             try:
                 # Exchange validation code for token parameters map
-                token_response = await client.post(token_url, data=data, headers=headers)
+                token_response = await client.post(token_url, data=data)
                 if token_response.status_code != 200:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
@@ -59,6 +58,11 @@ class GoogleOAuthService:
                 
                 credentials_map = token_response.json()
                 access_token = credentials_map.get("access_token")
+                if not access_token:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Google OAuth token response missing access_token."
+                    )
                 
                 # Request user properties using open ID access credentials
                 userinfo_url = "https://www.googleapis.com/oauth2/v3/userinfo"
@@ -68,15 +72,25 @@ class GoogleOAuthService:
                 if userinfo_response.status_code != 200:
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Failed to retrieve Google profile parameters metadata."
+                        detail=f"Failed to retrieve Google profile parameters: {userinfo_response.text}"
                     )
                 
                 decoded_user = userinfo_response.json()
+                email = decoded_user.get("email")
+                if not email:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Google profile did not contain an email address."
+                    )
+
+                name = decoded_user.get("name") or decoded_user.get("given_name") or email.split("@")[0]
+                sub = str(decoded_user.get("sub") or decoded_user.get("id") or email)
+
                 return GoogleUserSchema(
-                    email=decoded_user["email"],
-                    name=decoded_user["name"],
+                    email=email,
+                    name=name,
                     picture=decoded_user.get("picture"),
-                    sub=decoded_user["sub"]
+                    sub=sub
                 )
                 
             except Exception as exc:

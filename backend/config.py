@@ -118,6 +118,12 @@ class Settings(BaseSettings):
         insecure_defaults = ["", "change_me", "74cf0ee752be30a1bf8408f61548e6900f684824d5ea34c89ee425b0cb59f0f6"]
         is_prod = self.ENVIRONMENT.lower() in ["production", "prod"]
         
+        # Support both JWT_SECRET_KEY and JWT_SECRET environment variables
+        if not self.JWT_SECRET_KEY or self.JWT_SECRET_KEY in insecure_defaults:
+            alt_secret = os.environ.get("JWT_SECRET", "")
+            if alt_secret and alt_secret not in insecure_defaults:
+                self.JWT_SECRET_KEY = alt_secret
+
         if is_prod:
             if not self.JWT_SECRET_KEY or self.JWT_SECRET_KEY in insecure_defaults or len(self.JWT_SECRET_KEY) < 32:
                 raise ValueError("FATAL SECURITY ERROR: JWT_SECRET_KEY environment variable must be set to a strong secret (at least 32 characters) in production! Startup aborted.")
