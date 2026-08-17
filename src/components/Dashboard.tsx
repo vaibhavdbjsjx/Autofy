@@ -372,7 +372,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
 
-  const [userProfile, setUserProfile] = useState<{ name: string; email: string; businessName: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<{ name: string; email: string; businessName: string; role: string } | null>(null);
 
   useEffect(() => {
     api.get<any>("/api/v1/auth/me").then((res) => {
@@ -381,6 +381,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           name: res.name || "",
           email: res.email || "",
           businessName: res.business?.name || "",
+          role: res.role || "Owner",
         });
       }
     }).catch(() => { /* fallback */ });
@@ -721,6 +722,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }
 
   function SidebarContent() {
+    const currentRole = userProfile?.role || "Owner";
+    const roleAllowedTabs: Record<string, string[]> = {
+      "Support Agent": ["overview", "conversations", "ai_playground"],
+      "Sales Agent": ["overview", "conversations", "leads", "appointments", "crm", "ai_playground"],
+      "Accountant": ["overview", "payments", "subscription", "analytics", "orders"],
+    };
+    const allowedTabs = roleAllowedTabs[currentRole] || null;
+
+    const visibleMenuSections = menuSections
+      .map((sec) => ({
+        ...sec,
+        items: sec.items.filter((item) => !allowedTabs || allowedTabs.includes(item.id)),
+      }))
+      .filter((sec) => sec.items.length > 0);
+
     return (
       <div className="flex h-full flex-col justify-between gap-5">
         <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto pr-1 scrollbar-none">
@@ -741,7 +757,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
           {/* Navigation */}
           <nav className="flex flex-col gap-5 text-left">
-            {menuSections.map((sec, secIdx) => (
+            {visibleMenuSections.map((sec, secIdx) => (
               <div key={secIdx} className="flex flex-col gap-1">
                 <span
                   className="px-3 pb-1 text-[9.5px] font-extrabold uppercase tracking-widest"

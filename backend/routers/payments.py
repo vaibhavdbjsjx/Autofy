@@ -5,6 +5,7 @@ from fastapi.responses import HTMLResponse
 from database import get_db
 from auth.dependencies import get_current_active_user, RoleChecker
 from models.user import User
+from models.payment import Payment
 from schemas.payments import (
     PaymentLinkCreate, SubscriptionCreate, PaymentResponse, RazorpayVerification
 )

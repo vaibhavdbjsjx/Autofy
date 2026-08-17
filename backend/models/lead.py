@@ -1,11 +1,17 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, ForeignKey, DateTime, Integer, Text
+from sqlalchemy import Column, String, ForeignKey, DateTime, Integer, Text, Index
 from sqlalchemy.orm import relationship
 from database import Base
 
 class Lead(Base):
     __tablename__ = "leads"
+    __table_args__ = (
+        Index("ix_leads_biz_phone", "business_id", "phone"),
+        Index("ix_leads_biz_status", "business_id", "status"),
+        Index("ix_leads_biz_stage", "business_id", "pipeline_stage"),
+        Index("ix_leads_biz_created", "business_id", "created_at"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     business_id = Column(String(36), ForeignKey("businesses.id", ondelete="CASCADE"), nullable=False, index=True)

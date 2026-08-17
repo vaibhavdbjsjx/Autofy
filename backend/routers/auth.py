@@ -236,6 +236,17 @@ def login(payload: LoginRequest, db: Session = Depends(get_db)):
         }
     )
 
+    from services.activity_services import ActivityService
+    ActivityService.log(
+        db=db,
+        business_id=user.business_id,
+        action="USER_LOGIN",
+        entity_type="User",
+        entity_id=user.id,
+        details=f"User {user.name} logged in via Email/Password credentials",
+        user=user
+    )
+
     return TokenResponse(
         access_token=access_token,
         user_id=user.id,
@@ -390,6 +401,17 @@ async def google_callback(
             "business_id": user.business_id,
             "role": user.role
         }
+    )
+
+    from services.activity_services import ActivityService
+    ActivityService.log(
+        db=db,
+        business_id=user.business_id,
+        action="GOOGLE_AUTH_LOGIN",
+        entity_type="User",
+        entity_id=user.id,
+        details=f"User {user.name} ({user.email}) signed in via Google OAuth SSO",
+        user=user
     )
 
     # Hand the browser back to the SPA with the session token + profile.

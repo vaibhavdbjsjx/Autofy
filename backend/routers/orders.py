@@ -379,6 +379,12 @@ def process_order_refund(
     # Apply defaults
     refund_val = payload.refund_amount if payload.refund_amount is not None else db_order.total_price
 
+    if refund_val <= Decimal("0.00"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid refund amount: Refund amount must be greater than zero."
+        )
+
     if refund_val > db_order.total_price:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

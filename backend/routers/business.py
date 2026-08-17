@@ -148,6 +148,18 @@ def update_business_profile(
 
     db.commit()
     db.refresh(business)
+
+    from services.activity_services import ActivityService
+    ActivityService.log(
+        db=db,
+        business_id=business.id,
+        action="BUSINESS_PROFILE_UPDATED",
+        entity_type="Business",
+        entity_id=business.id,
+        details=f"Updated profile for {business.name} (Classification: {business.classification or 'N/A'})",
+        user=current_user
+    )
+
     return business
 
 class AIKillSwitchRequest(BaseModel):
@@ -175,6 +187,18 @@ def toggle_ai_kill_switch(
         ).update({"ai_enabled": True}, synchronize_session=False)
     db.commit()
     db.refresh(business)
+
+    from services.activity_services import ActivityService
+    ActivityService.log(
+        db=db,
+        business_id=business.id,
+        action="AI_STATUS_TOGGLED",
+        entity_type="AI",
+        entity_id=business.id,
+        details=f"AI auto-replies globally {'enabled' if payload.enabled else 'disabled'}",
+        user=current_user
+    )
+
     return {
         "ai_auto_reply_enabled": business.ai_auto_reply_enabled,
         "message": "AI auto-replies enabled." if payload.enabled else "AI auto-replies disabled globally. No automated messages will be sent."
@@ -545,3 +569,116 @@ def get_dashboard_summary(
         "recent_conversations": recent_conversations,
         "recent_activity": recent_activity
     }
+
+
+# ─── Data Management & Compliance Exports ───────────────────────
+
+import csv
+import io
+from fastapi.responses import Response
+
+@router.get("/export/customers")
+def export_customers_csv(
+    current_user: User = Depends(RoleChecker(["Owner", "Admin", "Manager"])),
+    db: Session = Depends(get_db)
+):
+    """
+    Exports business customer CRM data (leads) as a downloadable CSV file.
+    Enforces tenant isolation based on current_user.business_id.
+    """
+    from models.lead import Lead
+    leads = db.query(Lead).filter(Lead.business_id == current_user.business_id).order_by(Lead.created_at.desc()).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Lead ID", "Name", "Email", "Phone", "Status", "Pipeline Stage", "Source", "Score", "Deal Value", "Created At"])
+
+    for l in leads:
+        writer.writerow([
+            l.id,
+            l.name or "",
+            l.email or "",
+            l.phone or "",
+            l.status or "",
+            l.pipeline_stage or "",
+            l.source or "",
+            l.score or 0,
+            l.deal_value or 0,
+            l.created_at.strftime("%Y-%m-%d %H:%M:%S") if l.created_at else ""
+        ])
+
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=customers_export_{current_user.business_id[:8]}.csv"}
+    )
+
+
+@router.get("/export/conversations")
+def export_conversations_csv(
+    current_user: User = Depends(RoleChecker(["Owner", "Admin", "Manager"])),
+    db: Session = Depends(get_db)
+):
+    """
+    Exports conversation threads as a downloadable CSV file.
+    """
+    from models.conversation import Conversation
+    from models.lead import Lead
+    convs = db.query(Conversation).filter(Conversation.business_id == current_user.business_id).order_by(Conversation.updated_at.desc()).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Conversation ID", "Customer Phone", "Channel", "Status", "AI Enabled", "Summary", "Created At", "Updated At"])
+
+    for c in convs:
+        writer.writerow([
+            c.id,
+            c.platform_sender_id or "",
+            c.channel or "",
+            c.status or "",
+            c.ai_enabled,
+            c.summary or "",
+            c.created_at.strftime("%Y-%m-%d %H:%M:%S") if c.created_at else "",
+            c.updated_at.strftime("%Y-%m-%d %H:%M:%S") if c.updated_at else ""
+        ])
+
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=conversations_export_{current_user.business_id[:8]}.csv"}
+    )
+
+
+@router.get("/export/invoices")
+def export_invoices_csv(
+    current_user: User = Depends(RoleChecker(["Owner", "Admin", "Manager"])),
+    db: Session = Depends(get_db)
+):
+    """
+    Exports business payment ledger and invoice transactions as a downloadable CSV file.
+    """
+    from models.payment import Payment
+    payments = db.query(Payment).filter(Payment.business_id == current_user.business_id).order_by(Payment.created_at.desc()).all()
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Payment ID", "Invoice Number", "Amount", "Currency", "Status", "Billing Type", "Description", "Created At"])
+
+    for p in payments:
+        writer.writerow([
+            p.id,
+            p.invoice_id or "",
+            str(p.amount),
+            p.currency,
+            p.status,
+            p.billing_type,
+            p.description or "",
+            p.created_at.strftime("%Y-%m-%d %H:%M:%S") if p.created_at else ""
+        ])
+
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=invoices_export_{current_user.business_id[:8]}.csv"}
+    )
+

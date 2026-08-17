@@ -1,11 +1,14 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, ForeignKey, DateTime, Numeric, Boolean, Text
+from sqlalchemy import Column, String, ForeignKey, DateTime, Numeric, Boolean, Text, Index
 from sqlalchemy.orm import relationship
 from database import Base
 
 class Subscription(Base):
     __tablename__ = "subscriptions"
+    __table_args__ = (
+        Index("ix_subscriptions_biz_status", "business_id", "status"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     business_id = Column(String(36), ForeignKey("businesses.id", ondelete="CASCADE"), nullable=False, index=True, unique=True)

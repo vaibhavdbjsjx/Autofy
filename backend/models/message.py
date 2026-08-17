@@ -1,11 +1,15 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, ForeignKey, DateTime, Float, Text
+from sqlalchemy import Column, String, ForeignKey, DateTime, Float, Text, Index
 from sqlalchemy.orm import relationship
 from database import Base
 
 class Message(Base):
     __tablename__ = "messages"
+    __table_args__ = (
+        Index("ix_messages_conv_created", "conversation_id", "created_at"),
+        Index("ix_messages_whatsapp_status", "whatsapp_message_id", "status"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     conversation_id = Column(String(36), ForeignKey("conversations.id", ondelete="CASCADE"), nullable=False, index=True)

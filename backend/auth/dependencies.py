@@ -118,3 +118,23 @@ class FeatureChecker:
                 detail=f"The feature '{self.feature_name}' is not included in your current {sub_state.get('plan_name')}. Please upgrade your plan to unlock."
             )
         return current_user
+
+
+def require_permission(permission_key: str):
+    """
+    Dependency checking fine-grained role capabilities against ROLE_PERMISSIONS_MATRIX.
+    Supported permissions: can_edit_pricing, can_reply_chats, can_manage_payments,
+    can_export_data, can_change_whatsapp, can_manage_team, can_delete_account.
+    """
+    def _perm_checker(current_user: User = Depends(get_current_active_user)) -> User:
+        from routers.team_member import ROLE_PERMISSIONS_MATRIX
+        role = current_user.role or "Support Agent"
+        perms = ROLE_PERMISSIONS_MATRIX.get(role, ROLE_PERMISSIONS_MATRIX.get("Support Agent", {}))
+        if not perms.get(permission_key, False):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access denied. Your role '{role}' does not have the required '{permission_key}' permission."
+            )
+        return current_user
+    return _perm_checker
+

@@ -234,6 +234,18 @@ def change_subscription_plan(
     db.commit()
     db.refresh(sub_record)
 
+    # Audit log
+    from services.activity_services import ActivityService
+    ActivityService.log(
+        db=db,
+        business_id=current_user.business_id,
+        action="SUBSCRIPTION_PLAN_CHANGED",
+        entity_type="Subscription",
+        entity_id=sub_record.id,
+        details=f"Changed plan from {old_plan} to {payload.plan_id} ({interval}). Grandfathered rate locked: ₹{sub_record.grandfathered_price}",
+        user=current_user
+    )
+
     state = EntitlementService.evaluate_subscription_state(db, current_user.business_id)
     return {
         "status": "success",
@@ -251,6 +263,7 @@ def resume_subscription(
     Resumes a subscription that was scheduled for cancellation at period end.
     """
     from models.subscription import Subscription
+    from services.activity_services import ActivityService
 
     sub_record = db.query(Subscription).filter(Subscription.business_id == current_user.business_id).first()
     if not sub_record:
@@ -260,6 +273,16 @@ def resume_subscription(
     sub_record.cancelled_at = None
     sub_record.status = "ACTIVE"
     db.commit()
+
+    ActivityService.log(
+        db=db,
+        business_id=current_user.business_id,
+        action="SUBSCRIPTION_RESUMED",
+        entity_type="Subscription",
+        entity_id=sub_record.id,
+        details="Resumed recurring subscription renewal",
+        user=current_user
+    )
 
     state = EntitlementService.evaluate_subscription_state(db, current_user.business_id)
     return {
@@ -283,6 +306,7 @@ def update_payment_method(
     Updates the business payment method summary and billing details on record.
     """
     from models.subscription import Subscription
+    from services.activity_services import ActivityService
 
     sub_record = db.query(Subscription).filter(Subscription.business_id == current_user.business_id).first()
     if not sub_record:
@@ -296,6 +320,16 @@ def update_payment_method(
     sub_record.last_payment_status = "succeeded"
     sub_record.last_payment_error = None
     db.commit()
+
+    ActivityService.log(
+        db=db,
+        business_id=current_user.business_id,
+        action="PAYMENT_METHOD_UPDATED",
+        entity_type="Subscription",
+        entity_id=sub_record.id,
+        details=f"Updated payment method to {payload.payment_method} (Tax ID: {payload.tax_id or 'N/A'})",
+        user=current_user
+    )
 
     return {
         "status": "success",
@@ -313,8 +347,8 @@ def retry_failed_payment(
     """
     from models.subscription import Subscription
     from models.invoice import Invoice
+    from services.activity_services import ActivityService
     from datetime import datetime
-    import uuid
 
     sub_record = db.query(Subscription).filter(Subscription.business_id == current_user.business_id).first()
     if not sub_record:
@@ -335,6 +369,16 @@ def retry_failed_payment(
         inv.paid_at = datetime.utcnow()
 
     db.commit()
+
+    ActivityService.log(
+        db=db,
+        business_id=current_user.business_id,
+        action="PAYMENT_RETRY_TRIGGERED",
+        entity_type="Subscription",
+        entity_id=sub_record.id,
+        details="Recovered failed subscription payment; restored active standing",
+        user=current_user
+    )
 
     state = EntitlementService.evaluate_subscription_state(db, current_user.business_id)
     return {
@@ -405,6 +449,134 @@ def list_business_invoices(
         ]
     }
 
+@router.get("/invoices/{invoice_id}/download")
+def download_tax_invoice(
+    invoice_id: str,
+    current_user: User = Depends(get_current_active_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Returns an official, printable HTML tax invoice with GSTIN and payment confirmation.
+    """
+    from fastapi.responses import HTMLResponse
+    from models.invoice import Invoice
+    from models.business import Business
+
+    inv = db.query(Invoice).filter(
+        Invoice.id == invoice_id,
+        Invoice.business_id == current_user.business_id
+    ).first()
+
+    if not inv:
+        raise HTTPException(status_code=404, detail="Invoice not found or unauthorized access.")
+
+    biz = db.query(Business).filter(Business.id == current_user.business_id).first()
+    biz_name = biz.name if biz else "Business Workspace"
+    biz_email = biz.email if biz else current_user.email
+
+    inv_date = inv.invoice_date.strftime("%d %B %Y")
+    period_str = f"{inv.billing_period_start.strftime('%d %b %Y')} to {inv.billing_period_end.strftime('%d %b %Y')}" if inv.billing_period_start and inv.billing_period_end else "Standard Subscription Cycle"
+
+    html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tax Invoice - {inv.invoice_number}</title>
+  <style>
+    body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; margin: 0; padding: 40px; background: #f8fafc; }}
+    .invoice-card {{ max-width: 800px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; padding: 48px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }}
+    .header {{ display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #f1f5f9; padding-bottom: 24px; margin-bottom: 32px; }}
+    .brand {{ font-size: 24px; font-weight: 900; color: #0284c7; letter-spacing: -0.5px; }}
+    .badge {{ display: inline-block; padding: 4px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700; text-transform: uppercase; background: #ecfdf5; color: #059669; border: 1px solid #a7f3d0; }}
+    .meta-grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }}
+    .meta-col h4 {{ margin: 0 0 8px 0; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.5px; }}
+    .meta-col p {{ margin: 4px 0; font-size: 14px; font-weight: 500; color: #334155; }}
+    table {{ width: 100%; border-collapse: collapse; margin-bottom: 32px; }}
+    th {{ text-align: left; padding: 12px 16px; background: #f8fafc; font-size: 11px; font-weight: 800; text-transform: uppercase; color: #64748b; border-bottom: 1px solid #e2e8f0; }}
+    td {{ padding: 16px; font-size: 14px; border-bottom: 1px solid #f1f5f9; }}
+    .totals {{ width: 300px; margin-left: auto; }}
+    .totals-row {{ display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; color: #64748b; }}
+    .totals-row.grand-total {{ border-top: 2px solid #0f172a; font-size: 18px; font-weight: 900; color: #0f172a; padding-top: 12px; margin-top: 8px; }}
+    .footer {{ text-align: center; margin-top: 48px; padding-top: 24px; border-top: 1px solid #f1f5f9; font-size: 12px; color: #94a3b8; }}
+    @media print {{ body {{ background: #fff; padding: 0; }} .invoice-card {{ border: none; box-shadow: none; padding: 0; }} }}
+  </style>
+</head>
+<body>
+  <div class="invoice-card">
+    <div class="header">
+      <div>
+        <div class="brand">⚡ AUTOFY TECHNOLOGIES</div>
+        <p style="margin: 6px 0 0 0; font-size: 13px; color: #64748b;">Enterprise AI Business Automation Platform</p>
+        <p style="margin: 2px 0 0 0; font-size: 12px; color: #94a3b8;">GSTIN: 29AAACA1234B1Z5</p>
+      </div>
+      <div style="text-align: right;">
+        <span class="badge">PAID</span>
+        <h2 style="margin: 12px 0 4px 0; font-size: 20px; font-weight: 800; color: #0f172a;">{inv.invoice_number}</h2>
+        <p style="margin: 0; font-size: 13px; color: #64748b;">Issued: {inv_date}</p>
+      </div>
+    </div>
+
+    <div class="meta-grid">
+      <div class="meta-col">
+        <h4>Billed To</h4>
+        <p style="font-weight: 700; color: #0f172a;">{biz_name}</p>
+        <p>{biz_email}</p>
+        <p>Payment Method: {inv.payment_method}</p>
+      </div>
+      <div class="meta-col" style="text-align: right;">
+        <h4>Billing Period</h4>
+        <p>{period_str}</p>
+        <p>Currency: {inv.currency}</p>
+        <p>Status: Completed</p>
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Description</th>
+          <th style="text-align: center;">Qty</th>
+          <th style="text-align: right;">Rate</th>
+          <th style="text-align: right;">Amount</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <strong>{inv.customer_notes or "Autofy Pro Platform Services"}</strong><br>
+            <span style="font-size: 12px; color: #64748b;">WhatsApp AI Cloud Agent & Automation Suite</span>
+          </td>
+          <td style="text-align: center;">1</td>
+          <td style="text-align: right;">₹{float(inv.subtotal):,.2f}</td>
+          <td style="text-align: right;">₹{float(inv.subtotal):,.2f}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <div class="totals-row">
+        <span>Subtotal</span>
+        <span>₹{float(inv.subtotal):,.2f}</span>
+      </div>
+      <div class="totals-row">
+        <span>GST (18% Integrated Tax)</span>
+        <span>₹{float(inv.tax_amount):,.2f}</span>
+      </div>
+      <div class="totals-row grand-total">
+        <span>Total Paid</span>
+        <span>₹{float(inv.total_amount):,.2f}</span>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Thank you for partnering with Autofy. This is a computer-generated tax invoice and requires no physical signature.</p>
+      <p>Autofy Cloud Inc. · support@autofy.ai · https://autofysaas.com</p>
+    </div>
+  </div>
+</body>
+</html>"""
+    return HTMLResponse(content=html_content, status_code=200)
+
 class RefundRequestSchema(BaseModel):
     invoice_id: Optional[str] = None
     reason: str
@@ -420,6 +592,7 @@ def request_subscription_refund(
     Submits a structured refund request for business payments.
     """
     from models.support_ticket import SupportTicket
+    from services.activity_services import ActivityService
     import uuid
 
     ticket = SupportTicket(
@@ -435,8 +608,19 @@ def request_subscription_refund(
     db.add(ticket)
     db.commit()
 
+    ActivityService.log(
+        db=db,
+        business_id=current_user.business_id,
+        action="REFUND_REQUESTED",
+        entity_type="Invoice",
+        entity_id=payload.invoice_id,
+        details=f"Refund requested for invoice {payload.invoice_id or 'Latest'} (Reason: {payload.reason})",
+        user=current_user
+    )
+
     return {
         "status": "success",
         "ticket_id": ticket.id,
         "message": "Refund request ticket submitted successfully. Our billing operations team will review within 24-48 business hours."
     }
+

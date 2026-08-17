@@ -51,27 +51,42 @@ class EntitlementService:
                 sub.status = "EXPIRED"
                 db.commit()
 
-        # 2. Evaluate Active Subscription Period Expiry
-        if sub.status in ["ACTIVE", "CANCEL_AT_PERIOD_END"]:
+        # 2. Evaluate Active Subscription Period Expiry & Grace Period
+        if sub.status in ["ACTIVE", "CANCEL_AT_PERIOD_END", "PAST_DUE"]:
             if sub.current_period_end and now >= sub.current_period_end:
                 if sub.cancel_at_period_end:
                     sub.status = "CANCELLED"
                 else:
-                    # Transition to PAST_DUE if renewal pending
-                    sub.status = "PAST_DUE"
+                    # 7-day grace period for failed renewals before suspension
+                    overdue_days = (now - sub.current_period_end).days
+                    if overdue_days > 7:
+                        sub.status = "SUSPENDED"
+                    else:
+                        sub.status = "PAST_DUE"
                 db.commit()
 
-        # 3. Resolve Active Plan Configuration
+        # 3. Resolve Active Plan Configuration & Grandfathered Pricing Lock
         interval_key = "yearly" if str(sub.billing_interval).lower() == "yearly" else "monthly"
         plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])
 
+        effective_price = float(
+            sub.grandfathered_price
+            if sub.grandfathered_price is not None
+            else (sub.normal_price or plan_config["normal_price"])
+        )
+        is_grandfathered = sub.grandfathered_price is not None
+
         # 4. Access Control Entitlement Decision
-        is_live_accessible = sub.status in ["TRIAL_ACTIVE", "ACTIVE", "CANCEL_AT_PERIOD_END"]
-        is_paid = sub.status in ["ACTIVE", "CANCEL_AT_PERIOD_END"]
+        is_live_accessible = sub.status in ["TRIAL_ACTIVE", "ACTIVE", "CANCEL_AT_PERIOD_END", "PAST_DUE"]
+        is_paid = sub.status in ["ACTIVE", "CANCEL_AT_PERIOD_END", "PAST_DUE"]
 
         trial_days_remaining = 0
         if sub.status == "TRIAL_ACTIVE" and sub.trial_ends_at:
             trial_days_remaining = max(0, (sub.trial_ends_at - now).days)
+
+        grace_days_remaining = 0
+        if sub.status == "PAST_DUE" and sub.current_period_end:
+            grace_days_remaining = max(0, 7 - (now - sub.current_period_end).days)
 
         return {
             "business_id": business_id,
@@ -86,11 +101,14 @@ class EntitlementService:
             "pricing": {
                 "currency": sub.currency,
                 "billing_interval": interval_key,
-                "price": float(sub.normal_price or plan_config["normal_price"]),
+                "price": effective_price,
                 "normal_price": float(plan_config["normal_price"]),
                 "monthly_equivalent": plan_config.get("monthly_equivalent", float(plan_config["normal_price"])),
                 "savings_amount": plan_config.get("savings_amount", 0.0),
                 "discount_percent": plan_config.get("discount_percent", 0),
+                "is_grandfathered": is_grandfathered,
+                "grandfathered_price": float(sub.grandfathered_price) if sub.grandfathered_price is not None else None,
+                "price_locked_at": sub.price_locked_at.isoformat() if sub.price_locked_at else None,
             },
             "trial": {
                 "active": sub.status == "TRIAL_ACTIVE",
@@ -103,6 +121,13 @@ class EntitlementService:
                 "end": sub.current_period_end.isoformat() if sub.current_period_end else None,
                 "cancel_at_period_end": sub.cancel_at_period_end,
                 "cancelled_at": sub.cancelled_at.isoformat() if sub.cancelled_at else None,
+                "grace_days_remaining": grace_days_remaining,
+            },
+            "payment_health": {
+                "last_status": sub.last_payment_status or "succeeded",
+                "last_error": sub.last_payment_error,
+                "retry_count": int(sub.retry_count or 0),
+                "payment_method_summary": sub.payment_method_summary or "UPI / Card (Auto-Debit)",
             },
             "entitlements": plan_config["entitlements"]
         }

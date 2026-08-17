@@ -96,6 +96,17 @@ interface InvoiceItem {
   notes?: string;
 }
 
+interface ActivityLogItem {
+  id: string;
+  business_id: string;
+  user_name?: string;
+  user_role?: string;
+  action: string;
+  entity_type: string;
+  details?: string;
+  created_at: string;
+}
+
 interface SettingsTabProps {
   onboardingData?: any;
   triggerNotification: (text: string) => void;
@@ -207,6 +218,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
   const [refundReason, setRefundReason] = useState("");
 
   const [showInvoicePreview, setShowInvoicePreview] = useState<InvoiceItem | null>(null);
+  const [activityLogs, setActivityLogs] = useState<ActivityLogItem[]>([]);
 
   // Fetch real tenant profile, knowledge, services, and billing on mount
   useEffect(() => {
@@ -214,14 +226,15 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
       try {
         const { api, isAuthenticated } = await import("../lib/api");
         if (isAuthenticated()) {
-          const [meRes, bizRes, svcRes, prdRes, faqRes, subRes, invRes] = await Promise.allSettled([
+          const [meRes, bizRes, svcRes, prdRes, faqRes, subRes, invRes, logsRes] = await Promise.allSettled([
             api.get<any>("/api/v1/auth/me"),
             api.get<any>("/api/v1/business/profile"),
             api.get<any>("/api/v1/knowledge/services"),
             api.get<any>("/api/v1/knowledge/products"),
             api.get<any>("/api/v1/knowledge/faqs"),
             api.get<any>("/api/v1/subscriptions/status"),
-            api.get<any>("/api/v1/subscriptions/invoices")
+            api.get<any>("/api/v1/subscriptions/invoices"),
+            api.get<any>("/api/v1/team/activity-logs")
           ]);
 
           let userEmail = "";
@@ -303,6 +316,10 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
 
           if (invRes.status === "fulfilled" && invRes.value?.invoices) {
             setInvoices(invRes.value.invoices);
+          }
+
+          if (logsRes.status === "fulfilled" && Array.isArray(logsRes.value)) {
+            setActivityLogs(logsRes.value);
           }
         }
       } catch { /* non-fatal */ }
@@ -606,6 +623,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
             {renderNavItem("knowledge", "Knowledge Base & FAQs", <FaqIcon className="w-4 h-4" />)}
             {renderNavItem("billing", "SaaS Billing & Invoices", <CreditCard className="w-4 h-4" />)}
             {renderNavItem("team", "Team Members", <Users className="w-4 h-4" />)}
+            {renderNavItem("activity", "Activity & Audit Logs", <Clock className="w-4 h-4" />)}
             {renderNavItem("notifications", "Notification Alerts", <Bell className="w-4 h-4" />)}
             {renderNavItem("security", "Security & Keys", <Shield className="w-4 h-4" />)}
             {renderNavItem("api", "API & Webhooks", <Key className="w-4 h-4" />)}
@@ -1464,6 +1482,92 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
                     <p className="text-[9.5px] text-[var(--text-subtle)]">Manage tax invoices, payment disputes, refunds & financial export.</p>
                   </div>
                 </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* CATEGORY: ENTERPRISE AUDIT & ACTIVITY LOGS */}
+          {activeCategory === "activity" && (
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded-3xl p-6 md:p-8 space-y-6">
+              
+              <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-[var(--border)] pb-4">
+                <div>
+                  <h3 className="text-sm font-black text-[var(--text)] uppercase tracking-wider flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-purple-500" /> Enterprise Audit Trail & Activity Logs
+                  </h3>
+                  <p className="text-[10.5px] text-[var(--text-subtle)] mt-0.5">Immutable historical record of logins, AI triggers, WhatsApp credentials, and billing events.</p>
+                </div>
+                <button
+                  onClick={async () => {
+                    const { api } = await import("../lib/api");
+                    const res = await api.get<any[]>("/api/v1/team/activity-logs");
+                    if (Array.isArray(res)) {
+                      setActivityLogs(res);
+                      triggerNotification("Activity logs refreshed");
+                    }
+                  }}
+                  className="bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]/80 text-[var(--text)] font-bold text-xs px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 border border-[var(--border)] cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" /> Refresh Log
+                </button>
+              </div>
+
+              {/* Activity Log Listing Table */}
+              <div className="overflow-x-auto border border-[var(--border)] rounded-2xl bg-[#040406]/60">
+                <table className="w-full font-sans text-xs text-left min-w-[700px]">
+                  <thead>
+                    <tr className="bg-[var(--bg-card)] border-b border-[var(--border)] text-[var(--text-subtle)] text-[10px] uppercase font-black tracking-wider">
+                      <th className="py-3 px-4">Timestamp</th>
+                      <th className="py-3 px-4">Actor / Role</th>
+                      <th className="py-3 px-4">Action Event</th>
+                      <th className="py-3 px-4">Target Entity</th>
+                      <th className="py-3 px-4">Audit Details</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-900/60 text-[var(--text)]">
+                    {activityLogs.length > 0 ? (
+                      activityLogs.map((log) => (
+                        <tr key={log.id} className="hover:bg-[var(--bg-elevated)]/10 transition">
+                          <td className="py-3 px-4 font-mono text-[10px] text-[var(--text-muted)] whitespace-nowrap">
+                            {new Date(log.created_at).toLocaleString("en-IN", {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              second: "2-digit"
+                            })}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-[var(--text)]">{log.user_name || "System Actor"}</span>
+                              <span className="bg-[var(--bg-elevated)] text-purple-400 border border-[var(--border)] text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase">
+                                {log.user_role || "System"}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="inline-block px-2 py-0.5 rounded-full text-[9.5px] font-mono font-bold uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                              {log.action}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 font-mono text-[10.5px] text-[var(--text-subtle)]">
+                            {log.entity_type || "N/A"}
+                          </td>
+                          <td className="py-3 px-4 text-[11px] text-[var(--text-muted)]">
+                            {log.details || "—"}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={5} className="py-8 px-4 text-center text-[var(--text-subtle)] font-sans">
+                          No audit events recorded yet.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
 
             </div>

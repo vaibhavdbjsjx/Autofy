@@ -1,11 +1,15 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Text, ForeignKey, DateTime, JSON
+from sqlalchemy import Column, String, Text, ForeignKey, DateTime, JSON, Index
 from sqlalchemy.orm import relationship
 from database import Base
 
 class ActivityLog(Base):
     __tablename__ = "activity_logs"
+    __table_args__ = (
+        Index("ix_activity_logs_biz_created", "business_id", "created_at"),
+        Index("ix_activity_logs_biz_action", "business_id", "action"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     business_id = Column(String(36), ForeignKey("businesses.id", ondelete="CASCADE"), nullable=False, index=True)

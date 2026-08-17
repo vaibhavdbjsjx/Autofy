@@ -242,6 +242,24 @@ export const WhatsAppSetupTab: React.FC = () => {
   const [isTesterLoading, setIsTesterLoading] = useState(false);
 
   // Fetch Live WhatsApp Connection & Health Status from backend
+  const [diagnosticResult, setDiagnosticResult] = useState<any | null>(null);
+  const [isRunningDiagnostic, setIsRunningDiagnostic] = useState(false);
+
+  const handleRunHealthDiagnostic = async () => {
+    setIsRunningDiagnostic(true);
+    try {
+      const { api } = await import("../lib/api");
+      const res = await api.post<any>("/api/v1/whatsapp/health-check", {});
+      setDiagnosticResult(res);
+      await fetchStatus();
+      addNewWebhookLog("System Diagnostics", `WhatsApp Diagnostic: ${res.diagnostic_code} - ${res.diagnostic_message}`, res.is_healthy);
+    } catch (err: any) {
+      addNewWebhookLog("Error Logs", `Diagnostic test failed: ${err.message || "Unknown error"}`, false);
+    } finally {
+      setIsRunningDiagnostic(false);
+    }
+  };
+
   const fetchStatus = async () => {
     try {
       const { api, isAuthenticated } = await import("../lib/api");
@@ -598,6 +616,15 @@ export const WhatsAppSetupTab: React.FC = () => {
             </span>
           </div>
 
+          <button
+            onClick={handleRunHealthDiagnostic}
+            disabled={isRunningDiagnostic}
+            className="bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)]/80 border border-[var(--border)] text-[var(--text)] text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+          >
+            <Activity className={`w-3.5 h-3.5 text-purple-400 ${isRunningDiagnostic ? "animate-spin" : ""}`} />
+            {isRunningDiagnostic ? "Testing..." : "Health Diagnostic"}
+          </button>
+
           {!isConnected ? (
             <button
               onClick={() => setIsEmbeddedModalOpen(true)}
@@ -623,6 +650,37 @@ export const WhatsAppSetupTab: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* ═══ LIVE DIAGNOSTIC RESULT REPORT (If run) ═══ */}
+      {diagnosticResult && (
+        <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+          diagnosticResult.is_healthy
+            ? "bg-emerald-500/10 border-emerald-500/25 text-emerald-200"
+            : "bg-amber-500/10 border-amber-500/25 text-amber-200"
+        }`}>
+          <div className="flex items-start gap-3">
+            <ShieldCheck className={`w-5 h-5 mt-0.5 shrink-0 ${diagnosticResult.is_healthy ? "text-emerald-400" : "text-amber-400"}`} />
+            <div>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-bold">{diagnosticResult.diagnostic_code}</p>
+                <span className="text-[10px] font-mono opacity-70">Tested at {new Date(diagnosticResult.timestamp).toLocaleTimeString()}</span>
+              </div>
+              <p className="text-[11px] opacity-90 mt-0.5">{diagnosticResult.diagnostic_message}</p>
+              {diagnosticResult.recovery_action && (
+                <p className="text-[10.5px] font-semibold mt-1 text-amber-300">
+                  Recommended Action: {diagnosticResult.recovery_action}
+                </p>
+              )}
+            </div>
+          </div>
+          <button
+            onClick={() => setDiagnosticResult(null)}
+            className="p-1 hover:bg-white/10 rounded-lg text-xs opacity-75 hover:opacity-100 cursor-pointer self-start sm:self-center"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {/* ═══ TOKEN EXPIRY WARNING BANNER (If applicable) ═══ */}
       {tokenHealth?.is_expiring_soon && (

@@ -1,11 +1,15 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, ForeignKey, DateTime, Boolean, Text
+from sqlalchemy import Column, String, ForeignKey, DateTime, Boolean, Text, Index
 from sqlalchemy.orm import relationship
 from database import Base
 
 class Conversation(Base):
     __tablename__ = "conversations"
+    __table_args__ = (
+        Index("ix_conversations_biz_status_updated", "business_id", "status", "updated_at"),
+        Index("ix_conversations_biz_sender", "business_id", "platform_sender_id"),
+    )
 
     id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     business_id = Column(String(36), ForeignKey("businesses.id", ondelete="CASCADE"), nullable=False, index=True)

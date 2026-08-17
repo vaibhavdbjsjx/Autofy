@@ -438,6 +438,13 @@ class ConversationalAIService:
         if not business:
             return {"reply": "Business not registered.", "confidence": 0.0, "escalate": True}
 
+        # Check global business kill-switch and conversation-level AI switch
+        if not business.ai_auto_reply_enabled:
+            return {"reply": None, "confidence": 0.0, "escalate": True, "suppressed_by_kill_switch": True}
+
+        if not conv.ai_enabled:
+            return {"reply": None, "confidence": 0.0, "escalate": True, "suppressed_by_conv_switch": True}
+
         # Retrieve last 6 messages for short-term chat context memory
         history_msgs = db.query(Message).filter(Message.conversation_id == conversation_id)\
                         .order_by(Message.created_at.desc()).limit(6).all()
