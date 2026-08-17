@@ -7,7 +7,7 @@ from config import settings
 from auth.dependencies import get_current_active_user
 from models.user import User
 
-router = APIRouter(prefix="/api/email", tags=["email"])
+router = APIRouter(prefix="/email", tags=["email"])
 
 class SubscriptionEmailRequest(BaseModel):
     userEmail: EmailStr

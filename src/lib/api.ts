@@ -145,8 +145,9 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   }
 
   if (!res) {
+    console.error(`[API] Network failure — could not reach ${url}:`, lastError);
     // fetch only rejects on network failure / CORS — surface it as a 0-status ApiError.
-    throw new ApiError(0, "Network error — could not reach the server. Please check connection.", lastError);
+    throw new ApiError(0, `Network error — could not reach server at ${url}. Please check connection.`, lastError);
   }
 
   // 204 No Content

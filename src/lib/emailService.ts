@@ -1,3 +1,5 @@
+import { api } from "./api";
+
 interface SubscriptionEmailData {
   userEmail: string;
   userName: string;
@@ -13,15 +15,10 @@ interface SubscriptionEmailData {
 
 export async function sendSubscriptionEmail(data: SubscriptionEmailData) {
   try {
-    const response = await fetch('/api/email/subscription-confirmation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    if (!response.ok) throw new Error('Email send failed');
-    return { success: true };
+    const res = await api.post<{ success?: boolean }>("/api/v1/email/subscription-confirmation", data);
+    return { success: true, data: res };
   } catch (error) {
-    console.error('Email error:', error);
+    console.error("[EmailService] subscription email error:", error);
     return { success: false, error };
   }
 }
@@ -32,13 +29,10 @@ export async function sendWelcomeEmail(data: {
   businessName: string;
 }) {
   try {
-    const response = await fetch('/api/email/welcome', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-    return { success: response.ok };
+    const res = await api.post<{ success?: boolean }>("/api/v1/email/welcome", data);
+    return { success: true, data: res };
   } catch (error) {
-    return { success: false };
+    console.error("[EmailService] welcome email error:", error);
+    return { success: false, error };
   }
 }
