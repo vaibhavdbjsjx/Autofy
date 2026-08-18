@@ -188,21 +188,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [summaryError, setSummaryError] = useState<string | null>(null);
   const [subStatus, setSubStatus] = useState<any>(null);
 
-  // Lock body & html scrolling so ONLY the dashboard content viewport scrolls
+  // Manage html/body dimensions so dashboard app shell occupies full viewport cleanly
   useEffect(() => {
-    const origHtmlOverflow = document.documentElement.style.overflow;
-    const origBodyOverflow = document.body.style.overflow;
     const origHtmlHeight = document.documentElement.style.height;
     const origBodyHeight = document.body.style.height;
 
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
     document.documentElement.style.height = "100%";
     document.body.style.height = "100%";
 
     return () => {
-      document.documentElement.style.overflow = origHtmlOverflow;
-      document.body.style.overflow = origBodyOverflow;
       document.documentElement.style.height = origHtmlHeight;
       document.body.style.height = origBodyHeight;
     };
@@ -866,7 +860,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div
       id="autofy-main-dashboard"
-      className="fixed inset-0 flex h-screen h-[100dvh] w-screen overflow-hidden font-sans select-none md:flex-row z-0"
+      className="relative flex h-screen h-[100dvh] max-h-[100dvh] w-full max-w-[100vw] overflow-hidden font-sans md:flex-row z-0"
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
       {/* Ambient Autofy atmosphere (pink → violet → blue) */}
@@ -910,7 +904,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* DESKTOP FIXED SIDEBAR */}
       <aside
         id="autofy-sidebar"
-        className="hidden md:flex h-screen h-[100dvh] w-[280px] lg:w-[300px] shrink-0 flex-col p-6 overflow-hidden select-none"
+        className="hidden md:flex h-full max-h-screen max-h-[100dvh] w-[280px] lg:w-[300px] shrink-0 flex-col p-6 overflow-hidden select-none"
         style={{
           background: "var(--sidebar)",
           backdropFilter: "blur(24px)",
@@ -923,7 +917,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* RIGHT SECTION: Main Column with sticky header and independent scrollable content */}
       <main
         id="autofy-main-section"
-        className="relative z-10 flex h-screen h-[100dvh] min-w-0 flex-1 flex-col overflow-hidden"
+        className="relative z-10 flex h-full max-h-screen max-h-[100dvh] min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
       >
         {/* TOP NAVIGATION (FIXED/STICKY AT TOP) */}
         <header
@@ -1122,7 +1116,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           className="relative z-10 flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden scrollbar-thin"
           style={{
             WebkitOverflowScrolling: "touch",
-            overscrollBehavior: "contain",
+            overflowY: "auto",
+            overflowX: "hidden",
+            height: "100%",
           }}
         >
           <div className="mx-auto w-full max-w-[1480px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
