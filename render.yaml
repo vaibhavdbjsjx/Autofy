@@ -23,7 +23,7 @@ services:
       - key: FRONTEND_URL
         value: https://autofy11.netlify.app
       - key: GOOGLE_REDIRECT_URI
-        value: https://autofy-backend.onrender.com/api/v1/auth/google/callback
+        value: https://autofy-backend-zafr.onrender.com/api/v1/auth/google/callback
 
 databases:
   - name: autofy-postgres

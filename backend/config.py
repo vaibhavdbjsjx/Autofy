@@ -44,7 +44,7 @@ class Settings(BaseSettings):
     # Third Party Google OAuth
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "https://autofysaas.com/api/v1/auth/google/callback"
+    GOOGLE_REDIRECT_URI: str = "https://autofy-backend-zafr.onrender.com/api/v1/auth/google/callback"
 
     # Where the SPA lives — the Google callback redirects the browser back here
     # with the freshly minted token so the frontend can establish its session.
