@@ -21,10 +21,11 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# 2. Add custom CORS headers configuration
+# 2. Add custom CORS headers configuration (supports exact origins + all Netlify deployments)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,
+    allow_origin_regex=r"^https:\/\/([a-zA-Z0-9_-]+\.)?netlify\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

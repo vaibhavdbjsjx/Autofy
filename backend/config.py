@@ -115,6 +115,7 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_security_credentials(self) -> "Settings":
         import secrets
+        import json
         insecure_defaults = ["", "change_me", "74cf0ee752be30a1bf8408f61548e6900f684824d5ea34c89ee425b0cb59f0f6"]
         is_prod = self.ENVIRONMENT.lower() in ["production", "prod"]
         
@@ -123,6 +124,41 @@ class Settings(BaseSettings):
             alt_secret = os.environ.get("JWT_SECRET", "")
             if alt_secret and alt_secret not in insecure_defaults:
                 self.JWT_SECRET_KEY = alt_secret
+
+        # Support CORS_ORIGINS as comma-separated string or JSON string from env var
+        raw_cors = os.environ.get("CORS_ORIGINS", "")
+        parsed_origins = list(self.CORS_ORIGINS) if self.CORS_ORIGINS else []
+        if raw_cors:
+            if raw_cors.startswith("[") and raw_cors.endswith("]"):
+                try:
+                    loaded = json.loads(raw_cors)
+                    if isinstance(loaded, list):
+                        parsed_origins.extend(loaded)
+                except Exception:
+                    pass
+            else:
+                for origin in raw_cors.split(","):
+                    clean = origin.strip().strip("'\"")
+                    if clean:
+                        parsed_origins.append(clean)
+
+        # Ensure FRONTEND_URL is in CORS_ORIGINS
+        if self.FRONTEND_URL:
+            clean_fe = self.FRONTEND_URL.rstrip("/")
+            if clean_fe not in parsed_origins:
+                parsed_origins.append(clean_fe)
+
+        # Always preserve old Netlify URL during transition
+        old_netlify = "https://autofy11.netlify.app"
+        if old_netlify not in parsed_origins:
+            parsed_origins.append(old_netlify)
+
+        # Deduplicate while preserving order
+        deduped = []
+        for o in parsed_origins:
+            if o and o not in deduped:
+                deduped.append(o)
+        self.CORS_ORIGINS = deduped
 
         if is_prod:
             if not self.JWT_SECRET_KEY or self.JWT_SECRET_KEY in insecure_defaults or len(self.JWT_SECRET_KEY) < 32:
