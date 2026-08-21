@@ -878,7 +878,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div
       id="autofy-main-dashboard"
-      className="relative flex h-screen h-[100dvh] max-h-[100dvh] w-full max-w-[100vw] overflow-hidden font-sans md:flex-row z-0"
+      className="fixed inset-0 flex h-screen h-[100dvh] max-h-[100dvh] w-screen max-w-[100vw] overflow-hidden font-sans md:flex-row z-0"
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
       {/* Ambient Autofy atmosphere (pink → violet → blue) */}
@@ -1131,12 +1131,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* CONTENT CONTAINER: The ONLY vertical scrolling area for dashboard content */}
         <div
           id="dashboard-scroll-viewport"
-          className="relative z-10 flex-1 min-h-0 w-full overflow-y-auto overflow-x-hidden scrollbar-thin"
+          className="relative z-10 flex-1 min-h-0 h-0 max-h-full w-full overflow-y-auto overflow-x-hidden scrollbar-thin"
           style={{
             WebkitOverflowScrolling: "touch",
             overflowY: "auto",
             overflowX: "hidden",
             touchAction: "pan-y",
+            overscrollBehaviorY: "contain",
           }}
         >
           <div className="mx-auto w-full max-w-[1480px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
