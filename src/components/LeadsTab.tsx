@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Users,
@@ -84,39 +85,46 @@ const STAGES = [
 ] as const;
 
 export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNotification }) => {
+  const navigate = useNavigate();
   const [isCrmLoading, setIsCrmLoading] = useState(true);
-  React.useEffect(() => {
-    const fetchLeads = async () => {
-      try {
-        const { api, isAuthenticated } = await import("../lib/api");
-        if (isAuthenticated()) {
-          const res = await api.get<any>("/api/v1/leads");
-          if (Array.isArray(res?.items)) {
-            setCrmLeads(res.items.map((l: any) => ({
-              id: l.id,
-              name: l.name || "Unnamed Lead",
-              phone: l.phone || "",
-              email: l.email || "",
-              address: l.notes || "",
-              source: l.source || "WhatsApp",
-              leadScore: l.score || 10,
-              lastActive: l.updated_at ? l.updated_at.substring(0, 10) : "Today",
-              status: l.status || "New Lead",
-              businessType: "Client",
-              assignedTo: "Owner",
-              createdDate: l.created_at ? l.created_at.substring(0, 10) : "",
-              insights: ["Scored lead record"],
-              conversations: [],
-              timeline: []
-            })));
-          }
+  const [crmError, setCrmError] = useState<string | null>(null);
+
+  const fetchLeads = async () => {
+    setIsCrmLoading(true);
+    setCrmError(null);
+    try {
+      const { api, isAuthenticated } = await import("../lib/api");
+      if (isAuthenticated()) {
+        const res = await api.get<any>("/api/v1/leads", { timeoutMs: 10000 });
+        if (Array.isArray(res?.items)) {
+          setCrmLeads(res.items.map((l: any) => ({
+            id: l.id,
+            name: l.name || "Unnamed Lead",
+            phone: l.phone || "",
+            email: l.email || "",
+            address: l.notes || "",
+            source: l.source || "WhatsApp",
+            leadScore: l.score || 10,
+            lastActive: l.updated_at ? l.updated_at.substring(0, 10) : "Today",
+            status: l.status || "New Lead",
+            businessType: "Client",
+            assignedTo: "Owner",
+            createdDate: l.created_at ? l.created_at.substring(0, 10) : "",
+            insights: ["Scored lead record"],
+            conversations: [],
+            timeline: []
+          })));
         }
-      } catch {
-        // Use local fallback state
-      } finally {
-        setIsCrmLoading(false);
       }
-    };
+    } catch (err: any) {
+      console.warn("[LeadsTab] Failed to fetch leads:", err);
+      setCrmError(err?.message || "Failed to load live leads data. Please check connection.");
+    } finally {
+      setIsCrmLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
     fetchLeads();
   }, []);
   // Dynamic leads state loaded from backend API — starts empty for fresh accounts
@@ -467,6 +475,32 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
           {[1, 2, 3, 4, 5, 6].map(i => (
             <div key={i} className="h-14 w-full rounded-2xl shimmer bg-[var(--bg-elevated)]/50" />
           ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (crmError && crmLeads.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-xl sm:text-2xl font-black font-display tracking-tight flex items-center gap-2" style={{ color: "var(--text)" }}>
+            Leads Management
+          </h2>
+          <p className="text-xs text-[var(--text-muted)] font-medium">Track, manage, and convert every customer inquiry seamlessly inside your funnel.</p>
+        </div>
+        <div className="p-8 border border-red-500/25 bg-red-500/10 rounded-3xl text-center space-y-4 max-w-lg mx-auto my-8">
+          <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
+          <div>
+            <h3 className="text-base font-bold text-[var(--text)]">Unable to load leads</h3>
+            <p className="text-xs text-red-300/90 mt-1">{crmError}</p>
+          </div>
+          <button
+            onClick={() => fetchLeads()}
+            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl cursor-pointer shadow-lg shadow-blue-500/20"
+          >
+            Retry Loading Leads
+          </button>
         </div>
       </div>
     );
@@ -948,9 +982,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
             </p>
           </div>
           <button
-            onClick={() => {
-              triggerNotification(" WhatsApp Live API session requested. Redirecting...");
-            }}
+            onClick={() => navigate("/dashboard/whatsapp_setup")}
             className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-[var(--text)] font-extrabold text-xs rounded-xl hover:from-blue-500 hover:to-indigo-500 shadow shadow-blue-500/20 cursor-pointer flex items-center justify-center gap-1.5 mx-auto"
           >
             Connect WhatsApp

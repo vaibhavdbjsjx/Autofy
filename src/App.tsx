@@ -1548,44 +1548,25 @@ function OAuthCallback() {
       name: name,
     });
 
-    // 2. Fetch fresh /api/v1/auth/me to verify server-side session and onboarding status
-    (async () => {
-      let resolvedOnboarded = statusParam === "new_user" ? false : isOnboardedParam === "true";
-      try {
-        const me = await api.get<{
-          user_id: string;
-          name: string;
-          email: string;
-          role: string;
-          is_onboarded: boolean;
-          business?: { id: string; name: string; is_onboarded: boolean };
-        }>("/api/v1/auth/me");
-        if (typeof me?.is_onboarded === "boolean") {
-          resolvedOnboarded = me.is_onboarded;
-        } else if (typeof me?.business?.is_onboarded === "boolean") {
-          resolvedOnboarded = me.business.is_onboarded;
-        }
-      } catch (meErr) {
-        console.warn("[OAuth] /auth/me call error (falling back to token payload):", meErr);
-      }
+    const isNewUser = statusParam === "new_user";
+    const resolvedOnboarded = isNewUser ? false : (isOnboardedParam === "true");
 
-      try {
-        sessionStorage.setItem(
-          "autofy_onboarded_state",
-          JSON.stringify({ is_onboarded: resolvedOnboarded, timestamp: Date.now() })
-        );
-      } catch {}
-
-      // 3. Final navigation: new users go to onboarding; existing users go to dashboard if onboarded
-      const destination = statusParam === "new_user" || !resolvedOnboarded ? "/onboarding" : "/dashboard";
-
-      // 4. Structured log format
-      console.info(
-        `[OAuth]\nsource=${sourceParam}\ngoogle_email=${email}\nexisting_user=${statusParam === "success"}\nredirect_target=${destination}`
+    try {
+      sessionStorage.setItem(
+        "autofy_onboarded_state",
+        JSON.stringify({ is_onboarded: resolvedOnboarded, timestamp: Date.now() })
       );
+    } catch {}
 
-      navigate(destination, { replace: true });
-    })();
+    // 2. Final navigation: new users go to onboarding; existing users go to dashboard
+    const destination = isNewUser || !resolvedOnboarded ? "/onboarding" : "/dashboard";
+
+    console.info(
+      `[OAuth]\nsource=${sourceParam}\ngoogle_email=${email}\nexisting_user=${!isNewUser}\nredirect_target=${destination}`
+    );
+
+    // Navigate immediately to avoid blank screen / delay
+    navigate(destination, { replace: true });
   }, [navigate]);
 
   return (

@@ -203,15 +203,33 @@ export const Dashboard: React.FC<DashboardProps> = ({
   }, []);
 
   useEffect(() => {
+    if (onboardingData) {
+      setData(onboardingData);
+    }
+  }, [onboardingData]);
+
+  useEffect(() => {
     if (isAuthenticated()) {
       api.get("/api/v1/subscriptions/status")
         .then(res => setSubStatus(res))
         .catch(() => {});
-      // Load AI auto-reply state
+      // Load AI auto-reply state & business profile
       api.get("/api/v1/business/profile")
         .then((res: any) => {
-          if (res?.ai_auto_reply_enabled !== undefined) {
-            setGlobalAiEnabled(res.ai_auto_reply_enabled);
+          if (res) {
+            if (res.ai_auto_reply_enabled !== undefined) {
+              setGlobalAiEnabled(res.ai_auto_reply_enabled);
+            }
+            setData(prev => ({
+              ...prev,
+              businessName: res.name || prev.businessName,
+              industryType: res.classification || prev.industryType,
+              phoneNumber: res.phone || prev.phoneNumber,
+              whatsappNumber: res.whatsapp_phone_number || prev.whatsappNumber,
+              whatsappConnected: res.whatsapp_connected ? "connected" : prev.whatsappConnected,
+              address: res.address || prev.address,
+              website: res.website || prev.website,
+            }));
           }
         })
         .catch(() => {});
@@ -1118,7 +1136,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             WebkitOverflowScrolling: "touch",
             overflowY: "auto",
             overflowX: "hidden",
-            height: "100%",
+            touchAction: "pan-y",
           }}
         >
           <div className="mx-auto w-full max-w-[1480px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
@@ -1186,10 +1204,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {/* Step grid */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {[
-                  { step: "1", title: "Business Info Check", desc: "Review business details, local address guidelines, and target industry classification.", done: data.businessName ? true : false, actionLabel: "Completed", action: () => {} },
-                  { step: "2", title: "Connect WhatsApp Sandbox", desc: "Inject Meta cloud tokens or pair our testing mobile handset QR code securely.", done: data.whatsappConnected === "connected", actionLabel: "Synchronize Line", action: () => setActiveModal("whatsapp") },
+                  { step: "1", title: "Business Info Check", desc: "Review business details, local address guidelines, and target industry classification.", done: data.businessName ? true : false, actionLabel: "Business Setup", action: () => navigate("/dashboard/business_setup") },
+                  { step: "2", title: "Connect WhatsApp Sandbox", desc: "Inject Meta cloud tokens or pair our testing mobile handset QR code securely.", done: data.whatsappConnected === "connected", actionLabel: "WhatsApp Gateway", action: () => navigate("/dashboard/whatsapp_setup") },
                   { step: "3", title: "Add Premium Services", desc: "Configure pricing plans, hourly session limits, memberships, and knowledge facts.", done: extraServices.length > 0, actionLabel: "Add Service", action: () => setActiveModal("service") },
-                  { step: "4", title: "Simulate First Customer", desc: "Launch the AI Chat simulator and check how the assistant converts prospects into leads.", done: false, actionLabel: "Play Chat Test", action: () => handleTabChange("conversations") }
+                  { step: "4", title: "Simulate First Customer", desc: "Launch the AI Chat simulator and check how the assistant converts prospects into leads.", done: false, actionLabel: "Play Chat Test", action: () => navigate("/dashboard/conversations") }
                 ].map((item, id) => (
                   <div
                     key={id}
@@ -1715,8 +1733,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         { label: "Add service", hint: "Knowledge base", icon: Plus, fg: "var(--brand)", bg: "var(--brand-subtle)", onClick: () => setActiveModal("service") },
                         { label: "Add FAQ", hint: "Train the AI", icon: HelpCircle, fg: "var(--accent-blue)", bg: "rgba(37,99,235,0.10)", onClick: () => setActiveModal("faq") },
                         { label: "Payment link", hint: "Collect instantly", icon: CreditCard, fg: "var(--accent-green)", bg: "var(--accent-green-subtle)", onClick: () => setActiveModal("payment") },
-                        { label: "Connect WhatsApp", hint: data.whatsappConnected === "connected" ? "Connected" : "Pair number", icon: Phone, fg: "var(--whatsapp-green)", bg: "rgba(37,211,102,0.10)", onClick: () => setActiveModal("whatsapp") },
-                        { label: "Test simulator", hint: "Preview AI chat", icon: Zap, fg: "var(--accent-amber)", bg: "rgba(217,119,6,0.10)", onClick: onOpenTestSimulator },
+                        { label: "Connect WhatsApp", hint: data.whatsappConnected === "connected" ? "Connected" : "Pair number", icon: Phone, fg: "var(--whatsapp-green)", bg: "rgba(37,211,102,0.10)", onClick: () => navigate("/dashboard/whatsapp_setup") },
+                        { label: "Test simulator", hint: "Preview AI chat", icon: Zap, fg: "var(--accent-amber)", bg: "rgba(217,119,6,0.10)", onClick: () => navigate("/dashboard/ai_playground") },
                       ].map((qa) => {
                         const QIcon = qa.icon;
                         return (

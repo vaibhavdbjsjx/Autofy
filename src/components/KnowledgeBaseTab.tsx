@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Database,
@@ -21,7 +21,9 @@ import {
   FileCheck,
   ShieldCheck,
   Zap,
-  Info
+  Info,
+  Loader2,
+  RefreshCw
 } from "lucide-react";
 import { OnboardingData } from "../types";
 
@@ -89,6 +91,10 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
   triggerNotification,
   onUpdateKnowledge
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingDoc, setIsUploadingDoc] = useState(false);
+  const [docUploadError, setDocUploadError] = useState<string | null>(null);
+
   // Auto-save feedback indicators
   const [saveStatus, setSaveStatus] = useState<"Saved" | "Saving..." | "Idle">("Saved");
 
@@ -97,7 +103,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
     "services" | "products" | "memberships" | "faqs" | "policies" | "documents"
   >("services");
 
-  // Initial Services List — populated from onboarding or user input, initialized empty for fresh accounts
+  // Initial Services List
   const [services, setServices] = useState<ServiceItem[]>(() => {
     if (onboardingData?.knowledgeText?.services) {
       return onboardingData.knowledgeText.services.split("\n").filter((s: string) => s.trim()).map((line: string, i: number) => ({
@@ -114,7 +120,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
   // Products Section — initialized empty for fresh accounts
   const [products, setProducts] = useState<ProductItem[]>([]);
 
-  // Membership Plans — populated from onboarding or user input, initialized empty for fresh accounts
+  // Membership Plans
   const [memberships, setMemberships] = useState<MembershipPlan[]>(() => {
     if (onboardingData?.knowledgeText?.memberships) {
       return onboardingData.knowledgeText.memberships.split("\n").filter((s: string) => s.trim()).map((line: string, i: number) => ({
@@ -129,7 +135,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
     return [];
   });
 
-  // FAQs — populated from onboarding or user input, initialized empty for fresh accounts
+  // FAQs
   const [faqs, setFaqs] = useState<FAQItem[]>(() => {
     if (onboardingData?.knowledgeText?.faqs) {
       return [{
@@ -143,7 +149,7 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
     return [];
   });
 
-  // Business Policies — populated from onboarding or initialized empty for fresh accounts
+  // Business Policies
   const [policies, setPolicies] = useState<BusinessPolicies>({
     refundPolicy: onboardingData?.knowledgeText?.policies || "",
     cancellationPolicy: "",
@@ -152,23 +158,31 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
     shippingPolicy: ""
   });
 
-  // Uploaded Documents List
-  const [documents, setDocuments] = useState<UploadedDoc[]>([
-    {
-      id: "doc-1",
-      name: "autofit_studio_policy_2026.pdf",
-      uploadDate: "Log Date: 2026-06-15",
-      pagesProcessed: 14,
-      knowledgeExtracted: "Extracted 32 FAQ nodes regarding locker key access, cancellation constraints, and coach allocation."
-    },
-    {
-      id: "doc-2",
-      name: "AEW_product_manual_meteor650.txt",
-      uploadDate: "Log Date: 2026-06-18",
-      pagesProcessed: 1,
-      knowledgeExtracted: "Extracted installation procedures, sound profile levels, dB killer specs, and 1-year product warranty terms."
-    }
-  ]);
+  // Uploaded Documents List — dynamic from API
+  const [documents, setDocuments] = useState<UploadedDoc[]>([]);
+
+  useEffect(() => {
+    const fetchDocs = async () => {
+      try {
+        const { api, isAuthenticated } = await import("../lib/api");
+        if (isAuthenticated()) {
+          const res = await api.get<any[]>("/api/v1/knowledge/documents");
+          if (Array.isArray(res)) {
+            setDocuments(res.map((d: any) => ({
+              id: d.id,
+              name: d.title || "Document",
+              uploadDate: `Log Date: ${d.created_at ? d.created_at.substring(0, 10) : "Recent"}`,
+              pagesProcessed: 1,
+              knowledgeExtracted: d.content_extracted || "Parsed into semantic knowledge store."
+            })));
+          }
+        }
+      } catch (err) {
+        console.warn("[KnowledgeBase] Could not load documents:", err);
+      }
+    };
+    fetchDocs();
+  }, []);
 
   // Auto-Save Trigger simulation whenever state variables are changed
   const triggerAutoSaveFeedback = () => {
@@ -345,24 +359,61 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
     triggerAutoSaveFeedback();
   };
 
-  // File Upload mock simulation
-  const handleDocUploadMock = (fileName: string) => {
-    const item: UploadedDoc = {
-      id: `doc-${Date.now()}`,
-      name: fileName,
-      uploadDate: `Log Date: ${new Date().toISOString().substring(0, 10)}`,
-      pagesProcessed: Math.ceil(Math.random() * 8) + 1,
-      knowledgeExtracted: `Parsed automatically into memory store. Found metadata points matched with your services directory.`
-    };
-    setDocuments(prev => [...prev, item]);
-    triggerAutoSaveFeedback();
-    triggerNotification(` Document "${fileName}" analyzed and vectorized into AI store`);
+  // Real File Upload to Backend API
+  const handleRealFileUpload = async (file: File) => {
+    if (!file) return;
+    setDocUploadError(null);
+    setIsUploadingDoc(true);
+
+    const ext = file.name.split(".").pop()?.toLowerCase();
+    const allowed = ["pdf", "docx", "doc", "txt", "csv", "xlsx", "xls", "json"];
+    if (!ext || !allowed.includes(ext)) {
+      setDocUploadError(`Unsupported file format .${ext}. Allowed formats: PDF, DOCX, TXT, CSV, Excel.`);
+      setIsUploadingDoc(false);
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      setDocUploadError("File exceeds the maximum size limit of 25MB.");
+      setIsUploadingDoc(false);
+      return;
+    }
+
+    try {
+      const { api } = await import("../lib/api");
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const res = await api.upload<any>("/api/v1/knowledge/upload", formData);
+      const newDoc: UploadedDoc = {
+        id: res.id || `doc-${Date.now()}`,
+        name: res.title || file.name,
+        uploadDate: `Log Date: ${new Date().toISOString().substring(0, 10)}`,
+        pagesProcessed: 1,
+        knowledgeExtracted: res.content_extracted || `Extracted semantic content from ${file.name}.`
+      };
+
+      setDocuments(prev => [newDoc, ...prev]);
+      triggerNotification(` Document "${file.name}" uploaded and indexed into AI Knowledge Base`);
+    } catch (err: any) {
+      const msg = err?.message || "Failed to upload document. Please check file format and retry.";
+      setDocUploadError(msg);
+      triggerNotification(` Upload failed: ${msg}`);
+    } finally {
+      setIsUploadingDoc(false);
+    }
   };
 
-  const deleteDoc = (id: string, name: string) => {
+  const deleteDoc = async (id: string, name: string) => {
     setDocuments(prev => prev.filter(d => d.id !== id));
+    try {
+      const { api } = await import("../lib/api");
+      await api.del(`/api/v1/knowledge/documents/${id}`);
+    } catch (err) {
+      console.warn("[KnowledgeBase] Error deleting document:", err);
+    }
     triggerAutoSaveFeedback();
-    triggerNotification(` Document memory flushed: ${name}`);
+    triggerNotification(` Document removed: ${name}`);
   };
 
   // AI Knowledge Tester Engine
@@ -1070,7 +1121,22 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                     <p className="text-[10.5px] text-[var(--text-muted)]">Upload PDF, DOCX, TXT or Excel files. Autofy reads entire chapters to build precise semantic tables.</p>
                   </div>
 
-                  {/* Drag drop zone mock */}
+                  {/* Invisible Real File Input */}
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    accept=".pdf,.docx,.doc,.txt,.csv,.xlsx,.xls,.json"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) {
+                        handleRealFileUpload(f);
+                        e.target.value = "";
+                      }
+                    }}
+                    className="hidden"
+                  />
+
+                  {/* Real Drag & Drop Zone */}
                   <div 
                     onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
                     onDragLeave={() => setDragOver(false)}
@@ -1079,62 +1145,81 @@ export const KnowledgeBaseTab: React.FC<KnowledgeBaseTabProps> = ({
                       setDragOver(false);
                       const dtFiles = e.dataTransfer.files;
                       if (dtFiles && dtFiles.length > 0) {
-                        handleDocUploadMock(dtFiles[0].name);
+                        handleRealFileUpload(dtFiles[0]);
                       }
                     }}
-                    className={`border-2 border-dashed rounded-3xl p-8 text-center transition-all ${
+                    onClick={() => !isUploadingDoc && fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-3xl p-8 text-center transition-all cursor-pointer ${
                       dragOver 
                         ? "border-blue-500 bg-blue-500/10 text-[var(--text)] scale-[0.99]" 
                         : "border-[var(--border)] hover:border-[var(--border-strong)] bg-[var(--bg-elevated)]/20 text-[var(--text-muted)]"
                     }`}
                   >
-                    <Upload className="w-8 h-8 text-blue-500 mx-auto mb-3" />
-                    
-                    <div className="space-y-1">
-                      <p className="text-xs font-semibold text-[var(--text)]">Drag & Drop any catalog file here</p>
-                      <p className="text-[10px] text-[var(--text-subtle)]">Supports PDF, DOCX, TXT, Excel up to 25MB each</p>
-                    </div>
-
-                    <div className="pt-4 flex items-center justify-center gap-2">
-                      <button 
-                        onClick={() => handleDocUploadMock("gym_rules_coaches_v2.docx")}
-                        className="px-3.5 py-1.5 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)] border border-[var(--border)] rounded-lg text-[10px] font-sans text-[var(--text)] transition-all cursor-pointer"
-                      >
-                         Upload Demo Rules.docx
-                      </button>
-                      <button 
-                        onClick={() => handleDocUploadMock("exhaust_warranty_manual_meteor.pdf")}
-                        className="px-3.5 py-1.5 bg-[var(--bg-elevated)] hover:bg-[var(--bg-elevated)] hover:text-[var(--text)] border border-[var(--border)] rounded-lg text-[10px] font-sans text-[var(--text)] transition-all cursor-pointer"
-                      >
-                         Upload Demo Catalog.pdf
-                      </button>
-                    </div>
+                    {isUploadingDoc ? (
+                      <div className="py-2 space-y-3">
+                        <Loader2 className="w-8 h-8 text-blue-500 mx-auto animate-spin" />
+                        <p className="text-xs font-bold text-[var(--text)]">Vectorizing & Indexing Document...</p>
+                        <p className="text-[10px] text-[var(--text-subtle)]">Extracting semantic knowledge into AI database</p>
+                      </div>
+                    ) : (
+                      <>
+                        <Upload className="w-8 h-8 text-blue-500 mx-auto mb-3" />
+                        <div className="space-y-1">
+                          <p className="text-xs font-semibold text-[var(--text)]">Drag & Drop any catalog file here, or <span className="text-blue-400 underline">browse files</span></p>
+                          <p className="text-[10px] text-[var(--text-subtle)]">Supports PDF, DOCX, TXT, CSV, Excel up to 25MB each</p>
+                        </div>
+                      </>
+                    )}
                   </div>
 
-                  <div className="space-y-3">
-                    <p className="text-[9.5px] font-black uppercase text-[var(--text-subtle)] text-[var(--text-subtle)] tracking-wider">Trained document list</p>
-                    
-                    {documents.map((doc) => (
-                      <div key={doc.id} className="p-4 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div className="flex items-start gap-3 flex-1 select-text">
-                          <div className="p-2 bg-blue-600/10 text-blue-400 rounded-xl mt-0.5">
-                            <FileText className="w-[18px] h-[18px]" />
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-[var(--text)]">{doc.name}</p>
-                            <p className="text-[9px] text-[#555562] font-mono mt-0.5">{doc.uploadDate} • {doc.pagesProcessed} pages processed</p>
-                            <p className="text-[11px] text-[var(--text-muted)] leading-snug mt-1.5 font-sans font-medium">{doc.knowledgeExtracted}</p>
-                          </div>
-                        </div>
-
-                        <button 
-                          onClick={() => deleteDoc(doc.id, doc.name)}
-                          className="p-1.5 text-[var(--text-subtle)] hover:text-red-400 rounded-lg self-end md:self-center transition"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                  {docUploadError && (
+                    <div className="p-3.5 bg-red-500/10 border border-red-500/25 rounded-2xl flex items-center justify-between gap-3 text-xs text-red-400">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>{docUploadError}</span>
                       </div>
-                    ))}
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 rounded-lg text-xs font-bold text-white cursor-pointer"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    <p className="text-[9.5px] font-black uppercase text-[var(--text-subtle)] tracking-wider">Trained document list</p>
+                    
+                    {documents.length === 0 ? (
+                      <div className="p-8 text-center border border-[var(--border)] rounded-2xl bg-[var(--bg-elevated)]/10 text-[var(--text-muted)] space-y-2">
+                        <FileText className="w-8 h-8 mx-auto text-[var(--text-subtle)] opacity-50" />
+                        <p className="text-xs font-bold text-[var(--text)]">No documents uploaded yet</p>
+                        <p className="text-[10.5px] text-[var(--text-subtle)] max-w-sm mx-auto">Upload PDF pricing sheets, manuals, or policy documents to automatically train your WhatsApp AI assistant.</p>
+                      </div>
+                    ) : (
+                      documents.map((doc) => (
+                        <div key={doc.id} className="p-4 bg-[var(--bg-elevated)]/30 border border-[var(--border)] rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                          <div className="flex items-start gap-3 flex-1 select-text">
+                            <div className="p-2 bg-blue-600/10 text-blue-400 rounded-xl mt-0.5">
+                              <FileText className="w-[18px] h-[18px]" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-[var(--text)]">{doc.name}</p>
+                              <p className="text-[9px] text-[#555562] font-mono mt-0.5">{doc.uploadDate} • {doc.pagesProcessed} pages processed</p>
+                              <p className="text-[11px] text-[var(--text-muted)] leading-snug mt-1.5 font-sans font-medium">{doc.knowledgeExtracted}</p>
+                            </div>
+                          </div>
+
+                          <button 
+                            onClick={() => deleteDoc(doc.id, doc.name)}
+                            className="p-1.5 text-[var(--text-subtle)] hover:text-red-400 rounded-lg self-end md:self-center transition cursor-pointer"
+                            title="Delete document from AI memory"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </motion.div>
               )}

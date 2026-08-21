@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Building2,
@@ -113,6 +114,7 @@ interface SettingsTabProps {
 }
 
 export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, triggerNotification }) => {
+  const navigate = useNavigate();
   // Navigation categories state
   const [activeCategory, setActiveCategory] = useState<string>("profile");
   
@@ -1702,7 +1704,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
                     <p className="text-[10px] text-[var(--text-subtle)] mt-0.5">Temporarily halts AI replies until a new verified Meta WhatsApp number is linked.</p>
                   </div>
                   <button
-                    onClick={() => triggerNotification("Please visit the WhatsApp Setup tab to disconnect or change your phone number.")}
+                    onClick={() => navigate("/dashboard/whatsapp_setup")}
                     className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-[10.5px] font-bold px-4 py-2 rounded-xl transition cursor-pointer self-start"
                   >
                     Manage WhatsApp Connection

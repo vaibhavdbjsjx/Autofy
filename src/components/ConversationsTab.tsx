@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import {
   Search,
@@ -77,6 +78,7 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
   policies,
   triggerNotification
 }) => {
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string>("");
   const [filter, setFilter] = useState<"all" | "unread" | "ai" | "human" | "converted">("all");
@@ -499,13 +501,13 @@ export const ConversationsTab: React.FC<ConversationsTabProps> = ({
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3 pt-3">
                 <button
-                  onClick={() => window.location.hash = "#/dashboard/whatsapp_setup"}
+                  onClick={() => navigate("/dashboard/whatsapp_setup")}
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg"
                 >
                   <Phone className="w-3.5 h-3.5" /> Connect WhatsApp
                 </button>
                 <button
-                  onClick={() => window.location.hash = "#/dashboard/ai_playground"}
+                  onClick={() => navigate("/dashboard/ai_playground")}
                   className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg"
                 >
                   <Sparkles className="w-3.5 h-3.5" /> Test in AI Playground

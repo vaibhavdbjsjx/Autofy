@@ -105,10 +105,11 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
   // FormData, etc. through `raw` if you need full control.
   body?: Json;
   raw?: BodyInit;
+  timeoutMs?: number;
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { body, raw, headers, ...rest } = options;
+  const { body, raw, headers, timeoutMs = 15000, ...rest } = options;
 
   const finalHeaders = new Headers(headers);
   const token = getAuthToken();
@@ -124,30 +125,45 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
 
   let res: Response | undefined;
   let lastError: unknown;
-  const maxRetries = 2;
+  const maxRetries = 1;
 
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
     try {
       res = await fetch(url, {
         credentials: "include",
+        signal: controller.signal,
         ...rest,
         headers: finalHeaders,
         body: finalBody,
       });
+      clearTimeout(timer);
       break; // Request succeeded (HTTP response received)
-    } catch (networkErr) {
+    } catch (networkErr: any) {
+      clearTimeout(timer);
       lastError = networkErr;
+      if (networkErr?.name === "AbortError") {
+        lastError = new Error(`Request to ${path} timed out after ${timeoutMs / 1000}s`);
+      }
       if (attempt < maxRetries) {
         // Wait 1 second before retrying to allow backend cold-start / socket reconnect
-        await new Promise((r) => setTimeout(r, 1000 * (attempt + 1)));
+        await new Promise((r) => setTimeout(r, 1000));
       }
     }
   }
 
   if (!res) {
+    const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
+    let errorMessage = "Unable to communicate with Autofy backend server. Please retry in a moment.";
+    if (isOffline) {
+      errorMessage = "You are currently offline. Please check your internet connection.";
+    } else if (lastError instanceof Error && lastError.message.includes("timed out")) {
+      errorMessage = "Autofy server took too long to respond (cold start). Please retry.";
+    }
     console.error(`[API] Network failure — could not reach ${url}:`, lastError);
-    // fetch only rejects on network failure / CORS — surface it as a 0-status ApiError.
-    throw new ApiError(0, `Network error — could not reach server at ${url}. Please check connection.`, lastError);
+    throw new ApiError(0, errorMessage, lastError);
   }
 
   // 204 No Content
@@ -204,6 +220,8 @@ export const api = {
     request<T>(path, { ...options, method: "DELETE" }),
   delete: <T>(path: string, body?: Json, options?: RequestOptions) =>
     request<T>(path, { ...options, method: "DELETE", body }),
+  upload: <T>(path: string, formData: FormData, options?: RequestOptions) =>
+    request<T>(path, { ...options, method: "POST", raw: formData }),
 };
 
 export default api;
