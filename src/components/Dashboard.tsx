@@ -935,7 +935,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* RIGHT SECTION: Main Column with sticky header and independent scrollable content */}
       <main
         id="autofy-main-section"
-        className="relative z-10 flex h-full max-h-screen max-h-[100dvh] min-h-0 min-w-0 flex-1 flex-col overflow-hidden"
+        className="relative z-10 flex min-w-0 flex-1 flex-col"
       >
         {/* TOP NAVIGATION (FIXED/STICKY AT TOP) */}
         <header
@@ -1131,16 +1131,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* CONTENT CONTAINER: The ONLY vertical scrolling area for dashboard content */}
         <div
           id="dashboard-scroll-viewport"
-          className="relative z-10 flex-1 min-h-0 h-0 max-h-full w-full overflow-y-auto overflow-x-hidden scrollbar-thin"
-          style={{
-            WebkitOverflowScrolling: "touch",
-            overflowY: "auto",
-            overflowX: "hidden",
-            touchAction: "pan-y",
-            overscrollBehaviorY: "contain",
-          }}
+          className="scrollbar-thin"
         >
-          <div className="mx-auto w-full max-w-[1480px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">
+          <div className="mx-auto w-full max-w-[1480px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 pb-20 md:pb-8 lg:pb-10">
 
           {/* Toast alert */}
           <AnimatePresence>

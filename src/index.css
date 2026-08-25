@@ -898,17 +898,13 @@ html:not(.dark) [class*="bg-slate-9"] {
 }
 
 /* ═══════════════════════════════════════════════════
-   AUTOFY DASHBOARD INDEPENDENT SCROLL ARCHITECTURE
-   - Sidebar: permanently fixed, full viewport height
-   - Header: fixed/sticky top
-   - Content: ONLY scrolling area with independent scrollbar
-   ═══════════════════════════════════════════════════ */
-/* ═══════════════════════════════════════════════════
-   AUTOFY DASHBOARD INDEPENDENT SCROLL ARCHITECTURE
-   - Body & Root: fixed to viewport, zero page scroll
-   - Sidebar: permanently fixed, full viewport height
-/* ═══════════════════════════════════════════════════
-   DASHBOARD FIXED-SIDEBAR + SCROLLABLE CONTENT LAYOUT
+   AUTOFY DASHBOARD SCROLL ARCHITECTURE
+   - html/body/#root: overflow hidden while dashboard is mounted
+   - #autofy-main-dashboard: position fixed, fills viewport
+   - #autofy-sidebar: fixed-height flex column, no scroll
+   - #autofy-main-section: flex column, fills remaining width
+   - #autofy-dashboard-header: fixed 64px height, shrink-0
+   - #dashboard-scroll-viewport: ONLY scroll owner — flex-1, overflow-y auto
    ═══════════════════════════════════════════════════ */
 html:has(#autofy-main-dashboard),
 body:has(#autofy-main-dashboard),
@@ -981,14 +977,18 @@ body:has(#autofy-main-dashboard),
 }
 
 #dashboard-scroll-viewport {
-  display: block;
+  /* The ONE and ONLY scroll container for dashboard content.
+     Use flex-grow/shrink/basis shorthand — do NOT set explicit height or
+     max-height here. Flex alone provides correct containment:
+       flex: 1 1 0%  → grow to fill, shrink if needed, base at 0
+       min-height: 0 → critical: allows flex child to shrink below content size
+     Without min-height: 0, the browser respects the content's intrinsic
+     min-height, making scrollHeight === clientHeight (no scroll). */
   flex: 1 1 0%;
   min-height: 0;
-  height: 0;
-  max-height: 100%;
   width: 100%;
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  overflow-y: auto;
+  overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-y;
   overscroll-behavior-y: contain;
