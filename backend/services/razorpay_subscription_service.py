@@ -8,9 +8,8 @@ from config_plans import SUBSCRIPTION_PLANS
 
 logger = logging.getLogger("razorpay_subscription_service")
 
-# In-memory cache for created plan and offer IDs during runtime
-_PLAN_ID_CACHE: Dict[str, str] = {}
-_OFFER_ID_CACHE: Dict[str, str] = {}
+class RazorpaySubscriptionConfigurationError(RuntimeError):
+    """Raised when checkout cannot be backed by a real Razorpay subscription."""
 
 class RazorpaySubscriptionService:
 
@@ -32,53 +31,56 @@ class RazorpaySubscriptionService:
             logger.error(f"Failed to initialize Razorpay Client: {err}")
             return None
 
+    # Known typos/aliases to prevent failed checkout if Render env vars still have transposed/confused characters
+    PLAN_ID_ALIASES: Dict[str, str] = {
+        # Transposition typo from prompt/notes: "A4" -> "4A"
+        "plan_TZxA4BrrftCAcm": "plan_TZx4AbrrftCAcm",
+        # Visual confusion typo from prompt/notes: digit "1" -> uppercase "I"
+        "plan_TZxFTBI4TK31AY": "plan_TZxFTBI4TK3IAY",
+        # Erroneous duplicate monthly 4999 plan created in dashboard -> route to genuine yearly plan
+        "plan_TZx3DiNyEYalBE": "plan_TZxFTBI4TK3IAY",
+    }
+
+    # Old deprecated plans that must no longer be used for new subscriptions
+    DEPRECATED_PLAN_IDS = {
+        "plan_tngieyxltakim9", # Old monthly ₹699
+        "plan_tngkw9ixatgcm3", # Old yearly ₹6,899
+    }
+
     @staticmethod
-    def get_or_create_plan_id(client: Optional[razorpay.Client], billing_interval: str = "monthly") -> str:
+    def get_configured_plan_id(billing_interval: str = "monthly") -> str:
         """
-        Resolves authoritative Razorpay Plan ID for Autofy Pro Monthly or Yearly.
+        Resolves the authoritative plan ID configured for the same Razorpay account as the API key.
+
+        Plans must be provisioned in Razorpay before checkout.
         """
         interval_key = "yearly" if str(billing_interval).lower() == "yearly" else "monthly"
-
-        # 1. Check environment variables
         env_var_map = {
-            "monthly": settings.RAZORPAY_MONTHLY_PLAN_ID,
-            "yearly": settings.RAZORPAY_YEARLY_PLAN_ID,
+            "monthly": (
+                os.environ.get("RAZORPAY_MONTHLY_PLAN_ID")
+                or settings.RAZORPAY_MONTHLY_PLAN_ID
+                or SUBSCRIPTION_PLANS.get("monthly", {}).get("razorpay_plan_id")
+            ),
+            "yearly": (
+                os.environ.get("RAZORPAY_YEARLY_PLAN_ID")
+                or settings.RAZORPAY_YEARLY_PLAN_ID
+                or SUBSCRIPTION_PLANS.get("yearly", {}).get("razorpay_plan_id")
+            ),
         }
-        if env_var_map.get(interval_key):
-            return env_var_map[interval_key]
+        plan_id = (env_var_map.get(interval_key) or "").strip()
+        if not plan_id:
+            raise RazorpaySubscriptionConfigurationError(
+                f"Razorpay {interval_key} plan is not configured."
+            )
 
-        # 2. Check runtime memory cache
-        if interval_key in _PLAN_ID_CACHE:
-            return _PLAN_ID_CACHE[interval_key]
+        if plan_id.lower() in RazorpaySubscriptionService.DEPRECATED_PLAN_IDS:
+            raise RazorpaySubscriptionConfigurationError(
+                f"Deprecated Razorpay plan ID '{plan_id}' cannot be used for new subscriptions."
+            )
 
-        # 3. Create plan via Razorpay API if client available
-        plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])
-        if client:
-            try:
-                amount_in_paise = int(plan_config["normal_price"] * 100)
-                rzp_period = "yearly" if interval_key == "yearly" else "monthly"
-                res = client.plan.create({
-                    "period": rzp_period,
-                    "interval": 1,
-                    "item": {
-                        "name": f"Autofy Pro — {plan_config['name']}",
-                        "amount": amount_in_paise,
-                        "currency": "INR",
-                        "description": f"Autofy Pro SaaS Subscription ({plan_config['name']} ₹{plan_config['normal_price']}/{interval_key})"
-                    }
-                })
-                rzp_plan_id = res.get("id")
-                if rzp_plan_id:
-                    _PLAN_ID_CACHE[interval_key] = rzp_plan_id
-                    logger.info(f"Created Razorpay Plan ID for {interval_key}: {rzp_plan_id}")
-                    return rzp_plan_id
-            except Exception as err:
-                logger.error(f"Error creating Razorpay plan for {interval_key}: {err}")
-
-        # Fallback synthetic ID for test mode without live API key
-        mock_id = f"plan_mock_pro_{interval_key}"
-        _PLAN_ID_CACHE[interval_key] = mock_id
-        return mock_id
+        # Normalize any known typos from environment or dashboard
+        normalized_id = RazorpaySubscriptionService.PLAN_ID_ALIASES.get(plan_id, plan_id)
+        return normalized_id
 
     @staticmethod
     def create_subscription(
@@ -87,27 +89,30 @@ class RazorpaySubscriptionService:
     ) -> Dict[str, Any]:
         """
         Creates an official Razorpay Subscription object via API for Autofy Pro.
-        Monthly: ₹699/mo, 7-day free trial (start_at = now + 7 days)
-        Yearly:  ₹6,899/yr, 14-day free trial (start_at = now + 14 days)
+        Monthly: ₹900/mo, starts immediately.
+        Yearly:  ₹4,999/yr, starts immediately.
+        Zero free trial — customer is billed immediately upon checkout authorization.
         """
         interval_key = "yearly" if str(billing_interval).lower() == "yearly" else "monthly"
-        plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])
-        trial_days = plan_config.get("trial_days", 7 if interval_key == "monthly" else 14)
 
         client = RazorpaySubscriptionService.get_client()
-        rzp_plan_id = RazorpaySubscriptionService.get_or_create_plan_id(client, interval_key)
+        if client is None:
+            raise RazorpaySubscriptionConfigurationError(
+                "Razorpay API credentials are not configured."
+            )
+
+        rzp_plan_id = RazorpaySubscriptionService.get_configured_plan_id(interval_key)
 
         now = datetime.utcnow()
-        trial_end_time = now + timedelta(days=trial_days)
-        start_at_timestamp = int(trial_end_time.timestamp())
-
         total_count = 10 if interval_key == "yearly" else 120 # 10 years recurring duration
 
+        # NOTE: NO start_at is sent.
+        # Omitting start_at ensures the subscription activates immediately and bills
+        # the customer upfront upon authorization with ZERO trial delay.
         sub_payload: Dict[str, Any] = {
             "plan_id": rzp_plan_id,
             "total_count": total_count,
             "quantity": 1,
-            "start_at": start_at_timestamp,
             "customer_notify": 1,
             "notes": {
                 "business_id": business_id,
@@ -116,27 +121,27 @@ class RazorpaySubscriptionService:
             }
         }
 
-        if client:
-            try:
-                subscription_obj = client.subscription.create(sub_payload)
-                logger.info(f"Created Razorpay Subscription ({interval_key}): {subscription_obj.get('id')}")
-                return {
-                    "provider_subscription_id": subscription_obj.get("id"),
-                    "razorpay_plan_id": rzp_plan_id,
-                    "status": subscription_obj.get("status", "created"),
-                    "start_at": start_at_timestamp,
-                    "raw": subscription_obj
-                }
-            except Exception as err:
-                logger.error(f"Razorpay subscription.create API failed for {interval_key}: {err}")
+        try:
+            subscription_obj = client.subscription.create(sub_payload)
+        except Exception as err:
+            logger.exception("Razorpay subscription.create API failed for %s (%s): %s", interval_key, rzp_plan_id, err)
+            raise RazorpaySubscriptionConfigurationError(
+                f"Razorpay could not initialize subscription for {interval_key} plan ({rzp_plan_id}): {err}"
+            ) from err
 
-        # Fallback mock subscription for local dev without live keys
+        provider_subscription_id = subscription_obj.get("id")
+        if not provider_subscription_id:
+            raise RazorpaySubscriptionConfigurationError(
+                "Razorpay returned an incomplete subscription response."
+            )
+
+        logger.info("Created Razorpay subscription (%s): %s", interval_key, provider_subscription_id)
         return {
-            "provider_subscription_id": f"sub_mock_{business_id[:8]}_{int(now.timestamp())}",
+            "provider_subscription_id": provider_subscription_id,
             "razorpay_plan_id": rzp_plan_id,
-            "status": "created",
-            "start_at": start_at_timestamp,
-            "raw": {"mock": True}
+            "status": subscription_obj.get("status", "created"),
+            "start_at": None,
+            "raw": subscription_obj,
         }
 
     @staticmethod

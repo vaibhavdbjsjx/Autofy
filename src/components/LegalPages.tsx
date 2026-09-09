@@ -407,7 +407,7 @@ export function TermsOfService() {
 
       <Section title="6. Subscriptions, Payments & Billing Terms" icon={CreditCard}>
         <p>
-          Access to live WhatsApp automation and Pro features requires an active paid subscription or authorized trial:
+          Access to live WhatsApp automation and Pro features requires an active paid subscription:
         </p>
         <ul className="list-disc pl-5 space-y-2">
           <li><strong>Billing Intervals:</strong> Subscriptions are offered on monthly and annual billing cycles, billed in advance.</li>

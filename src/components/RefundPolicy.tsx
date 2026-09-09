@@ -20,7 +20,7 @@ export const RefundPolicy: React.FC = () => {
         </div>
         <h1 className="text-3xl sm:text-4xl font-black font-display tracking-tight">Cancellation & Refund Policy</h1>
         <p className="text-sm text-[var(--text-muted)] leading-relaxed">
-          This policy details how subscription cancellations, 7-day trials, and billing refunds are handled on the Autofy SaaS platform.
+          This policy details how subscription cancellations and billing refunds are handled on the Autofy SaaS platform.
         </p>
       </div>
 

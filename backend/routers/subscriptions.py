@@ -52,18 +52,17 @@ def start_free_trial(
     db: Session = Depends(get_db)
 ):
     """
-    Activates free trial for Autofy Pro.
-    Monthly: 7-day free trial.
-    Yearly:  14-day free trial.
+    Activates subscription trial state for Autofy Pro (0 trial days).
+    Monthly: ₹900/mo (Immediate upfront billing).
+    Yearly:  ₹4,999/yr (Immediate upfront billing).
     """
     interval_key = "yearly" if "year" in str(payload.billing_interval or payload.plan_id).lower() else "monthly"
 
     updated_state = EntitlementService.start_trial(db, current_user.business_id, interval_key)
 
-    trial_days = updated_state["trial"]["days_remaining"] or (14 if interval_key == "yearly" else 7)
     return {
         "status": "success",
-        "message": f"{trial_days}-Day Free Trial for Autofy Pro ({interval_key.capitalize()}) activated successfully!",
+        "message": f"Autofy Pro ({interval_key.capitalize()}) activated. Immediate upfront billing applies.",
         "subscription": updated_state,
         "razorpay_key_id": settings.RAZORPAY_KEY_ID
     }
@@ -75,18 +74,29 @@ def create_subscription_checkout(
     db: Session = Depends(get_db)
 ):
     """
-    Generates Razorpay Subscription configuration for Autofy Pro recurring mandate.
-    Monthly: ₹699/mo after 7-day trial.
-    Yearly:  ₹6,899/yr after 14-day trial.
+    Generates Razorpay Subscription configuration for Autofy Pro recurring billing.
+    Monthly: ₹900/mo, immediate billing.
+    Yearly:  ₹4,999/yr, immediate billing.
+    Zero trial delay — customer is billed immediately upon checkout.
     """
     interval_key = "yearly" if "year" in str(payload.billing_interval or payload.plan_id).lower() else "monthly"
     plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])
 
-    from services.razorpay_subscription_service import RazorpaySubscriptionService
-    rzp_sub = RazorpaySubscriptionService.create_subscription(
-        business_id=current_user.business_id,
-        billing_interval=interval_key
+    from services.razorpay_subscription_service import (
+        RazorpaySubscriptionConfigurationError,
+        RazorpaySubscriptionService,
     )
+    try:
+        rzp_sub = RazorpaySubscriptionService.create_subscription(
+            business_id=current_user.business_id,
+            billing_interval=interval_key,
+        )
+    except RazorpaySubscriptionConfigurationError as err:
+        # Never hand Razorpay Checkout a fabricated subscription ID.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=str(err) or "Subscription checkout is temporarily unavailable. Please contact support.",
+        )
 
     # Persist provider subscription ID & billing interval on local database model
     from models.subscription import Subscription
@@ -121,8 +131,6 @@ def create_subscription_checkout(
     import os
     key_id = os.environ.get("RAZORPAY_KEY_ID") or settings.RAZORPAY_KEY_ID
 
-    trial_days = plan_config["trial_days"]
-
     return {
         "status": "success",
         "business_id": current_user.business_id,
@@ -132,13 +140,13 @@ def create_subscription_checkout(
         "billing_interval": interval_key,
         "charge_amount": plan_config["price"],
         "normal_recurring_price": plan_config["price"],
-        "trial_days": trial_days,
+        "trial_days": 0,
         "razorpay_key_id": key_id,
         "razorpay_subscription_id": rzp_sub["provider_subscription_id"],
         "razorpay_plan_id": rzp_sub["razorpay_plan_id"],
         "disclosures": {
-            "amount_today": 0,
-            "trial_days": trial_days,
+            "amount_today": plan_config["price"],
+            "trial_days": 0,
             "recurring_amount": plan_config["price"],
             "billing_interval": interval_key
         }
@@ -191,7 +199,7 @@ def change_subscription_plan(
 
     pricing_map = {
         "starter": {"monthly": 399.00, "yearly": 3999.00, "name": "Autofy Starter"},
-        "pro": {"monthly": 699.00, "yearly": 6899.00, "name": "Autofy Pro"},
+        "pro": {"monthly": 900.00, "yearly": 4999.00, "name": "Autofy Pro"},
         "enterprise": {"monthly": 1499.00, "yearly": 14999.00, "name": "Autofy Enterprise"}
     }
     
@@ -407,7 +415,7 @@ def list_business_invoices(
     # If no invoices exist yet for active user, seed the initial subscription invoice
     if not invoices:
         sub_record = db.query(Subscription).filter(Subscription.business_id == current_user.business_id).first()
-        price = float(sub_record.normal_price) if sub_record else 699.00
+        price = float(sub_record.normal_price) if sub_record else 900.00
         first_inv = Invoice(
             id=str(uuid.uuid4()),
             business_id=current_user.business_id,
@@ -623,4 +631,3 @@ def request_subscription_refund(
         "ticket_id": ticket.id,
         "message": "Refund request ticket submitted successfully. Our billing operations team will review within 24-48 business hours."
     }
-

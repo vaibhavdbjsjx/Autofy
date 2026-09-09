@@ -21,8 +21,8 @@ class EntitlementService:
                 plan_id="pro",
                 provider="razorpay",
                 status="EXPLORING",
-                normal_price=699.00,
-                first_cycle_price=699.00,
+                normal_price=900.00,
+                first_cycle_price=900.00,
                 currency="INR",
                 billing_interval="monthly",
                 promo_eligible_at_signup=False,
@@ -133,29 +133,33 @@ class EntitlementService:
         }
 
     @staticmethod
-    def start_trial(db: Session, business_id: str, plan_id_or_interval: str = "monthly") -> Dict[str, Any]:
+    def start_trial(db: Session, business_id: str, plan_id_or_interval: str = "monthly", trial_days: Optional[int] = None) -> Dict[str, Any]:
         """
-        Activates free trial for Autofy Pro.
-        Monthly: 7-day free trial (₹699/mo after trial)
-        Yearly:  14-day free trial (₹6,899/yr after trial)
+        Activates subscription/trial for Autofy Pro.
+        Monthly: ₹900/mo (Immediate start, 0 trial days)
+        Yearly:  ₹4,999/yr (Immediate start, 0 trial days)
         """
         interval_key = "yearly" if "year" in str(plan_id_or_interval).lower() or str(plan_id_or_interval).lower() == "enterprise" else "monthly"
         plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])
 
         sub = EntitlementService.get_or_create_subscription(db, business_id)
         now = datetime.utcnow()
-        trial_days = plan_config.get("trial_days", 7 if interval_key == "monthly" else 14)
+        days = trial_days if trial_days is not None else plan_config.get("trial_days", 0)
 
         sub.plan_id = "pro"
         sub.billing_interval = interval_key
-        sub.status = "TRIAL_ACTIVE"
         sub.trial_started_at = now
-        sub.trial_ends_at = now + timedelta(days=trial_days)
+        sub.trial_ends_at = now + timedelta(days=days)
         sub.current_period_start = now
-        sub.current_period_end = now + timedelta(days=trial_days)
+        sub.current_period_end = now + timedelta(days=days)
 
         sub.normal_price = plan_config["normal_price"]
         sub.first_cycle_price = plan_config["normal_price"]
+
+        if days > 0:
+            sub.status = "TRIAL_ACTIVE"
+        else:
+            sub.status = "EXPIRED"
 
         db.commit()
         db.refresh(sub)

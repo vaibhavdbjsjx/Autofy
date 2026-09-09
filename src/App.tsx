@@ -1378,6 +1378,37 @@ function Footer() {
     "For Business": ["Gyms", "Clinics", "Salons", "Restaurants"],
   };
 
+  const handleFooterLinkClick = (link: string) => {
+    switch (link) {
+      case "Features":
+        document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
+        break;
+      case "Pricing":
+        document.getElementById("pricing")?.scrollIntoView({ behavior: "smooth" });
+        break;
+      case "Integrations":
+        document.getElementById("integrations")?.scrollIntoView({ behavior: "smooth" });
+        break;
+      case "API Docs":
+      case "Documentation":
+        window.open("/api/docs", "_blank");
+        break;
+      case "Contact":
+      case "Help Center":
+      case "Blog":
+      case "Careers":
+      case "Status":
+        navigate("/contact");
+        break;
+      case "Terms":
+        navigate("/terms-of-service");
+        break;
+      default:
+        document.getElementById("features")?.scrollIntoView({ behavior: "smooth" });
+        break;
+    }
+  };
+
   return (
     <footer style={{ background: "var(--bg-elevated)", borderTop: "1px solid var(--border)", padding: "60px 0 32px" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 32px" }}>
@@ -1405,7 +1436,7 @@ function Footer() {
                 textTransform: "uppercase", color: "var(--text)", marginBottom: 16 }}>{title}</h4>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {links.map(link => (
-                  <button key={link} onClick={() => {}} style={{
+                  <button key={link} onClick={() => handleFooterLinkClick(link)} style={{
                     background: "none", border: "none", cursor: "pointer",
                     fontSize: 13, color: "var(--text-muted)", textAlign: "left",
                     transition: "color 0.15s", padding: 0,

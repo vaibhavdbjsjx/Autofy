@@ -110,16 +110,11 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
     fetchStatus();
   }, []);
 
-  const handleStartTrial = async (interval: "monthly" | "yearly") => {
-    // Open real Razorpay Standard Checkout mandate setup for trial
-    await handleCreateCheckout(interval);
-  };
-
   const handleCreateCheckout = async (interval: "monthly" | "yearly") => {
     setIsSubmitting(true);
     try {
       if (!isAuthenticated()) {
-        triggerNotification?.("Please sign in to authorize your trial mandate.");
+        triggerNotification?.("Please sign in to start your subscription.");
         return;
       }
 
@@ -153,7 +148,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
               
               if (verifyRes && verifyRes.status === "success") {
                 await fetchStatus();
-                triggerNotification?.("Payment mandate authorized successfully! Your Autofy Pro subscription is active.");
+                triggerNotification?.("Payment authorized successfully! Your Autofy Pro subscription is active.");
               } else {
                 triggerNotification?.("Payment verification failed. Please try again.");
               }
@@ -165,7 +160,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
           },
           modal: {
             ondismiss: function () {
-              triggerNotification?.("Checkout cancelled. Trial mandate authorization was not completed.");
+              triggerNotification?.("Checkout cancelled. Subscription payment was not completed.");
               setIsSubmitting(false);
             }
           },
@@ -183,7 +178,9 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
         triggerNotification?.("Razorpay SDK unavailable. Please refresh and try again.");
       }
     } catch (err: any) {
-      triggerNotification?.("Checkout generation error. Please retry.");
+      triggerNotification?.(
+        err?.message || "Secure checkout is temporarily unavailable. Please contact support."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -220,7 +217,6 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
   ];
 
   const isAlreadySubscribed = subState?.status === "ACTIVE" || subState?.status === "CANCEL_AT_PERIOD_END";
-  const isInTrial = subState?.status === "TRIAL_ACTIVE";
 
   return (
     <div id="subscription-plans-module" className="space-y-8 font-sans text-left max-w-5xl mx-auto">
@@ -244,16 +240,14 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
         </div>
       </div>
 
-      {/* CURRENT ACTIVE SUBSCRIPTION / TRIAL BANNER */}
-      {(isInTrial || isAlreadySubscribed) && (
+      {/* CURRENT ACTIVE SUBSCRIPTION BANNER */}
+      {isAlreadySubscribed && (
         <div className="surface-a p-6 sm:p-8 rounded-3xl relative overflow-hidden border border-purple-500/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 shadow-xl">
           <div className="space-y-3 max-w-xl">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-xs font-black text-green-400">
               <ShieldCheck className="w-4 h-4" />
               <span>
-                {isInTrial
-                  ? `AUTOFY PRO — FREE TRIAL ACTIVE (${subState?.trial.days_remaining} DAYS REMAINING)`
-                  : subState?.status === "ACTIVE"
+                {subState?.status === "ACTIVE"
                   ? "AUTOFY PRO — SUBSCRIPTION ACTIVE"
                   : "SUBSCRIPTION CANCELLED (ACTIVE UNTIL PERIOD END)"}
               </span>
@@ -265,9 +259,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
             </h3>
 
             <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-              {isInTrial
-                ? `Your ${subState?.trial.days_remaining}-day free trial is currently active. Next charge of ₹${subState?.pricing.price.toLocaleString("en-IN")} scheduled for ${getFormattedDate(subState?.trial.ends_at)}.`
-                : subState?.status === "CANCEL_AT_PERIOD_END"
+              {subState?.status === "CANCEL_AT_PERIOD_END"
                 ? `Your subscription is cancelled at the end of the billing period. Full access remains active until ${getFormattedDate(subState?.period.end)}.`
                 : `Your recurring subscription is active. Next payment date: ${getFormattedDate(subState?.period.end)}.`}
             </p>

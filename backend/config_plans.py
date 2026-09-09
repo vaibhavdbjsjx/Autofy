@@ -5,8 +5,8 @@ from typing import Dict, Any
 # ------------------------------------------------------------
 # Product: Autofy Pro
 # Options:
-#   • Monthly: ₹699 / month  (7-day free trial)
-#   • Yearly:  ₹6,899 / year (14-day free trial)
+#   • Monthly: ₹900 / month  (Immediate start, zero trial)
+#   • Yearly:  ₹4,999 / year (Immediate start, zero trial)
 # Both options share the exact same features & entitlements.
 # ════════════════════════════════════════════════════════════
 
@@ -34,11 +34,12 @@ SUBSCRIPTION_PLANS: Dict[str, Dict[str, Any]] = {
         "id": "monthly",
         "product_name": "Autofy Pro",
         "name": "Autofy Pro Monthly",
-        "price": 699.0,
-        "normal_price": 699.0,
+        "price": 900.0,
+        "normal_price": 900.0,
         "currency": "INR",
         "billing_interval": "monthly",
-        "trial_days": 7,
+        "trial_days": 0,
+        "razorpay_plan_id": "plan_TZx4AbrrftCAcm",
         "features": AUTOFY_PRO_FEATURES,
         "entitlements": AUTOFY_PRO_ENTITLEMENTS
     },
@@ -46,14 +47,15 @@ SUBSCRIPTION_PLANS: Dict[str, Dict[str, Any]] = {
         "id": "yearly",
         "product_name": "Autofy Pro",
         "name": "Autofy Pro Yearly",
-        "price": 6899.0,
-        "normal_price": 6899.0,
+        "price": 4999.0,
+        "normal_price": 4999.0,
         "currency": "INR",
         "billing_interval": "yearly",
-        "trial_days": 14,
-        "savings_amount": 1499.0,
-        "monthly_equivalent": 575.0,
-        "discount_percent": 18,
+        "trial_days": 0,
+        "savings_amount": 5801.0,
+        "monthly_equivalent": 417.0,
+        "discount_percent": 54,
+        "razorpay_plan_id": "plan_TZxFTBI4TK3IAY",
         "features": AUTOFY_PRO_FEATURES,
         "entitlements": AUTOFY_PRO_ENTITLEMENTS
     }

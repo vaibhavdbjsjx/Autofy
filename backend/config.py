@@ -1,9 +1,21 @@
 import os
 from typing import List
+from dotenv import load_dotenv
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_backend_dir = os.path.dirname(os.path.abspath(__file__))
+_root_dir = os.path.dirname(_backend_dir)
+load_dotenv(os.path.join(_backend_dir, ".env"))
+load_dotenv(os.path.join(_root_dir, ".env"))
+
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=(os.path.join(_backend_dir, ".env"), os.path.join(_root_dir, ".env")),
+        env_file_encoding="utf-8",
+        extra="ignore"
+    )
+
     # Core Application Settings
     PROJECT_NAME: str = "Autofy Backend"
     ENVIRONMENT: str = "development"
@@ -70,8 +82,8 @@ class Settings(BaseSettings):
     RAZORPAY_WEBHOOK_SECRET: str = ""
 
     # Razorpay Recurring Plan IDs (Autofy Pro Monthly & Yearly - INR)
-    RAZORPAY_MONTHLY_PLAN_ID: str = ""
-    RAZORPAY_YEARLY_PLAN_ID: str = ""
+    RAZORPAY_MONTHLY_PLAN_ID: str = "plan_TZx4AbrrftCAcm"
+    RAZORPAY_YEARLY_PLAN_ID: str = "plan_TZxFTBI4TK3IAY"
 
     # Future USD Razorpay Plan IDs (International Cards / Apple Pay)
     RAZORPAY_USD_MONTHLY_PLAN_ID: str = ""

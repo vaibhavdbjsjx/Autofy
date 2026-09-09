@@ -1,6 +1,7 @@
 import pytest
 import os
 import sys
+from datetime import datetime, timedelta
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
@@ -66,7 +67,15 @@ def test_business_a(db_session: Session) -> Business:
     db_session.commit()
     db_session.refresh(biz)
     from services.entitlement_services import EntitlementService
-    EntitlementService.start_trial(db_session, biz.id, "pro")
+    sub = EntitlementService.get_or_create_subscription(db_session, biz.id)
+    sub.status = "ACTIVE"
+    sub.plan_id = "pro"
+    sub.billing_interval = "monthly"
+    sub.current_period_start = datetime.utcnow()
+    sub.current_period_end = datetime.utcnow() + timedelta(days=30)
+    sub.normal_price = 900.00
+    sub.first_cycle_price = 900.00
+    db_session.commit()
     return biz
 
 @pytest.fixture
@@ -103,7 +112,15 @@ def test_business_b(db_session: Session) -> Business:
     db_session.commit()
     db_session.refresh(biz)
     from services.entitlement_services import EntitlementService
-    EntitlementService.start_trial(db_session, biz.id, "pro")
+    sub = EntitlementService.get_or_create_subscription(db_session, biz.id)
+    sub.status = "ACTIVE"
+    sub.plan_id = "pro"
+    sub.billing_interval = "monthly"
+    sub.current_period_start = datetime.utcnow()
+    sub.current_period_end = datetime.utcnow() + timedelta(days=30)
+    sub.normal_price = 900.00
+    sub.first_cycle_price = 900.00
+    db_session.commit()
     return biz
 
 @pytest.fixture

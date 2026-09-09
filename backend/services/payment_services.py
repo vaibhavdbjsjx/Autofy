@@ -299,8 +299,8 @@ class RazorpayService:
         if sub_record:
             sub_record.status = "ACTIVE"
             sub_record.promo_first_cycle_used = True
-            sub_record.current_period_start = datetime.utcnow()
-            sub_record.current_period_end = datetime.utcnow() + timedelta(days=30)
+            days_to_add = 365 if str(sub_record.billing_interval).lower() == "yearly" else 30
+            sub_record.current_period_end = datetime.utcnow() + timedelta(days=days_to_add)
             sub_record.updated_at = datetime.utcnow()
             db.commit()
 
@@ -383,7 +383,7 @@ class RazorpayService:
                 return {"status": "success", "processed_record": payment.id, "action": "paid_link"}
 
         elif event in ["subscription.authenticated"]:
-            # Customer authorized recurring mandate for 7-day trial
+            # Customer authorized recurring mandate (Zero-trial upfront activation)
             sub_entities = payload.get("payload", {}).get("subscription", {}).get("entity", {})
             sub_id = sub_entities.get("id")
             notes = sub_entities.get("notes", {})
@@ -394,14 +394,15 @@ class RazorpayService:
             sub_record = query.filter((Subscription.provider_subscription_id == sub_id) | (Subscription.business_id == biz_id)).first() if (sub_id or biz_id) else None
 
             if sub_record:
-                sub_record.status = "TRIAL_ACTIVE"
+                sub_record.status = "ACTIVE"
                 if sub_id:
                     sub_record.provider_subscription_id = sub_id
-                sub_record.trial_started_at = datetime.utcnow()
-                sub_record.trial_ends_at = datetime.utcnow() + timedelta(days=7)
+                days_to_add = 365 if str(sub_record.billing_interval).lower() == "yearly" else 30
+                sub_record.current_period_start = datetime.utcnow()
+                sub_record.current_period_end = datetime.utcnow() + timedelta(days=days_to_add)
                 sub_record.updated_at = datetime.utcnow()
                 db.commit()
-                return {"status": "success", "processed_subscription": sub_record.id, "action": "trial_authenticated"}
+                return {"status": "success", "processed_subscription": sub_record.id, "action": "subscription_authenticated"}
 
         elif event in ["subscription.charged", "subscription.activated"]:
             sub_entities = payload.get("payload", {}).get("subscription", {}).get("entity", {})
@@ -426,9 +427,9 @@ class RazorpayService:
                 if sub_id:
                     sub_record.provider_subscription_id = sub_id
                 sub_record.promo_first_cycle_used = True
-                sub_record.promo_first_cycle_locked = False
+                days_to_add = 365 if str(sub_record.billing_interval).lower() == "yearly" else 30
                 sub_record.current_period_start = datetime.utcnow()
-                sub_record.current_period_end = datetime.utcnow() + timedelta(days=30)
+                sub_record.current_period_end = datetime.utcnow() + timedelta(days=days_to_add)
                 sub_record.updated_at = datetime.utcnow()
                 db.commit()
 
