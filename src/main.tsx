@@ -10,12 +10,14 @@ import { initNative } from './lib/native';
 // Boot native (Capacitor) integrations — no-op in the browser.
 initNative();
 
-// Lenis smooth scroll
+// Lenis owns the marketing site's document scroll. Dashboard content uses its
+// own native viewport, which must be allowed to receive wheel and touch input.
 const lenis = new Lenis({
   duration: 1.15,
   easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
   smoothWheel: true,
   touchMultiplier: 1.5,
+  prevent: (node: HTMLElement) => node.id === "dashboard-scroll-viewport",
 });
 
 function raf(time: number) {

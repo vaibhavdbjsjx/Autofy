@@ -1132,6 +1132,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         <div
           id="dashboard-scroll-viewport"
           className="scrollbar-thin"
+          data-lenis-prevent
         >
           <div className="mx-auto w-full max-w-[1480px] px-4 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8 pb-20 md:pb-8 lg:pb-10">
 
