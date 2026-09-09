@@ -878,7 +878,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   return (
     <div
       id="autofy-main-dashboard"
-      className="fixed inset-0 flex h-screen h-[100dvh] max-h-[100dvh] w-screen max-w-[100vw] overflow-hidden font-sans md:flex-row z-0"
+      className="font-sans"
       style={{ background: "var(--bg)", color: "var(--text)" }}
     >
       {/* Ambient Autofy atmosphere (pink → violet → blue) */}
@@ -922,7 +922,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* DESKTOP FIXED SIDEBAR */}
       <aside
         id="autofy-sidebar"
-        className="hidden md:flex h-full max-h-screen max-h-[100dvh] w-[280px] lg:w-[300px] shrink-0 flex-col p-6 overflow-hidden select-none"
+        className="p-6 select-none"
         style={{
           background: "var(--sidebar)",
           backdropFilter: "blur(24px)",
@@ -935,7 +935,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* RIGHT SECTION: Main Column with sticky header and independent scrollable content */}
       <main
         id="autofy-main-section"
-        className="relative z-10 flex min-w-0 flex-1 flex-col"
+        className=""
       >
         {/* TOP NAVIGATION (FIXED/STICKY AT TOP) */}
         <header

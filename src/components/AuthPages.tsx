@@ -394,7 +394,7 @@ export const LoginView: React.FC<LoginProps> = ({
                 color: "var(--brand)", fontWeight: 700, padding: 0
               }}
             >
-              Start free trial <ArrowRight size={14} className="inline ml-0.5" />
+              Create an account <ArrowRight size={14} className="inline ml-0.5" />
             </button>
           </p>
         </div>
@@ -564,10 +564,10 @@ export const SignUpView: React.FC<SignUpProps> = ({
           </div>
 
           <h1 style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.04em", color: "var(--text)", marginBottom: 8 }}>
-            Start your free trial
+            Create your account
           </h1>
           <p style={{ fontSize: 14, color: "var(--text-muted)", marginBottom: 28 }}>
-            No credit card required. 14-day free trial.
+            Set up your AI WhatsApp concierge in 5 minutes.
           </p>
 
           {error && (

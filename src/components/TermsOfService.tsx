@@ -57,9 +57,9 @@ export const TermsOfService: React.FC = () => {
         </section>
 
         <section className="space-y-2">
-          <h2 className="text-base font-black text-[var(--text)] font-display">4. Subscriptions, Trials & Cancellations</h2>
+          <h2 className="text-base font-black text-[var(--text)] font-display">4. Subscriptions &amp; Cancellations</h2>
           <p>
-            Paid plans include a 7-day free trial. If you cancel during the trial, zero subscription fee is charged. Subscriptions auto-renew monthly unless cancelled prior to the renewal date via your Account Settings.
+            Subscription plans auto-renew each billing cycle (monthly or yearly) unless cancelled prior to the renewal date via your Account Settings. If cancelled, you will retain access to your plan until the end of your prepaid billing period with zero cancellation fees.
           </p>
         </section>
 

@@ -34,9 +34,9 @@ export const RefundPolicy: React.FC = () => {
 
       <div className="space-y-6 text-xs text-[var(--text-muted)] leading-relaxed border-t border-[var(--border)] pt-6">
         <section className="space-y-2">
-          <h2 className="text-base font-black text-[var(--text)] font-display">1. 7-Day Free Trial Cancellation</h2>
+          <h2 className="text-base font-black text-[var(--text)] font-display">1. Subscription Cancellation</h2>
           <p>
-            All paid subscription plans include a 7-day free trial. You may cancel your trial at any time during the 7 days with <strong>zero charge</strong>. Your account will not be billed if cancelled prior to the trial expiration date.
+            You may cancel your subscription at any time via <strong>Settings &gt; Subscription &amp; Plans</strong> with <strong>zero cancellation fees</strong>. Subscriptions automatically renew at the end of each billing cycle unless cancelled prior to the renewal date.
           </p>
         </section>
 

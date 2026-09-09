@@ -73,11 +73,11 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
           pricing: {
             currency: "INR",
             billing_interval: "yearly",
-            price: 6899,
-            normal_price: 6899,
-            monthly_equivalent: 575,
-            savings_amount: 1499,
-            discount_percent: 18,
+            price: 4999,
+            normal_price: 4999,
+            monthly_equivalent: 417,
+            savings_amount: 5801,
+            discount_percent: 54,
           },
           trial: {
             active: false,
@@ -141,7 +141,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
           key: res.razorpay_key_id,
           subscription_id: res.razorpay_subscription_id,
           name: "Autofy Pro",
-          description: `Mandate Setup — ${interval === "yearly" ? "14-Day Free Trial (₹6,899/yr after trial)" : "7-Day Free Trial (₹699/mo after trial)"}`,
+          description: `Subscription — ${interval === "yearly" ? "Autofy Pro Yearly (₹4,999/yr)" : "Autofy Pro Monthly (₹900/mo)"}`,
           handler: async function (response: any) {
             try {
               setIsSubmitting(true);
@@ -352,12 +352,12 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
               <div className="flex items-baseline gap-2 pt-1">
                 {billingInterval === "yearly" ? (
                   <>
-                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹6,899</span>
+                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹4,999</span>
                     <span className="text-sm font-semibold text-[var(--text-muted)]">/ year</span>
                   </>
                 ) : (
                   <>
-                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹699</span>
+                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹900</span>
                     <span className="text-sm font-semibold text-[var(--text-muted)]">/ month</span>
                   </>
                 )}
@@ -365,25 +365,25 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
 
               {billingInterval === "yearly" ? (
                 <div className="text-xs font-medium text-emerald-400 flex items-center gap-2 pt-0.5">
-                  <span>Save ₹1,499 every year</span>
+                  <span>Save ₹5,801 every year</span>
                   <span>•</span>
-                  <span>(~₹575/month equivalent)</span>
+                  <span>(~₹417/month equivalent)</span>
                 </div>
               ) : (
                 <div className="text-xs font-medium text-[var(--text-muted)] pt-0.5">
-                  Full access with zero long-term commitment.
+                  Full AI automation with monthly flexibility.
                 </div>
               )}
             </div>
 
-            {/* TRIAL BADGE DISPLAY */}
+            {/* BILLING BADGE DISPLAY */}
             <div className="shrink-0 p-4 rounded-2xl bg-black/40 border border-purple-500/30 space-y-1">
-              <div className="flex items-center gap-2 text-amber-300 font-black text-xs uppercase tracking-widest">
-                <Clock className="w-4 h-4 text-amber-400" />
-                <span>{billingInterval === "yearly" ? "14-DAY FREE TRIAL" : "7-DAY FREE TRIAL"}</span>
+              <div className="flex items-center gap-2 text-purple-300 font-black text-xs uppercase tracking-widest">
+                <Check className="w-4 h-4 text-purple-400" />
+                <span>{billingInterval === "yearly" ? "ANNUAL BILLING" : "MONTHLY BILLING"}</span>
               </div>
               <p className="text-[11px] text-[var(--text-subtle)] font-mono">
-                Start free today.
+                Instant activation.
               </p>
             </div>
           </div>
@@ -396,13 +396,13 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
             </div>
             {billingInterval === "yearly" ? (
               <>
-                <p>• <strong>Start free today. You won't be charged today.</strong></p>
-                <p>• After your 14-day free trial, <strong>₹6,899/year</strong> will automatically renew until cancelled.</p>
+                <p>• Billed annually at <strong>₹4,999/year</strong>.</p>
+                <p>• Automatically renews each year until cancelled in Account Settings.</p>
               </>
             ) : (
               <>
-                <p>• <strong>Start free today. You won't be charged today.</strong></p>
-                <p>• After your 7-day free trial, <strong>₹699/month</strong> will automatically renew until cancelled.</p>
+                <p>• Billed monthly at <strong>₹900/month</strong>.</p>
+                <p>• Automatically renews each month until cancelled in Account Settings.</p>
               </>
             )}
           </div>
@@ -430,11 +430,11 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
               <button
                 type="button"
                 disabled={isSubmitting}
-                onClick={() => handleStartTrial(billingInterval)}
+                onClick={() => handleCreateCheckout(billingInterval)}
                 className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-95 text-white font-black text-sm transition cursor-pointer shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2"
               >
                 <span>
-                  {billingInterval === "yearly" ? "Start 14-Day Free Trial" : "Start 7-Day Free Trial"}
+                  {billingInterval === "yearly" ? "Subscribe Yearly — ₹4,999" : "Subscribe Monthly — ₹900"}
                 </span>
                 <ArrowRight className="w-4 h-4" />
               </button>
@@ -451,9 +451,9 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
             </div>
 
             <div className="space-y-0.5 pt-1">
-              <p className="text-xs font-bold text-[var(--text)]">You won't be charged today.</p>
+              <p className="text-xs font-bold text-[var(--text)]">Secure checkout powered by Razorpay</p>
               <p className="text-[11px] text-[var(--text-subtle)]">
-                Cancel anytime before your trial ends to avoid the charge.
+                Cancel anytime from your account settings.
               </p>
             </div>
           </div>

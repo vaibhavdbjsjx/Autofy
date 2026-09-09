@@ -13,6 +13,7 @@ import { Logo } from "./components/Logo";
 import { PrivacyPolicy, TermsOfService, RefundPolicy, ContactUs } from "./components/LegalPages";
 import { PublicAccountDeletionPage } from "./components/PublicAccountDeletionPage";
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { BackendStatusBanner } from "./components/BackendStatusBanner";
 import { INITIAL_ONBOARDING_DATA, OnboardingData } from "./types";
 import { getCurrentUser, signOut, completeOAuthLogin, onAuthStateChange, AuthUser } from "./lib/auth";
 import { api } from "./lib/api";
@@ -137,7 +138,7 @@ function Navbar() {
             <button className="mobile-nav-link" onClick={() => { setMobileNav(false); navigate("/login"); }}>Sign In</button>
             <button onClick={() => { setMobileNav(false); navigate("/signup"); }}
               className="btn-primary" style={{ marginTop: 24, height: 52, padding: "0 40px" }}>
-              Start Free Trial <ArrowRight size={16} />
+              Get Started <ArrowRight size={16} />
             </button>
           </motion.div>
         )}
@@ -1203,7 +1204,7 @@ function PricingSection() {
 
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                 <span className="text-gradient-primary" style={{ fontSize: 48, fontWeight: 900, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                  {annual ? "₹6,899" : "₹699"}
+                  {annual ? "₹4,999" : "₹900"}
                 </span>
                 <span style={{ fontSize: 15, color: "var(--text-muted)", fontWeight: 600 }}>
                   /{annual ? "year" : "month"}
@@ -1212,7 +1213,7 @@ function PricingSection() {
 
               {annual ? (
                 <div style={{ fontSize: 13, color: "#10B981", fontWeight: 600, marginTop: 4 }}>
-                  Save ₹1,499 every year (~₹575/month equivalent)
+                  Save ₹5,801 every year (~₹417/month equivalent)
                 </div>
               ) : (
                 <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500, marginTop: 4 }}>
@@ -1222,11 +1223,11 @@ function PricingSection() {
             </div>
 
             <div style={{ background: "rgba(0,0,0,0.3)", padding: "14px 20px", borderRadius: 16, border: "1px solid rgba(139,92,246,0.2)" }}>
-              <div style={{ color: "#FBBF24", fontSize: 12, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
-                <span>{annual ? "14-DAY FREE TRIAL" : "7-DAY FREE TRIAL"}</span>
+              <div style={{ color: "#A78BFA", fontSize: 12, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
+                <span>{annual ? "ANNUAL BILLING" : "MONTHLY BILLING"}</span>
               </div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "monospace", marginTop: 2 }}>
-                Start free today.
+                Instant activation.
               </div>
             </div>
           </div>
@@ -1236,13 +1237,13 @@ function PricingSection() {
             <div style={{ fontWeight: 700, color: "#fff", marginBottom: 6 }}>Automatic Billing Disclosure</div>
             {annual ? (
               <>
-                <div>• <strong>Start free today. You won't be charged today.</strong></div>
-                <div>• After your 14-day free trial, <strong>₹6,899/year</strong> will automatically renew until cancelled.</div>
+                <div>• Billed annually at <strong>₹4,999/year</strong>.</div>
+                <div>• Automatically renews each year until cancelled in Account Settings.</div>
               </>
             ) : (
               <>
-                <div>• <strong>Start free today. You won't be charged today.</strong></div>
-                <div>• After your 7-day free trial, <strong>₹699/month</strong> will automatically renew until cancelled.</div>
+                <div>• Billed monthly at <strong>₹900/month</strong>.</div>
+                <div>• Automatically renews each month until cancelled in Account Settings.</div>
               </>
             )}
           </div>
@@ -1269,10 +1270,10 @@ function PricingSection() {
               className="btn-primary"
               style={{ width: "100%", padding: "16px", fontSize: 15, justifyContent: "center" }}
             >
-              {annual ? "Start 14-Day Free Trial" : "Start 7-Day Free Trial"} <ChevronRight size={18} />
+              {annual ? "Get Autofy Pro Annual" : "Get Autofy Pro Monthly"} <ChevronRight size={18} />
             </MagneticButton>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", marginTop: 10 }}>No charge today</div>
-            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Cancel anytime before your trial ends to avoid the charge.</div>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", marginTop: 10 }}>Instant setup</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Cancel anytime from your account settings.</div>
           </div>
         </motion.div>
       </div>
@@ -1353,13 +1354,13 @@ function CTASection() {
       <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true }}
         style={{ textAlign: "center", position: "relative", zIndex: 1, maxWidth: 600, margin: "0 auto", padding: "0 32px" }}>
         <h2 className="section-h2" style={{ marginBottom: 16 }}>
-          Start Your <span className="text-gradient-primary">14-Day Free Trial</span>
+          Transform Your Business with <span className="text-gradient-primary">Autofy AI</span>
         </h2>
         <p className="body-large" style={{ marginBottom: 36 }}>
-          No credit card required. Set up in 5 minutes. Cancel anytime.
+          Set up in 5 minutes. Instant WhatsApp automation.
         </p>
         <MagneticButton onClick={() => navigate("/signup")} className="btn-primary"
-          >Get Started Free <ArrowRight size={16} /></MagneticButton>
+          >Get Started <ArrowRight size={16} /></MagneticButton>
       </motion.div>
     </section>
   );
@@ -1681,6 +1682,7 @@ export default function App() {
 
   return (
     <ErrorBoundary>
+      <BackendStatusBanner />
       <CursorGlow />
       <Routes>
         <Route path="/" element={<LandingPage />} />

@@ -86,6 +86,82 @@ export function isAuthenticated(): boolean {
   return !!getAuthToken();
 }
 
+// ─── Backend Readiness / Cold-Start State Tracking ───────────
+export type BackendHealthState = "online" | "waking" | "timeout" | "offline";
+
+let _currentBackendState: BackendHealthState = "online";
+const _backendStateListeners: Array<(state: BackendHealthState) => void> = [];
+
+export function getBackendState(): BackendHealthState {
+  return _currentBackendState;
+}
+
+export function onBackendStateChange(listener: (state: BackendHealthState) => void): () => void {
+  _backendStateListeners.push(listener);
+  try {
+    listener(_currentBackendState);
+  } catch {}
+  return () => {
+    const idx = _backendStateListeners.indexOf(listener);
+    if (idx !== -1) _backendStateListeners.splice(idx, 1);
+  };
+}
+
+export function setBackendState(newState: BackendHealthState): void {
+  if (_currentBackendState !== newState) {
+    _currentBackendState = newState;
+    _backendStateListeners.forEach((fn) => {
+      try {
+        fn(newState);
+      } catch {}
+    });
+  }
+}
+
+/**
+ * Probes the lightweight /health endpoint with bounded retries
+ * to handle Render Free-tier spin-up cleanly.
+ */
+export async function checkBackendReadiness(maxWaitMs = 60000): Promise<boolean> {
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    setBackendState("offline");
+    return false;
+  }
+
+  const startTime = Date.now();
+  const url = `${API_BASE}/health`;
+
+  while (Date.now() - startTime < maxWaitMs) {
+    const controller = new AbortController();
+    const probeTimeout = setTimeout(() => controller.abort(), 6000);
+
+    try {
+      const res = await fetch(url, {
+        method: "GET",
+        signal: controller.signal,
+        cache: "no-store",
+      });
+      clearTimeout(probeTimeout);
+      if (res.ok) {
+        setBackendState("online");
+        return true;
+      }
+    } catch {
+      clearTimeout(probeTimeout);
+    }
+
+    if (Date.now() - startTime >= 3000) {
+      setBackendState("waking");
+    }
+
+    // Wait 2.5s before next check
+    await new Promise((r) => setTimeout(r, 2500));
+  }
+
+  setBackendState("timeout");
+  return false;
+}
+
 // Typed error so callers can branch on status (e.g. 401 → re-login).
 export class ApiError extends Error {
   readonly status: number;
@@ -109,7 +185,7 @@ interface RequestOptions extends Omit<RequestInit, "body"> {
 }
 
 async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const { body, raw, headers, timeoutMs = 15000, ...rest } = options;
+  const { body, raw, headers, timeoutMs = 55000, ...rest } = options;
 
   const finalHeaders = new Headers(headers);
   const token = getAuthToken();
@@ -131,6 +207,13 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
 
+    // If request takes longer than 3.5 seconds, inform UI that server might be waking up
+    const wakingTimer = setTimeout(() => {
+      if (typeof navigator !== "undefined" && navigator.onLine) {
+        setBackendState("waking");
+      }
+    }, 3500);
+
     try {
       res = await fetch(url, {
         credentials: "include",
@@ -140,27 +223,34 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
         body: finalBody,
       });
       clearTimeout(timer);
+      clearTimeout(wakingTimer);
+      setBackendState("online");
       break; // Request succeeded (HTTP response received)
     } catch (networkErr: any) {
       clearTimeout(timer);
+      clearTimeout(wakingTimer);
       lastError = networkErr;
       if (networkErr?.name === "AbortError") {
         lastError = new Error(`Request to ${path} timed out after ${timeoutMs / 1000}s`);
       }
       if (attempt < maxRetries) {
-        // Wait 1 second before retrying to allow backend cold-start / socket reconnect
-        await new Promise((r) => setTimeout(r, 1000));
+        // Wait 1.5s before retrying to allow backend cold-start socket bind
+        await new Promise((r) => setTimeout(r, 1500));
       }
     }
   }
 
   if (!res) {
     const isOffline = typeof navigator !== "undefined" && navigator.onLine === false;
-    let errorMessage = "Unable to communicate with Autofy backend server. Please retry in a moment.";
+    let errorMessage = "Autofy services are starting up. Please retry in a moment.";
     if (isOffline) {
+      setBackendState("offline");
       errorMessage = "You are currently offline. Please check your internet connection.";
     } else if (lastError instanceof Error && lastError.message.includes("timed out")) {
-      errorMessage = "Autofy server took too long to respond (cold start). Please retry.";
+      setBackendState("timeout");
+      errorMessage = "Autofy server is taking longer than expected to respond. Please click Retry.";
+    } else {
+      setBackendState("waking");
     }
     console.error(`[API] Network failure — could not reach ${url}:`, lastError);
     throw new ApiError(0, errorMessage, lastError);

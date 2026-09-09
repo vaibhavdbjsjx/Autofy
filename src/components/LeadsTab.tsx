@@ -95,7 +95,7 @@ export const LeadsTab: React.FC<LeadsTabProps> = ({ leads, setLeads, triggerNoti
     try {
       const { api, isAuthenticated } = await import("../lib/api");
       if (isAuthenticated()) {
-        const res = await api.get<any>("/api/v1/leads", { timeoutMs: 10000 });
+        const res = await api.get<any>("/api/v1/leads");
         if (Array.isArray(res?.items)) {
           setCrmLeads(res.items.map((l: any) => ({
             id: l.id,
