@@ -1204,7 +1204,7 @@ function PricingSection() {
 
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                 <span className="text-gradient-primary" style={{ fontSize: 48, fontWeight: 900, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                  {annual ? "₹4,999" : "₹900"}
+                  {annual ? "₹999" : "₹3,699"}
                 </span>
                 <span style={{ fontSize: 15, color: "var(--text-muted)", fontWeight: 600 }}>
                   /{annual ? "year" : "month"}
@@ -1213,11 +1213,11 @@ function PricingSection() {
 
               {annual ? (
                 <div style={{ fontSize: 13, color: "#10B981", fontWeight: 600, marginTop: 4 }}>
-                  Save ₹5,801 every year (~₹417/month equivalent)
+                  Save ₹43,389 every year (~₹83/month equivalent)
                 </div>
               ) : (
                 <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500, marginTop: 4 }}>
-                  Full AI automation with monthly flexibility.
+                  Full AI automation with fixed monthly billing on the 4th.
                 </div>
               )}
             </div>
@@ -1227,7 +1227,7 @@ function PricingSection() {
                 <span>{annual ? "ANNUAL BILLING" : "MONTHLY BILLING"}</span>
               </div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "monospace", marginTop: 2 }}>
-                Instant activation.
+                {annual ? "Instant charge & activation." : "Fixed 4th-of-the-month billing."}
               </div>
             </div>
           </div>
@@ -1237,13 +1237,13 @@ function PricingSection() {
             <div style={{ fontWeight: 700, color: "#fff", marginBottom: 6 }}>Automatic Billing Disclosure</div>
             {annual ? (
               <>
-                <div>• Billed annually at <strong>₹4,999/year</strong>.</div>
+                <div>• Billed annually at <strong>₹999/year</strong> immediately upon subscription.</div>
                 <div>• Automatically renews each year until cancelled in Account Settings.</div>
               </>
             ) : (
               <>
-                <div>• Billed monthly at <strong>₹900/month</strong>.</div>
-                <div>• Automatically renews each month until cancelled in Account Settings.</div>
+                <div>• Billed monthly at <strong>₹3,699/month</strong> anchored to the 4th of every month.</div>
+                <div>• Recurring monthly charge occurs on the 4th of every month until cancelled in Account Settings.</div>
               </>
             )}
           </div>

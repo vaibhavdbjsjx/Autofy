@@ -73,11 +73,11 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
           pricing: {
             currency: "INR",
             billing_interval: "yearly",
-            price: 4999,
-            normal_price: 4999,
-            monthly_equivalent: 417,
-            savings_amount: 5801,
-            discount_percent: 54,
+            price: 999,
+            normal_price: 999,
+            monthly_equivalent: 83,
+            savings_amount: 43389,
+            discount_percent: 98,
           },
           trial: {
             active: false,
@@ -136,7 +136,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
           key: res.razorpay_key_id,
           subscription_id: res.razorpay_subscription_id,
           name: "Autofy Pro",
-          description: `Subscription — ${interval === "yearly" ? "Autofy Pro Yearly (₹4,999/yr)" : "Autofy Pro Monthly (₹900/mo)"}`,
+          description: `Subscription — ${interval === "yearly" ? "Autofy Pro Yearly (₹999/yr)" : "Autofy Pro Monthly (₹3,699/mo)"}`,
           handler: async function (response: any) {
             try {
               setIsSubmitting(true);
@@ -344,12 +344,12 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
               <div className="flex items-baseline gap-2 pt-1">
                 {billingInterval === "yearly" ? (
                   <>
-                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹4,999</span>
+                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹999</span>
                     <span className="text-sm font-semibold text-[var(--text-muted)]">/ year</span>
                   </>
                 ) : (
                   <>
-                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹900</span>
+                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹3,699</span>
                     <span className="text-sm font-semibold text-[var(--text-muted)]">/ month</span>
                   </>
                 )}
@@ -357,13 +357,13 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
 
               {billingInterval === "yearly" ? (
                 <div className="text-xs font-medium text-emerald-400 flex items-center gap-2 pt-0.5">
-                  <span>Save ₹5,801 every year</span>
+                  <span>Save ₹43,389 every year</span>
                   <span>•</span>
-                  <span>(~₹417/month equivalent)</span>
+                  <span>(~₹83/month equivalent)</span>
                 </div>
               ) : (
                 <div className="text-xs font-medium text-[var(--text-muted)] pt-0.5">
-                  Full AI automation with monthly flexibility.
+                  Recurring billing on the 4th of every month.
                 </div>
               )}
             </div>
@@ -375,7 +375,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
                 <span>{billingInterval === "yearly" ? "ANNUAL BILLING" : "MONTHLY BILLING"}</span>
               </div>
               <p className="text-[11px] text-[var(--text-subtle)] font-mono">
-                Instant activation.
+                {billingInterval === "yearly" ? "Immediate activation." : "Fixed 4th of each month."}
               </p>
             </div>
           </div>
@@ -388,13 +388,13 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
             </div>
             {billingInterval === "yearly" ? (
               <>
-                <p>• Billed annually at <strong>₹4,999/year</strong>.</p>
+                <p>• Billed annually at <strong>₹999/year</strong> immediately upon subscription.</p>
                 <p>• Automatically renews each year until cancelled in Account Settings.</p>
               </>
             ) : (
               <>
-                <p>• Billed monthly at <strong>₹900/month</strong>.</p>
-                <p>• Automatically renews each month until cancelled in Account Settings.</p>
+                <p>• Billed monthly at <strong>₹3,699/month</strong> anchored to the 4th of every month.</p>
+                <p>• First charge occurs on the upcoming 4th. Automatically renews each month on the 4th.</p>
               </>
             )}
           </div>
@@ -426,7 +426,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
                 className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-95 text-white font-black text-sm transition cursor-pointer shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2"
               >
                 <span>
-                  {billingInterval === "yearly" ? "Subscribe Yearly — ₹4,999" : "Subscribe Monthly — ₹900"}
+                  {billingInterval === "yearly" ? "Subscribe Yearly — ₹999" : "Subscribe Monthly — ₹3,699"}
                 </span>
                 <ArrowRight className="w-4 h-4" />
               </button>

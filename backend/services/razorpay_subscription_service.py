@@ -45,7 +45,76 @@ class RazorpaySubscriptionService:
     DEPRECATED_PLAN_IDS = {
         "plan_tngieyxltakim9", # Old monthly ₹699
         "plan_tngkw9ixatgcm3", # Old yearly ₹6,899
+        "plan_tzx4abrrftcacm", # Deprecated monthly ₹900
+        "plan_tzxftbi4tk3iay", # Deprecated yearly ₹4,999
+        "plan_tzxa4brrftcacm", # Deprecated typo alias
+        "plan_tzxftbi4tk31ay", # Deprecated typo alias
+        "plan_tzx3dinyeyalbe", # Deprecated duplicate
     }
+
+    @staticmethod
+    def calculate_next_monthly_billing_date(
+        dt: Optional[datetime] = None,
+        tz_name: str = "Asia/Kolkata"
+    ) -> Dict[str, Any]:
+        """
+        Dynamically calculates the next recurring monthly billing date anchored to the 4th of the month.
+        
+        Timezone choice:
+        Autofy operates under India Standard Time (Asia/Kolkata, UTC+5:30) because transactions
+        are conducted in INR via Razorpay India. All billing date anchors are evaluated
+        relative to midnight (00:00:00 IST) on the 4th of the target month.
+        
+        Schedule Rules:
+        - Before the 4th (e.g. Oct 2): Anchors to the 4th of the current month (Oct 4).
+        - On the 4th (e.g. Oct 4): Same-day billing. Charged immediately upon authorization,
+          with subsequent recurring renewals anchored to the 4th of every following month.
+          start_at is omitted (None) to trigger immediate charge while preserving 4th cadence.
+        - After the 4th (e.g. Sep 11, Sep 25, Oct 5): Anchors to the 4th of the next month.
+          Handles month length differences, leap years, and December -> January year boundary.
+        """
+        from zoneinfo import ZoneInfo
+        from datetime import date
+
+        tz = ZoneInfo(tz_name)
+        if dt is None:
+            dt = datetime.now(tz)
+        elif dt.tzinfo is None:
+            dt = dt.replace(tzinfo=tz)
+        else:
+            dt = dt.astimezone(tz)
+
+        current_day = dt.day
+        current_month = dt.month
+        current_year = dt.year
+
+        if current_day < 4:
+            target_year = current_year
+            target_month = current_month
+            is_same_day = False
+        elif current_day == 4:
+            target_year = current_year
+            target_month = current_month
+            is_same_day = True
+        else:
+            is_same_day = False
+            if current_month == 12:
+                target_year = current_year + 1
+                target_month = 1
+            else:
+                target_year = current_year
+                target_month = current_month + 1
+
+        billing_date = date(target_year, target_month, 4)
+        billing_datetime = datetime(target_year, target_month, 4, 0, 0, 0, tzinfo=tz)
+
+        return {
+            "billing_date": billing_date,
+            "billing_datetime": billing_datetime,
+            "is_same_day": is_same_day,
+            "start_at": None if is_same_day else int(billing_datetime.timestamp()),
+            "timezone": tz_name
+        }
 
     @staticmethod
     def get_configured_plan_id(billing_interval: str = "monthly") -> str:
@@ -70,17 +139,16 @@ class RazorpaySubscriptionService:
         plan_id = (env_var_map.get(interval_key) or "").strip()
         if not plan_id:
             raise RazorpaySubscriptionConfigurationError(
-                f"Razorpay {interval_key} plan is not configured."
+                f"Razorpay {interval_key} plan ID is not configured in RAZORPAY_{interval_key.upper()}_PLAN_ID environment variable."
             )
 
         if plan_id.lower() in RazorpaySubscriptionService.DEPRECATED_PLAN_IDS:
             raise RazorpaySubscriptionConfigurationError(
-                f"Deprecated Razorpay plan ID '{plan_id}' cannot be used for new subscriptions."
+                f"Deprecated Razorpay plan ID '{plan_id}' cannot be used for new subscriptions. "
+                f"Please update RAZORPAY_{interval_key.upper()}_PLAN_ID with the new plan ID."
             )
 
-        # Normalize any known typos from environment or dashboard
-        normalized_id = RazorpaySubscriptionService.PLAN_ID_ALIASES.get(plan_id, plan_id)
-        return normalized_id
+        return plan_id
 
     @staticmethod
     def create_subscription(
@@ -89,9 +157,8 @@ class RazorpaySubscriptionService:
     ) -> Dict[str, Any]:
         """
         Creates an official Razorpay Subscription object via API for Autofy Pro.
-        Monthly: ₹900/mo, starts immediately.
-        Yearly:  ₹4,999/yr, starts immediately.
-        Zero free trial — customer is billed immediately upon checkout authorization.
+        Monthly: ₹3,699/mo, recurring billing anchored to the 4th of every month.
+        Yearly:  ₹999/yr, charged immediately at signup with a 1-year renewal cycle.
         """
         interval_key = "yearly" if str(billing_interval).lower() == "yearly" else "monthly"
 
@@ -106,9 +173,6 @@ class RazorpaySubscriptionService:
         now = datetime.utcnow()
         total_count = 10 if interval_key == "yearly" else 120 # 10 years recurring duration
 
-        # NOTE: NO start_at is sent.
-        # Omitting start_at ensures the subscription activates immediately and bills
-        # the customer upfront upon authorization with ZERO trial delay.
         sub_payload: Dict[str, Any] = {
             "plan_id": rzp_plan_id,
             "total_count": total_count,
@@ -120,6 +184,23 @@ class RazorpaySubscriptionService:
                 "billing_interval": interval_key
             }
         }
+
+        billing_schedule: Dict[str, Any] = {}
+        if interval_key == "monthly":
+            billing_schedule = RazorpaySubscriptionService.calculate_next_monthly_billing_date()
+            # If not same-day on the 4th, send start_at to anchor recurring billing to the 4th
+            if not billing_schedule["is_same_day"] and billing_schedule["start_at"]:
+                sub_payload["start_at"] = billing_schedule["start_at"]
+                sub_payload["notes"]["billing_anchor_day"] = "4"
+                sub_payload["notes"]["first_charge_date"] = billing_schedule["billing_date"].isoformat()
+        else:
+            # Yearly plan: NO start_at is sent.
+            # Billed immediately upon checkout authorization with yearly renewal cycle.
+            billing_schedule = {
+                "is_same_day": True,
+                "start_at": None,
+                "billing_date": (now + timedelta(days=365)).date()
+            }
 
         try:
             subscription_obj = client.subscription.create(sub_payload)
@@ -135,12 +216,14 @@ class RazorpaySubscriptionService:
                 "Razorpay returned an incomplete subscription response."
             )
 
-        logger.info("Created Razorpay subscription (%s): %s", interval_key, provider_subscription_id)
+        logger.info("Created Razorpay subscription (%s): %s (start_at=%s)", interval_key, provider_subscription_id, sub_payload.get("start_at"))
         return {
             "provider_subscription_id": provider_subscription_id,
             "razorpay_plan_id": rzp_plan_id,
             "status": subscription_obj.get("status", "created"),
-            "start_at": None,
+            "start_at": sub_payload.get("start_at"),
+            "next_billing_date": billing_schedule["billing_date"].isoformat(),
+            "is_same_day": billing_schedule.get("is_same_day", False),
             "raw": subscription_obj,
         }
 

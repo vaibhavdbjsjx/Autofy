@@ -73,8 +73,8 @@ def test_business_a(db_session: Session) -> Business:
     sub.billing_interval = "monthly"
     sub.current_period_start = datetime.utcnow()
     sub.current_period_end = datetime.utcnow() + timedelta(days=30)
-    sub.normal_price = 900.00
-    sub.first_cycle_price = 900.00
+    sub.normal_price = 3699.00
+    sub.first_cycle_price = 3699.00
     db_session.commit()
     return biz
 
@@ -118,8 +118,8 @@ def test_business_b(db_session: Session) -> Business:
     sub.billing_interval = "monthly"
     sub.current_period_start = datetime.utcnow()
     sub.current_period_end = datetime.utcnow() + timedelta(days=30)
-    sub.normal_price = 900.00
-    sub.first_cycle_price = 900.00
+    sub.normal_price = 3699.00
+    sub.first_cycle_price = 3699.00
     db_session.commit()
     return biz
 

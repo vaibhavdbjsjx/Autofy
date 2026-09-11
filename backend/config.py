@@ -82,8 +82,8 @@ class Settings(BaseSettings):
     RAZORPAY_WEBHOOK_SECRET: str = ""
 
     # Razorpay Recurring Plan IDs (Autofy Pro Monthly & Yearly - INR)
-    RAZORPAY_MONTHLY_PLAN_ID: str = "plan_TZx4AbrrftCAcm"
-    RAZORPAY_YEARLY_PLAN_ID: str = "plan_TZxFTBI4TK3IAY"
+    RAZORPAY_MONTHLY_PLAN_ID: str = os.environ.get("RAZORPAY_MONTHLY_PLAN_ID", "")
+    RAZORPAY_YEARLY_PLAN_ID: str = os.environ.get("RAZORPAY_YEARLY_PLAN_ID", "")
 
     # Future USD Razorpay Plan IDs (International Cards / Apple Pay)
     RAZORPAY_USD_MONTHLY_PLAN_ID: str = ""

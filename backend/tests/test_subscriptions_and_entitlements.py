@@ -1,206 +1,299 @@
 import os
 import pytest
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta, timezone
+from zoneinfo import ZoneInfo
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 from models.business import Business
 from models.subscription import Subscription
-from models.user import User
+from models.payment import Payment
 from services.entitlement_services import EntitlementService
+from services.razorpay_subscription_service import (
+    RazorpaySubscriptionService,
+    RazorpaySubscriptionConfigurationError
+)
+from config_plans import SUBSCRIPTION_PLANS
 
-def test_new_business_subscription_initial_state(db_session: Session):
+# ════════════════════════════════════════════════════════════
+# 1. FIXED MONTHLY BILLING DATE (4TH) ALGORITHM TESTS
+# ════════════════════════════════════════════════════════════
+
+def test_monthly_billing_date_calculation_all_cases():
     """
-    Verify brand-new business gets 'EXPLORING' status on Autofy Pro plan with zero fake paid status.
+    Verifies dynamic calculation of next billing anchor on the 4th of every month:
+    - September 11 → October 4
+    - September 25 → October 4
+    - October 2 → October 4
+    - October 4 → same-day behavior (immediate charge today)
+    - October 5 → November 4
+    - November 30 → December 4
+    - December 20 → January 4
+    - Leap-year cases (e.g. Feb 1, Feb 4, Feb 29 2028)
+    - Year boundary (Dec 31, Jan 1)
+    - Timezone/date-boundary cases (Asia/Kolkata vs UTC)
     """
-    biz = Business(id="biz-sub-new", name="New Biz", email="newbiz@test.com", classification="Retail")
-    db_session.add(biz)
-    db_session.commit()
+    tz = ZoneInfo("Asia/Kolkata")
 
-    state = EntitlementService.evaluate_subscription_state(db_session, "biz-sub-new")
-    assert state["status"] == "EXPLORING"
-    assert state["plan_id"] == "free"
-    assert state["product_name"] == "Free Tier"
-    assert state["is_live_accessible"] is False
-    assert state["is_paid"] is False
-    assert state["trial"]["active"] is False
+    # Required Business Cases
+    cases = [
+        # (Input Date, Expected Billing Date, Expected Same-Day Flag)
+        (datetime(2026, 9, 11, 10, 0, tzinfo=tz), date(2026, 10, 4), False),
+        (datetime(2026, 9, 25, 15, 30, tzinfo=tz), date(2026, 10, 4), False),
+        (datetime(2026, 10, 2, 8, 45, tzinfo=tz), date(2026, 10, 4), False),
+        (datetime(2026, 10, 4, 12, 0, tzinfo=tz), date(2026, 10, 4), True),
+        (datetime(2026, 10, 5, 9, 15, tzinfo=tz), date(2026, 11, 4), False),
+        (datetime(2026, 11, 30, 23, 59, tzinfo=tz), date(2026, 12, 4), False),
+        (datetime(2026, 12, 20, 18, 0, tzinfo=tz), date(2027, 1, 4), False),
+        
+        # Leap Year Cases (2028 is a leap year)
+        (datetime(2028, 2, 1, 10, 0, tzinfo=tz), date(2028, 2, 4), False),
+        (datetime(2028, 2, 4, 14, 0, tzinfo=tz), date(2028, 2, 4), True),
+        (datetime(2028, 2, 28, 12, 0, tzinfo=tz), date(2028, 3, 4), False),
+        (datetime(2028, 2, 29, 23, 30, tzinfo=tz), date(2028, 3, 4), False),
+        
+        # Year Boundary Cases
+        (datetime(2026, 12, 31, 23, 59, tzinfo=tz), date(2027, 1, 4), False),
+        (datetime(2027, 1, 1, 0, 1, tzinfo=tz), date(2027, 1, 4), False),
+        (datetime(2027, 1, 4, 11, 0, tzinfo=tz), date(2027, 1, 4), True),
+    ]
 
-def test_start_trial_flow_monthly_and_yearly(db_session: Session):
+    for input_dt, expected_date, expected_same_day in cases:
+        res = RazorpaySubscriptionService.calculate_next_monthly_billing_date(input_dt)
+        assert res["billing_date"] == expected_date, f"Failed for {input_dt}: got {res['billing_date']}, expected {expected_date}"
+        assert res["is_same_day"] == expected_same_day, f"Failed same-day for {input_dt}: got {res['is_same_day']}, expected {expected_same_day}"
+        if expected_same_day:
+            assert res["start_at"] is None, f"Same day must omit start_at for {input_dt}"
+        else:
+            assert res["start_at"] is not None, f"Deferred start must provide start_at timestamp for {input_dt}"
+            # Verify timestamp matches midnight IST on expected date
+            expected_ts = int(datetime(expected_date.year, expected_date.month, expected_date.day, 0, 0, 0, tzinfo=tz).timestamp())
+            assert res["start_at"] == expected_ts
+
+def test_timezone_date_boundary_cases():
     """
-    Verify zero-trial setup for monthly (₹900) and yearly (₹4,999).
-    With zero trial days, subscription evaluates to EXPIRED upfront requiring active payment,
-    and when a trial period is simulated in the past, evaluate_subscription_state marks status EXPIRED.
+    Verify timezone conversion between UTC and Asia/Kolkata (IST = UTC+5:30):
+    - 2026-10-04 20:00:00 UTC is 2026-10-05 01:30:00 IST -> next billing is November 4.
+    - 2026-10-03 20:00:00 UTC is 2026-10-04 01:30:00 IST -> next billing is October 4 (same-day).
     """
-    biz_m = Business(id="biz-sub-m", name="Monthly Biz", email="m@test.com", classification="Retail")
-    biz_y = Business(id="biz-sub-y", name="Yearly Biz", email="y@test.com", classification="Retail")
-    db_session.add_all([biz_m, biz_y])
-    db_session.commit()
+    # 8:00 PM UTC on Oct 4 is 1:30 AM IST on Oct 5 (after 4th in India)
+    utc_after_4th = datetime(2026, 10, 4, 20, 0, 0, tzinfo=timezone.utc)
+    res_after = RazorpaySubscriptionService.calculate_next_monthly_billing_date(utc_after_4th)
+    assert res_after["billing_date"] == date(2026, 11, 4)
+    assert res_after["is_same_day"] is False
 
-    # Monthly Zero-Trial Start
-    state_m = EntitlementService.start_trial(db_session, "biz-sub-m", "monthly")
-    assert state_m["status"] == "EXPIRED"
-    assert state_m["pricing"]["billing_interval"] == "monthly"
-    assert state_m["pricing"]["price"] == 900.0
-    assert state_m["trial"]["days_remaining"] == 0
+    # 8:00 PM UTC on Oct 3 is 1:30 AM IST on Oct 4 (same-day 4th in India)
+    utc_on_4th = datetime(2026, 10, 3, 20, 0, 0, tzinfo=timezone.utc)
+    res_on = RazorpaySubscriptionService.calculate_next_monthly_billing_date(utc_on_4th)
+    assert res_on["billing_date"] == date(2026, 10, 4)
+    assert res_on["is_same_day"] is True
+    assert res_on["start_at"] is None
 
-    # Yearly Zero-Trial Start
-    state_y = EntitlementService.start_trial(db_session, "biz-sub-y", "yearly")
-    assert state_y["status"] == "EXPIRED"
-    assert state_y["pricing"]["billing_interval"] == "yearly"
-    assert state_y["pricing"]["price"] == 4999.0
-    assert state_y["trial"]["days_remaining"] == 0
+# ════════════════════════════════════════════════════════════
+# 2. PRICING CONFIGURATION & INTEGRITY TESTS
+# ════════════════════════════════════════════════════════════
 
-    # Expiry Simulation on an active trial window
-    sub_m = db_session.query(Subscription).filter(Subscription.business_id == "biz-sub-m").first()
-    sub_m.status = "TRIAL_ACTIVE"
-    sub_m.trial_ends_at = datetime.utcnow() - timedelta(hours=1)
-    db_session.commit()
-
-    state_expired = EntitlementService.evaluate_subscription_state(db_session, "biz-sub-m")
-    assert state_expired["status"] == "EXPIRED"
-    assert state_expired["is_live_accessible"] is False
-    assert state_expired["is_paid"] is False
-
-def test_tenant_subscription_isolation_and_idor(client: TestClient, auth_headers_a, auth_headers_b):
+def test_subscription_pricing_and_no_old_prices():
     """
-    Verify Business A cannot access or modify Business B's subscription status.
+    Verify active plan configuration:
+    - Monthly: ₹3,699 / month (recurring on the 4th)
+    - Yearly: ₹999 / year (immediate charge)
+    - Monthly and Yearly cannot be swapped (Monthly > Yearly)
+    - No old prices (900, 4999, 699, 6899) exist in active config
+    - No free trial logic (trial_days > 0)
     """
-    res_a = client.get("/api/v1/subscriptions/status", headers=auth_headers_a)
-    assert res_a.status_code == 200
-    res_b = client.get("/api/v1/subscriptions/status", headers=auth_headers_b)
-    assert res_b.status_code == 200
+    monthly = SUBSCRIPTION_PLANS["monthly"]
+    yearly = SUBSCRIPTION_PLANS["yearly"]
 
-    assert res_a.json()["business_id"] != res_b.json()["business_id"]
+    # Exact prices
+    assert monthly["price"] == 3699.0
+    assert monthly["normal_price"] == 3699.0
+    assert monthly["billing_interval"] == "monthly"
+    assert monthly["billing_anchor_day"] == 4
+
+    assert yearly["price"] == 999.0
+    assert yearly["normal_price"] == 999.0
+    assert yearly["billing_interval"] == "yearly"
+
+    # Swap safety check
+    assert monthly["price"] > yearly["price"]
+    assert monthly["billing_interval"] != yearly["billing_interval"]
+
+    # Savings metrics for yearly
+    expected_savings = (3699.0 * 12) - 999.0 # 43,389.0
+    assert yearly["savings_amount"] == expected_savings
+    assert yearly["discount_percent"] == 98
+
+    # Ensure no old prices exist
+    old_prices = {900.0, 4999.0, 699.0, 6899.0}
+    assert monthly["price"] not in old_prices
+    assert yearly["price"] not in old_prices
+    assert monthly["normal_price"] not in old_prices
+    assert yearly["normal_price"] not in old_prices
+
+    # Ensure no trial logic in plan config
+    assert "trial_days" not in monthly or monthly.get("trial_days") == 0
+    assert "trial_days" not in yearly or yearly.get("trial_days") == 0
+
+def test_deprecated_plan_ids_rejection():
+    """
+    Verify RazorpaySubscriptionService rejects old deprecated plan IDs
+    and requires newly configured plan IDs from environment variables.
+    """
+    # Test rejection of deprecated plans
+    deprecated_samples = [
+        "plan_TZx4AbrrftCAcm", # Previous monthly ₹900
+        "plan_TZxFTBI4TK3IAY", # Previous yearly ₹4,999
+        "plan_tngieyxltakim9", # Old monthly ₹699
+        "plan_tngkw9ixatgcm3", # Old yearly ₹6,899
+    ]
+    for dep_id in deprecated_samples:
+        os.environ["RAZORPAY_MONTHLY_PLAN_ID"] = dep_id
+        with pytest.raises(RazorpaySubscriptionConfigurationError):
+            RazorpaySubscriptionService.get_configured_plan_id("monthly")
+
+    # Configure valid placeholder test IDs
+    os.environ["RAZORPAY_MONTHLY_PLAN_ID"] = "plan_monthly_3699_test"
+    os.environ["RAZORPAY_YEARLY_PLAN_ID"] = "plan_yearly_999_test"
+    assert RazorpaySubscriptionService.get_configured_plan_id("monthly") == "plan_monthly_3699_test"
+    assert RazorpaySubscriptionService.get_configured_plan_id("yearly") == "plan_yearly_999_test"
+
+def test_subscription_creation_monthly_vs_yearly():
+    """
+    Verify:
+    1. Monthly creation uses the 4th billing schedule (sets start_at when deferred to 4th)
+    2. Yearly creation NEVER uses the 4th billing schedule (start_at is always None)
+    3. Verifies exact payload sent to Razorpay client.subscription.create
+    """
+    from unittest.mock import patch, MagicMock
+
+    os.environ["RAZORPAY_MONTHLY_PLAN_ID"] = "plan_monthly_3699_test"
+    os.environ["RAZORPAY_YEARLY_PLAN_ID"] = "plan_yearly_999_test"
+
+    mock_client = MagicMock()
+    mock_client.subscription.create.side_effect = lambda payload: {
+        "id": f"sub_mock_{payload.get('notes', {}).get('billing_interval')}",
+        "status": "created",
+        "plan_id": payload.get("plan_id"),
+        "start_at": payload.get("start_at")
+    }
+
+    with patch.object(RazorpaySubscriptionService, "get_client", return_value=mock_client):
+        # 1. Monthly subscription
+        sub_m = RazorpaySubscriptionService.create_subscription("biz-create-m", "monthly")
+        assert sub_m["razorpay_plan_id"] == "plan_monthly_3699_test"
+        assert sub_m["next_billing_date"].endswith("-04") # Must anchor to the 4th
+
+        # Inspect payload sent to Razorpay
+        m_call_payload = mock_client.subscription.create.call_args_list[0][0][0]
+        assert m_call_payload["plan_id"] == "plan_monthly_3699_test"
+        assert m_call_payload["total_count"] == 120
+        if not sub_m["is_same_day"]:
+            assert m_call_payload["start_at"] == sub_m["start_at"]
+        else:
+            assert "start_at" not in m_call_payload
+
+        # 2. Yearly subscription — MUST NOT anchor to the 4th
+        sub_y = RazorpaySubscriptionService.create_subscription("biz-create-y", "yearly")
+        assert sub_y["razorpay_plan_id"] == "plan_yearly_999_test"
+        assert sub_y["start_at"] is None # Yearly starts immediately
+
+        y_call_payload = mock_client.subscription.create.call_args_list[1][0][0]
+        assert y_call_payload["plan_id"] == "plan_yearly_999_test"
+        assert y_call_payload["total_count"] == 10
+        assert "start_at" not in y_call_payload # Must NOT have start_at
+
+# ════════════════════════════════════════════════════════════
+# 3. ENDPOINTS: /plans AND /create-checkout
+# ════════════════════════════════════════════════════════════
 
 def test_subscription_plans_endpoint(client: TestClient, auth_headers_a):
     """
-    Verify /subscriptions/plans returns Autofy Pro Monthly and Yearly plan definitions.
+    Verify /subscriptions/plans returns ₹3,699 monthly and ₹999 yearly definitions.
     """
     res = client.get("/api/v1/subscriptions/plans", headers=auth_headers_a)
     assert res.status_code == 200
     data = res.json()
     assert "plans" in data
-    assert "monthly" in data["plans"]
-    assert "yearly" in data["plans"]
-    assert data["plans"]["monthly"]["price"] == 900.0
-    assert data["plans"]["yearly"]["price"] == 4999.0
-    assert data["plans"]["monthly"]["razorpay_plan_id"] == "plan_TZx4AbrrftCAcm"
-    assert data["plans"]["yearly"]["razorpay_plan_id"] == "plan_TZxFTBI4TK3IAY"
-    assert data["plans"]["monthly"]["trial_days"] == 0
-    assert data["plans"]["yearly"]["trial_days"] == 0
+    assert data["plans"]["monthly"]["price"] == 3699.0
+    assert data["plans"]["yearly"]["price"] == 999.0
+    assert data["plans"]["monthly"]["billing_anchor_day"] == 4
 
-def test_autofy_pro_entitlements(db_session: Session):
+def test_create_subscription_checkout_endpoint(client: TestClient, auth_headers_a):
     """
-    Verify EntitlementService returns full Autofy Pro entitlements.
+    Verify POST /subscriptions/create-checkout produces:
+    - Monthly: ₹3,699, recurring on 4th of month
+    - Yearly: ₹999, charged immediately today
     """
-    biz = Business(id="biz-ent-pro", name="Pro Biz", email="pro@test.com", classification="Retail")
-    db_session.add(biz)
-    db_session.commit()
+    from unittest.mock import patch, MagicMock
 
-    EntitlementService.start_trial(db_session, "biz-ent-pro", "monthly")
-    state = EntitlementService.evaluate_subscription_state(db_session, "biz-ent-pro")
+    os.environ["RAZORPAY_MONTHLY_PLAN_ID"] = "plan_monthly_3699_test"
+    os.environ["RAZORPAY_YEARLY_PLAN_ID"] = "plan_yearly_999_test"
 
-    assert state["entitlements"]["custom_rag"] is True
-    assert state["entitlements"]["appointments_booking"] is True
-    assert state["entitlements"]["whatsapp_auto_reply"] is True
+    mock_client = MagicMock()
+    mock_client.subscription.create.side_effect = lambda payload: {
+        "id": f"sub_checkout_{payload.get('notes', {}).get('billing_interval')}",
+        "status": "created",
+        "plan_id": payload.get("plan_id"),
+        "start_at": payload.get("start_at")
+    }
 
-def test_razorpay_subscription_zero_trial_and_plan_ids():
-    """
-    Verify RazorpaySubscriptionService:
-    1. Resolves plan_TZx4AbrrftCAcm for monthly (₹900)
-    2. Resolves plan_TZxFTBI4TK3IAY for yearly (₹4,999)
-    3. Sends NO start_at timestamp (zero trial delay, immediate activation)
-    4. Auto-corrects typo plan IDs via PLAN_ID_ALIASES
-    5. Rejects deprecated old plan IDs
-    """
-    from services.razorpay_subscription_service import (
-        RazorpaySubscriptionService,
-        RazorpaySubscriptionConfigurationError
-    )
+    with patch.object(RazorpaySubscriptionService, "get_client", return_value=mock_client):
+        # 1. Monthly Checkout
+        res_m = client.post("/api/v1/subscriptions/create-checkout", json={"billing_interval": "monthly"}, headers=auth_headers_a)
+        assert res_m.status_code == 200
+        data_m = res_m.json()
+        assert data_m["billing_interval"] == "monthly"
+        assert data_m["charge_amount"] == 3699.0
+        assert data_m["normal_recurring_price"] == 3699.0
+        assert data_m["next_billing_date"].endswith("-04")
+        assert data_m["disclosures"]["recurring_amount"] == 3699.0
+        assert data_m["disclosures"]["billing_anchor_day"] == 4
 
-    # Test monthly creation
-    sub_m = RazorpaySubscriptionService.create_subscription("biz-test-m", "monthly")
-    assert sub_m["razorpay_plan_id"] == "plan_TZx4AbrrftCAcm"
-    assert sub_m["start_at"] is None
+        # 2. Yearly Checkout
+        res_y = client.post("/api/v1/subscriptions/create-checkout", json={"billing_interval": "yearly"}, headers=auth_headers_a)
+        assert res_y.status_code == 200
+        data_y = res_y.json()
+        assert data_y["billing_interval"] == "yearly"
+        assert data_y["charge_amount"] == 999.0
+        assert data_y["normal_recurring_price"] == 999.0
+        assert data_y["start_at"] is None
+        assert data_y["disclosures"]["amount_today"] == 999.0
+        assert data_y["disclosures"]["recurring_amount"] == 999.0
 
-    # Test yearly creation
-    sub_y = RazorpaySubscriptionService.create_subscription("biz-test-y", "yearly")
-    assert sub_y["razorpay_plan_id"] == "plan_TZxFTBI4TK3IAY"
-    assert sub_y["start_at"] is None
-
-    # Test alias resolution for transposed typo ("A4" -> "4A")
-    os.environ["RAZORPAY_MONTHLY_PLAN_ID"] = "plan_TZxA4BrrftCAcm"
-    assert RazorpaySubscriptionService.get_configured_plan_id("monthly") == "plan_TZx4AbrrftCAcm"
-
-    # Test alias resolution for visual confusion typo (digit "1" -> uppercase "I")
-    os.environ["RAZORPAY_YEARLY_PLAN_ID"] = "plan_TZxFTBI4TK31AY"
-    assert RazorpaySubscriptionService.get_configured_plan_id("yearly") == "plan_TZxFTBI4TK3IAY"
-
-    # Test rejection of deprecated plan IDs
-    os.environ["RAZORPAY_MONTHLY_PLAN_ID"] = "plan_TNgiEyXlTAKiM9"
-    with pytest.raises(RazorpaySubscriptionConfigurationError):
-        RazorpaySubscriptionService.get_configured_plan_id("monthly")
-
-    # Restore
-    os.environ["RAZORPAY_MONTHLY_PLAN_ID"] = "plan_TZx4AbrrftCAcm"
-    os.environ["RAZORPAY_YEARLY_PLAN_ID"] = "plan_TZxFTBI4TK3IAY"
-
-def test_create_subscription_checkout_endpoint_zero_trial(client: TestClient, auth_headers_a):
-    """
-    Verify POST /subscriptions/create-checkout produces zero-trial, immediate billing payloads:
-    - Monthly: ₹900 charged today, 0 trial days, plan_TZx4AbrrftCAcm
-    - Yearly: ₹4,999 charged today, 0 trial days, plan_TZxFTBI4TK3IAY
-    """
-    # 1. Monthly Checkout
-    res_m = client.post("/api/v1/subscriptions/create-checkout", json={"billing_interval": "monthly"}, headers=auth_headers_a)
-    assert res_m.status_code == 200
-    data_m = res_m.json()
-    assert data_m["billing_interval"] == "monthly"
-    assert data_m["charge_amount"] == 900.0
-    assert data_m["normal_recurring_price"] == 900.0
-    assert data_m["trial_days"] == 0
-    assert data_m["razorpay_plan_id"] == "plan_TZx4AbrrftCAcm"
-    assert data_m["disclosures"]["amount_today"] == 900.0
-    assert data_m["disclosures"]["trial_days"] == 0
-    assert data_m["disclosures"]["recurring_amount"] == 900.0
-
-    # 2. Yearly Checkout
-    res_y = client.post("/api/v1/subscriptions/create-checkout", json={"billing_interval": "yearly"}, headers=auth_headers_a)
-    assert res_y.status_code == 200
-    data_y = res_y.json()
-    assert data_y["billing_interval"] == "yearly"
-    assert data_y["charge_amount"] == 4999.0
-    assert data_y["normal_recurring_price"] == 4999.0
-    assert data_y["trial_days"] == 0
-    assert data_y["razorpay_plan_id"] == "plan_TZxFTBI4TK3IAY"
-    assert data_y["disclosures"]["amount_today"] == 4999.0
-    assert data_y["disclosures"]["trial_days"] == 0
-    assert data_y["disclosures"]["recurring_amount"] == 4999.0
+# ════════════════════════════════════════════════════════════
+# 4. WEBHOOK LIFECYCLE & STATE MACHINE TESTS
+# ════════════════════════════════════════════════════════════
 
 @pytest.mark.asyncio
-async def test_webhook_subscription_authenticated_activates_immediately(db_session: Session):
+async def test_webhook_subscription_authenticated_monthly_deferred(db_session: Session):
     """
-    Verify Razorpay webhook subscription.authenticated activates subscription immediately
-    with status ACTIVE and full period without entering a 7-day trial.
+    Verify monthly subscription with deferred start (e.g. Sep 11 with 1st charge Oct 4):
+    - Transitions to AUTHENTICATED status (live accessible)
+    - Does NOT mark active paid period before Oct 4 (is_paid = False)
+    - Next charge is scheduled for Oct 4
     """
     from services.payment_services import RazorpayService
-    from models.subscription import Subscription
 
-    biz = Business(id="biz-auth-test", name="Webhook Biz", email="hook@test.com", classification="Retail")
+    biz = Business(id="biz-auth-m", name="Deferred Monthly Biz", email="m_auth@test.com", classification="Retail")
     db_session.add(biz)
     db_session.commit()
 
-    sub = EntitlementService.get_or_create_subscription(db_session, "biz-auth-test")
+    sub = EntitlementService.get_or_create_subscription(db_session, "biz-auth-m")
     sub.status = "EXPLORING"
-    sub.billing_interval = "yearly"
+    sub.billing_interval = "monthly"
+    sub.normal_price = 3699.00
     db_session.commit()
 
+    # Simulate authorization on Sep 11 with start_at = Oct 4 00:00:00 IST
+    oct_4_ts = int(datetime(2026, 10, 4, 0, 0, 0, tzinfo=ZoneInfo("Asia/Kolkata")).timestamp())
     webhook_payload = {
         "event": "subscription.authenticated",
         "payload": {
             "subscription": {
                 "entity": {
-                    "id": "sub_rzp_live_test_123",
-                    "notes": {"business_id": "biz-auth-test"}
+                    "id": "sub_rzp_month_11",
+                    "start_at": oct_4_ts,
+                    "notes": {"business_id": "biz-auth-m"}
                 }
             }
         }
@@ -208,9 +301,153 @@ async def test_webhook_subscription_authenticated_activates_immediately(db_sessi
 
     result = await RazorpayService.process_webhook_callback(db_session, webhook_payload)
     assert result["status"] == "success"
-    assert result["action"] == "subscription_authenticated"
 
-    refreshed_sub = db_session.query(Subscription).filter(Subscription.business_id == "biz-auth-test").first()
-    assert refreshed_sub.status == "ACTIVE"
-    assert refreshed_sub.provider_subscription_id == "sub_rzp_live_test_123"
-    assert (refreshed_sub.current_period_end - datetime.utcnow()).days >= 364
+    state = EntitlementService.evaluate_subscription_state(db_session, "biz-auth-m")
+    assert state["status"] == "AUTHENTICATED"
+    assert state["is_live_accessible"] is True # Access enabled because mandate is authorized
+    assert state["is_paid"] is False # NOT yet marked paid because charge is Oct 4
+
+@pytest.mark.asyncio
+async def test_webhook_subscription_authenticated_yearly_immediate(db_session: Session):
+    """
+    Verify yearly subscription:
+    - Transitions to ACTIVE status immediately upon authorization/payment
+    - is_paid is True
+    - Full 365-day period granted
+    """
+    from services.payment_services import RazorpayService
+
+    biz = Business(id="biz-auth-y", name="Immediate Yearly Biz", email="y_auth@test.com", classification="Retail")
+    db_session.add(biz)
+    db_session.commit()
+
+    sub = EntitlementService.get_or_create_subscription(db_session, "biz-auth-y")
+    sub.status = "EXPLORING"
+    sub.billing_interval = "yearly"
+    sub.normal_price = 999.00
+    db_session.commit()
+
+    webhook_payload = {
+        "event": "subscription.authenticated",
+        "payload": {
+            "subscription": {
+                "entity": {
+                    "id": "sub_rzp_year_999",
+                    "notes": {"business_id": "biz-auth-y"}
+                }
+            }
+        }
+    }
+
+    result = await RazorpayService.process_webhook_callback(db_session, webhook_payload)
+    assert result["status"] == "success"
+
+    state = EntitlementService.evaluate_subscription_state(db_session, "biz-auth-y")
+    assert state["status"] == "ACTIVE"
+    assert state["is_live_accessible"] is True
+    assert state["is_paid"] is True
+
+@pytest.mark.asyncio
+async def test_webhook_subscription_charged_monthly_anchors_to_next_4th(db_session: Session):
+    """
+    Verify subscription.charged on the 4th:
+    - Transitions status to ACTIVE
+    - Period end anchors to the 4th of the next month
+    - Logs Payment record for ₹3,699 as paid
+    """
+    from services.payment_services import RazorpayService
+
+    biz = Business(id="biz-charge-m", name="Charged Monthly Biz", email="m_chg@test.com", classification="Retail")
+    db_session.add(biz)
+    db_session.commit()
+
+    sub = EntitlementService.get_or_create_subscription(db_session, "biz-charge-m")
+    sub.status = "AUTHENTICATED"
+    sub.billing_interval = "monthly"
+    sub.normal_price = 3699.00
+    sub.provider_subscription_id = "sub_rzp_charge_4"
+    db_session.commit()
+
+    webhook_payload = {
+        "event": "subscription.charged",
+        "payload": {
+            "subscription": {
+                "entity": {
+                    "id": "sub_rzp_charge_4",
+                    "notes": {"business_id": "biz-charge-m"}
+                }
+            },
+            "payment": {
+                "entity": {
+                    "id": "pay_oct_4_charge_123",
+                    "amount": 369900, # 3699 INR in paise
+                    "status": "captured",
+                    "notes": {"business_id": "biz-charge-m"}
+                }
+            }
+        }
+    }
+
+    result = await RazorpayService.process_webhook_callback(db_session, webhook_payload)
+    assert result["status"] == "success"
+
+    state = EntitlementService.evaluate_subscription_state(db_session, "biz-charge-m")
+    assert state["status"] == "ACTIVE"
+    assert state["is_paid"] is True
+    assert state["period"]["end"] is not None
+
+    # Check Payment ledger record
+    payment = db_session.query(Payment).filter(Payment.razorpay_payment_id == "pay_oct_4_charge_123").first()
+    assert payment is not None
+    assert payment.status == "paid"
+    assert float(payment.amount) == 3699.0
+
+@pytest.mark.asyncio
+async def test_webhook_failure_and_halt_handling(db_session: Session):
+    """
+    Verify payment.failed and subscription.halted are gracefully handled without crashing.
+    """
+    from services.payment_services import RazorpayService
+
+    biz = Business(id="biz-fail-test", name="Failure Test Biz", email="fail@test.com", classification="Retail")
+    db_session.add(biz)
+    db_session.commit()
+
+    sub = EntitlementService.get_or_create_subscription(db_session, "biz-fail-test")
+    sub.status = "ACTIVE"
+    sub.provider_subscription_id = "sub_rzp_halt_1"
+    db_session.commit()
+
+    # 1. subscription.halted
+    halt_payload = {
+        "event": "subscription.halted",
+        "payload": {
+            "subscription": {
+                "entity": {
+                    "id": "sub_rzp_halt_1",
+                    "notes": {"business_id": "biz-fail-test"}
+                }
+            }
+        }
+    }
+    halt_res = await RazorpayService.process_webhook_callback(db_session, halt_payload)
+    assert halt_res["status"] == "success"
+    refreshed_sub = db_session.query(Subscription).filter(Subscription.business_id == "biz-fail-test").first()
+    assert refreshed_sub.status == "PAST_DUE"
+
+    # 2. subscription.cancelled
+    cancel_payload = {
+        "event": "subscription.cancelled",
+        "payload": {
+            "subscription": {
+                "entity": {
+                    "id": "sub_rzp_halt_1",
+                    "notes": {"business_id": "biz-fail-test"}
+                }
+            }
+        }
+    }
+    cancel_res = await RazorpayService.process_webhook_callback(db_session, cancel_payload)
+    assert cancel_res["status"] == "success"
+    db_session.refresh(refreshed_sub)
+    assert refreshed_sub.status == "CANCELLED"

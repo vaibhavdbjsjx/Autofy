@@ -80,14 +80,14 @@ def require_live_entitlement(
 ) -> User:
     """
     Server-side entitlement dependency.
-    Validates that caller's business has an active subscription or active 7-day free trial.
+    Validates that caller's business has an active subscription.
     """
     from services.entitlement_services import EntitlementService
     sub_state = EntitlementService.evaluate_subscription_state(db, current_user.business_id)
     if not sub_state.get("is_live_accessible", False):
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
-            detail="Live operation requires an active subscription or active 7-day free trial. Please start a trial or upgrade your plan."
+            detail="Live operation requires an active subscription. Please subscribe to a plan to continue."
         )
     return current_user
 
@@ -109,7 +109,7 @@ class FeatureChecker:
         if not sub_state.get("is_live_accessible", False):
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail="Live operation requires an active subscription or active 7-day free trial."
+                detail="Live operation requires an active subscription."
             )
         entitlements = sub_state.get("entitlements", {})
         if not entitlements.get(self.feature_name, True):

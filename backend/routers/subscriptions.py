@@ -52,9 +52,9 @@ def start_free_trial(
     db: Session = Depends(get_db)
 ):
     """
-    Activates subscription trial state for Autofy Pro (0 trial days).
-    Monthly: ₹900/mo (Immediate upfront billing).
-    Yearly:  ₹4,999/yr (Immediate upfront billing).
+    Activates subscription state for Autofy Pro (0 trial days).
+    Monthly: ₹3,699/mo (Recurring on the 4th of each month).
+    Yearly:  ₹999/yr (Immediate upfront billing).
     """
     interval_key = "yearly" if "year" in str(payload.billing_interval or payload.plan_id).lower() else "monthly"
 
@@ -75,9 +75,8 @@ def create_subscription_checkout(
 ):
     """
     Generates Razorpay Subscription configuration for Autofy Pro recurring billing.
-    Monthly: ₹900/mo, immediate billing.
-    Yearly:  ₹4,999/yr, immediate billing.
-    Zero trial delay — customer is billed immediately upon checkout.
+    Monthly: ₹3,699/mo, recurring on the 4th of every month.
+    Yearly:  ₹999/yr, immediate billing.
     """
     interval_key = "yearly" if "year" in str(payload.billing_interval or payload.plan_id).lower() else "monthly"
     plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])
@@ -131,6 +130,10 @@ def create_subscription_checkout(
     import os
     key_id = os.environ.get("RAZORPAY_KEY_ID") or settings.RAZORPAY_KEY_ID
 
+    is_monthly = interval_key == "monthly"
+    is_same_day = rzp_sub.get("is_same_day", False)
+    amount_today = plan_config["price"] if (not is_monthly or is_same_day) else 0.0
+
     return {
         "status": "success",
         "business_id": current_user.business_id,
@@ -140,15 +143,23 @@ def create_subscription_checkout(
         "billing_interval": interval_key,
         "charge_amount": plan_config["price"],
         "normal_recurring_price": plan_config["price"],
-        "trial_days": 0,
         "razorpay_key_id": key_id,
         "razorpay_subscription_id": rzp_sub["provider_subscription_id"],
         "razorpay_plan_id": rzp_sub["razorpay_plan_id"],
+        "start_at": rzp_sub.get("start_at"),
+        "next_billing_date": rzp_sub.get("next_billing_date"),
+        "is_same_day": is_same_day,
         "disclosures": {
-            "amount_today": plan_config["price"],
-            "trial_days": 0,
+            "amount_today": amount_today,
             "recurring_amount": plan_config["price"],
-            "billing_interval": interval_key
+            "billing_interval": interval_key,
+            "billing_anchor_day": 4 if is_monthly else None,
+            "first_charge_date": rzp_sub.get("next_billing_date"),
+            "schedule": (
+                "Billed on the 4th of every month"
+                if is_monthly
+                else "Billed annually"
+            )
         }
     }
 
@@ -199,7 +210,7 @@ def change_subscription_plan(
 
     pricing_map = {
         "starter": {"monthly": 399.00, "yearly": 3999.00, "name": "Autofy Starter"},
-        "pro": {"monthly": 900.00, "yearly": 4999.00, "name": "Autofy Pro"},
+        "pro": {"monthly": 3699.00, "yearly": 999.00, "name": "Autofy Pro"},
         "enterprise": {"monthly": 1499.00, "yearly": 14999.00, "name": "Autofy Enterprise"}
     }
     
@@ -415,7 +426,7 @@ def list_business_invoices(
     # If no invoices exist yet for active user, seed the initial subscription invoice
     if not invoices:
         sub_record = db.query(Subscription).filter(Subscription.business_id == current_user.business_id).first()
-        price = float(sub_record.normal_price) if sub_record else 900.00
+        price = float(sub_record.normal_price) if sub_record else 3699.00
         first_inv = Invoice(
             id=str(uuid.uuid4()),
             business_id=current_user.business_id,

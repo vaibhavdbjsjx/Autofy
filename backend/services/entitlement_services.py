@@ -21,8 +21,8 @@ class EntitlementService:
                 plan_id="pro",
                 provider="razorpay",
                 status="EXPLORING",
-                normal_price=900.00,
-                first_cycle_price=900.00,
+                normal_price=3699.00,
+                first_cycle_price=3699.00,
                 currency="INR",
                 billing_interval="monthly",
                 promo_eligible_at_signup=False,
@@ -39,15 +39,14 @@ class EntitlementService:
     def evaluate_subscription_state(db: Session, business_id: str) -> Dict[str, Any]:
         """
         Server-authoritative state machine evaluator.
-        Evaluates trial countdown, subscription period expiry, active entitlements, and pricing disclosures.
+        Evaluates subscription period expiry, active entitlements, and pricing disclosures.
         """
         sub = EntitlementService.get_or_create_subscription(db, business_id)
         now = datetime.utcnow()
 
-        # 1. Evaluate Trial Expiry
+        # 1. Evaluate Trial Expiry (clean fallback for legacy records)
         if sub.status == "TRIAL_ACTIVE":
             if sub.trial_ends_at and now >= sub.trial_ends_at:
-                # Trial expired without active payment: transition status to EXPIRED
                 sub.status = "EXPIRED"
                 db.commit()
 
@@ -77,7 +76,8 @@ class EntitlementService:
         is_grandfathered = sub.grandfathered_price is not None
 
         # 4. Access Control Entitlement Decision
-        is_live_accessible = sub.status in ["TRIAL_ACTIVE", "ACTIVE", "CANCEL_AT_PERIOD_END", "PAST_DUE"]
+        # Customers who authorized recurring mandate (AUTHENTICATED) have live access before first 4th charge
+        is_live_accessible = sub.status in ["TRIAL_ACTIVE", "ACTIVE", "CANCEL_AT_PERIOD_END", "PAST_DUE", "AUTHENTICATED"]
         is_paid = sub.status in ["ACTIVE", "CANCEL_AT_PERIOD_END", "PAST_DUE"]
 
         trial_days_remaining = 0
@@ -135,9 +135,10 @@ class EntitlementService:
     @staticmethod
     def start_trial(db: Session, business_id: str, plan_id_or_interval: str = "monthly", trial_days: Optional[int] = None) -> Dict[str, Any]:
         """
-        Activates subscription/trial for Autofy Pro.
-        Monthly: ₹900/mo (Immediate start, 0 trial days)
-        Yearly:  ₹4,999/yr (Immediate start, 0 trial days)
+        Activates subscription state for Autofy Pro.
+        Monthly: ₹3,699/mo (Fixed recurring billing on the 4th)
+        Yearly:  ₹999/yr (Immediate upfront billing)
+        Zero free trial — customer requires active mandate/payment.
         """
         interval_key = "yearly" if "year" in str(plan_id_or_interval).lower() or str(plan_id_or_interval).lower() == "enterprise" else "monthly"
         plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])

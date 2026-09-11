@@ -28,8 +28,8 @@ class Subscription(Base):
     promo_first_cycle_used = Column(Boolean, default=False, nullable=False)
 
     # Pricing & Currency snapshot
-    normal_price = Column(Numeric(10, 2), nullable=False, default=900.00)
-    first_cycle_price = Column(Numeric(10, 2), nullable=False, default=900.00)
+    normal_price = Column(Numeric(10, 2), nullable=False, default=3699.00)
+    first_cycle_price = Column(Numeric(10, 2), nullable=False, default=3699.00)
     grandfathered_price = Column(Numeric(10, 2), nullable=True) # Locks pricing for existing subscribers
     price_locked_at = Column(DateTime, nullable=True)
     currency = Column(String(10), default="INR", nullable=False)

@@ -5,7 +5,7 @@ export interface PlanConfig {
   price: number;
   currency: string;
   interval: "monthly" | "yearly";
-  trialDays: number;
+  billingAnchorDay?: number;
   features: string[];
 }
 
@@ -24,20 +24,19 @@ export const PLAN_CONFIGS: Record<string, PlanConfig> = {
     id: "monthly",
     productName: "Autofy Pro",
     name: "Autofy Pro Monthly",
-    price: 900,
+    price: 3699,
     currency: "INR",
     interval: "monthly",
-    trialDays: 0,
+    billingAnchorDay: 4,
     features: AUTOFY_PRO_FEATURES,
   },
   yearly: {
     id: "yearly",
     productName: "Autofy Pro",
     name: "Autofy Pro Yearly",
-    price: 4999,
+    price: 999,
     currency: "INR",
     interval: "yearly",
-    trialDays: 0,
     features: AUTOFY_PRO_FEATURES,
   },
 };

@@ -296,11 +296,32 @@ class RazorpayService:
         if razorpay_subscription_id:
             sub_record = db.query(Subscription).filter(Subscription.provider_subscription_id == razorpay_subscription_id).first()
 
+        from services.razorpay_subscription_service import RazorpaySubscriptionService
+        from datetime import timezone
+
         if sub_record:
-            sub_record.status = "ACTIVE"
-            sub_record.promo_first_cycle_used = True
-            days_to_add = 365 if str(sub_record.billing_interval).lower() == "yearly" else 30
-            sub_record.current_period_end = datetime.utcnow() + timedelta(days=days_to_add)
+            is_yearly = str(sub_record.billing_interval).lower() == "yearly"
+            if is_yearly:
+                sub_record.status = "ACTIVE"
+                sub_record.promo_first_cycle_used = True
+                sub_record.current_period_start = datetime.utcnow()
+                sub_record.current_period_end = datetime.utcnow() + timedelta(days=365)
+            else:
+                # Monthly plan: fixed 4th anchor
+                sched = RazorpaySubscriptionService.calculate_next_monthly_billing_date()
+                if sched["is_same_day"]:
+                    sub_record.status = "ACTIVE"
+                    sub_record.promo_first_cycle_used = True
+                    sub_record.current_period_start = datetime.utcnow()
+                    next_cycle = RazorpaySubscriptionService.calculate_next_monthly_billing_date(datetime.utcnow() + timedelta(days=2))
+                    sub_record.current_period_end = next_cycle["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
+                else:
+                    # Mandate authorized upfront before the 4th: do NOT mark as having active paid period today
+                    sub_record.status = "AUTHENTICATED"
+                    sub_record.current_period_start = sched["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
+                    next_cycle = RazorpaySubscriptionService.calculate_next_monthly_billing_date(sched["billing_datetime"] + timedelta(days=2))
+                    sub_record.current_period_end = next_cycle["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
+
             sub_record.updated_at = datetime.utcnow()
             db.commit()
 
@@ -347,10 +368,14 @@ class RazorpayService:
     async def process_webhook_callback(db: Session, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
         Decodes billing statuses transmitted asynchronously over webhook channels.
-        Handles: payment_link.paid, payment.captured, order.paid, subscription.charged events.
+        Handles: payment_link.paid, payment.captured, order.paid, subscription.authenticated,
+        subscription.charged, subscription.activated, subscription.halted, subscription.cancelled, payment.failed events.
         """
         event = payload.get("event")
         logger.info(f"Processing Razorpay webhook event callback: {event}")
+
+        from services.razorpay_subscription_service import RazorpaySubscriptionService
+        from datetime import timezone
 
         if event in ["payment_link.paid", "order.paid", "payment.captured"]:
             # Extract payment, order or plink records details
@@ -383,9 +408,10 @@ class RazorpayService:
                 return {"status": "success", "processed_record": payment.id, "action": "paid_link"}
 
         elif event in ["subscription.authenticated"]:
-            # Customer authorized recurring mandate (Zero-trial upfront activation)
+            # Customer authorized recurring mandate
             sub_entities = payload.get("payload", {}).get("subscription", {}).get("entity", {})
             sub_id = sub_entities.get("id")
+            start_at = sub_entities.get("start_at")
             notes = sub_entities.get("notes", {})
             biz_id = notes.get("business_id")
 
@@ -394,12 +420,33 @@ class RazorpayService:
             sub_record = query.filter((Subscription.provider_subscription_id == sub_id) | (Subscription.business_id == biz_id)).first() if (sub_id or biz_id) else None
 
             if sub_record:
-                sub_record.status = "ACTIVE"
                 if sub_id:
                     sub_record.provider_subscription_id = sub_id
-                days_to_add = 365 if str(sub_record.billing_interval).lower() == "yearly" else 30
-                sub_record.current_period_start = datetime.utcnow()
-                sub_record.current_period_end = datetime.utcnow() + timedelta(days=days_to_add)
+                is_yearly = str(sub_record.billing_interval).lower() == "yearly"
+
+                if is_yearly:
+                    # Yearly: Starts immediately upon authorization/payment
+                    sub_record.status = "ACTIVE"
+                    sub_record.current_period_start = datetime.utcnow()
+                    sub_record.current_period_end = datetime.utcnow() + timedelta(days=365)
+                else:
+                    # Monthly: Check if start is deferred to the 4th
+                    sched = RazorpaySubscriptionService.calculate_next_monthly_billing_date()
+                    if start_at or not sched["is_same_day"]:
+                        # Mandate authorized ahead of fixed 4th billing date.
+                        # Mark AUTHENTICATED — do NOT mark as having an active paid period today.
+                        sub_record.status = "AUTHENTICATED"
+                        start_dt = datetime.utcfromtimestamp(start_at) if start_at else sched["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
+                        sub_record.current_period_start = start_dt
+                        next_cycle = RazorpaySubscriptionService.calculate_next_monthly_billing_date(start_dt + timedelta(days=2))
+                        sub_record.current_period_end = next_cycle["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
+                    else:
+                        # Same-day on the 4th
+                        sub_record.status = "ACTIVE"
+                        sub_record.current_period_start = datetime.utcnow()
+                        next_cycle = RazorpaySubscriptionService.calculate_next_monthly_billing_date(datetime.utcnow() + timedelta(days=2))
+                        sub_record.current_period_end = next_cycle["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
+
                 sub_record.updated_at = datetime.utcnow()
                 db.commit()
                 return {"status": "success", "processed_subscription": sub_record.id, "action": "subscription_authenticated"}
@@ -427,9 +474,17 @@ class RazorpayService:
                 if sub_id:
                     sub_record.provider_subscription_id = sub_id
                 sub_record.promo_first_cycle_used = True
-                days_to_add = 365 if str(sub_record.billing_interval).lower() == "yearly" else 30
-                sub_record.current_period_start = datetime.utcnow()
-                sub_record.current_period_end = datetime.utcnow() + timedelta(days=days_to_add)
+
+                is_yearly = str(sub_record.billing_interval).lower() == "yearly"
+                if is_yearly:
+                    sub_record.current_period_start = datetime.utcnow()
+                    sub_record.current_period_end = datetime.utcnow() + timedelta(days=365)
+                else:
+                    # Monthly plan: recurring charge anchored to the 4th
+                    sub_record.current_period_start = datetime.utcnow()
+                    next_cycle = RazorpaySubscriptionService.calculate_next_monthly_billing_date(datetime.utcnow() + timedelta(days=2))
+                    sub_record.current_period_end = next_cycle["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
+
                 sub_record.updated_at = datetime.utcnow()
                 db.commit()
 

@@ -1,3 +1,4 @@
+import os
 from typing import Dict, Any
 
 # ════════════════════════════════════════════════════════════
@@ -5,8 +6,8 @@ from typing import Dict, Any
 # ------------------------------------------------------------
 # Product: Autofy Pro
 # Options:
-#   • Monthly: ₹900 / month  (Immediate start, zero trial)
-#   • Yearly:  ₹4,999 / year (Immediate start, zero trial)
+#   • Monthly: ₹3,699 / month (Recurring charge on the 4th of every month)
+#   • Yearly:  ₹999 / year   (Immediate start & upfront charge, yearly cycle)
 # Both options share the exact same features & entitlements.
 # ════════════════════════════════════════════════════════════
 
@@ -34,12 +35,12 @@ SUBSCRIPTION_PLANS: Dict[str, Dict[str, Any]] = {
         "id": "monthly",
         "product_name": "Autofy Pro",
         "name": "Autofy Pro Monthly",
-        "price": 900.0,
-        "normal_price": 900.0,
+        "price": 3699.0,
+        "normal_price": 3699.0,
         "currency": "INR",
         "billing_interval": "monthly",
-        "trial_days": 0,
-        "razorpay_plan_id": "plan_TZx4AbrrftCAcm",
+        "billing_anchor_day": 4,
+        "razorpay_plan_id": os.environ.get("RAZORPAY_MONTHLY_PLAN_ID", ""),
         "features": AUTOFY_PRO_FEATURES,
         "entitlements": AUTOFY_PRO_ENTITLEMENTS
     },
@@ -47,15 +48,14 @@ SUBSCRIPTION_PLANS: Dict[str, Dict[str, Any]] = {
         "id": "yearly",
         "product_name": "Autofy Pro",
         "name": "Autofy Pro Yearly",
-        "price": 4999.0,
-        "normal_price": 4999.0,
+        "price": 999.0,
+        "normal_price": 999.0,
         "currency": "INR",
         "billing_interval": "yearly",
-        "trial_days": 0,
-        "savings_amount": 5801.0,
-        "monthly_equivalent": 417.0,
-        "discount_percent": 54,
-        "razorpay_plan_id": "plan_TZxFTBI4TK3IAY",
+        "savings_amount": 43389.0,
+        "monthly_equivalent": 83.25,
+        "discount_percent": 98,
+        "razorpay_plan_id": os.environ.get("RAZORPAY_YEARLY_PLAN_ID", ""),
         "features": AUTOFY_PRO_FEATURES,
         "entitlements": AUTOFY_PRO_ENTITLEMENTS
     }

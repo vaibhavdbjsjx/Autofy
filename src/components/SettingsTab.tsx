@@ -196,8 +196,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
     name: "Autofy Pro",
     planId: "pro",
     status: "ACTIVE",
-    price: 900,
-    grandfatheredPrice: 900,
+    price: 3699,
+    grandfatheredPrice: 3699,
     isGrandfathered: true,
     billingInterval: "monthly",
     renewalDate: "Next month",
@@ -303,8 +303,8 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
               name: s.plan_name || "Autofy Pro",
               planId: s.plan_id || "pro",
               status: s.status || "ACTIVE",
-              price: s.pricing?.price || 900,
-              grandfatheredPrice: s.pricing?.normal_price || 900,
+              price: s.pricing?.price || 3699,
+              grandfatheredPrice: s.pricing?.normal_price || 3699,
               isGrandfathered: true,
               billingInterval: s.pricing?.billing_interval || "monthly",
               renewalDate: s.period?.end ? new Date(s.period.end).toLocaleDateString() : "Next billing cycle",
@@ -2016,7 +2016,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
                     onClick={() => setSelectedNewInterval("yearly")}
                     className={`px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1 ${selectedNewInterval === "yearly" ? "bg-blue-600 text-white shadow" : "text-[var(--text-subtle)]"}`}
                   >
-                    Annual Billing <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.2 rounded-full">Save 18%</span>
+                    Annual Billing <span className="bg-emerald-500 text-white text-[9px] px-1.5 py-0.2 rounded-full">Save ₹43,389/yr</span>
                   </button>
                 </div>
               </div>
@@ -2025,7 +2025,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
               <div className="space-y-2.5">
                 {[
                   { id: "starter", name: "Autofy Starter", price: selectedNewInterval === "yearly" ? "₹3,999/yr" : "₹399/mo", desc: "Up to 2,000 WhatsApp AI replies/month" },
-                  { id: "pro", name: "Autofy Pro", price: selectedNewInterval === "yearly" ? "₹4,999/yr" : "₹900/mo", desc: "Up to 10,000 AI replies, RAG Knowledge & Appointments" },
+                  { id: "pro", name: "Autofy Pro", price: selectedNewInterval === "yearly" ? "₹999/yr" : "₹3,699/mo", desc: "Up to 10,000 AI replies, RAG Knowledge & Appointments" },
                   { id: "enterprise", name: "Autofy Enterprise", price: selectedNewInterval === "yearly" ? "₹14,999/yr" : "₹1,499/mo", desc: "Unlimited AI replies, multi-agent inbox & priority webhooks" },
                 ].map((plan) => (
                   <div
