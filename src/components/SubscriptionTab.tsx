@@ -126,9 +126,11 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
         return;
       }
 
+      const interval = plan === "yearly" ? "yearly" : "monthly";
+
       const res = await api.post<any>("/api/v1/subscriptions/create-checkout", {
         plan_id: plan,
-        billing_interval: plan === "yearly" ? "yearly" : "monthly"
+        billing_interval: interval
       });
 
       if (!res?.razorpay_subscription_id) {
@@ -136,7 +138,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
         return;
       }
 
-      const planTitle = plan === "plus" ? "Plus" : "Autofy Pro";
+      const planTitle = res.plan_name || (plan === "plus" ? "Plus" : "Autofy Pro");
       const planDesc =
         plan === "yearly"
           ? "Autofy Pro Yearly (₹999/yr)"
@@ -161,7 +163,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
               
               if (verifyRes && verifyRes.status === "success") {
                 await fetchStatus();
-                triggerNotification?.("Payment authorized successfully! Your Autofy Pro subscription is active.");
+                triggerNotification?.(`Payment authorized successfully! Your ${plan === "plus" ? "Plus" : "Autofy Pro"} subscription is active.`);
               } else {
                 triggerNotification?.("Payment verification failed. Please try again.");
               }
@@ -179,7 +181,8 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
           },
           notes: {
             business_id: res.business_id,
-            billing_interval: interval,
+            billing_interval: res.billing_interval || interval,
+            plan_id: plan,
           },
           theme: {
             color: "#8B5CF6",
