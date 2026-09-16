@@ -65,8 +65,18 @@ class EntitlementService:
                 db.commit()
 
         # 3. Resolve Active Plan Configuration & Grandfathered Pricing Lock
-        interval_key = "yearly" if str(sub.billing_interval).lower() == "yearly" else "monthly"
-        plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])
+        is_plus = str(sub.plan_id).lower() in ("plus", "autofy_plus")
+        if is_plus:
+            plan_key = "plus"
+            interval_key = "monthly"
+        elif str(sub.billing_interval).lower() == "yearly":
+            plan_key = "yearly"
+            interval_key = "yearly"
+        else:
+            plan_key = "monthly"
+            interval_key = "monthly"
+
+        plan_config = SUBSCRIPTION_PLANS.get(plan_key, SUBSCRIPTION_PLANS["monthly"])
 
         effective_price = float(
             sub.grandfathered_price
@@ -91,8 +101,8 @@ class EntitlementService:
         return {
             "business_id": business_id,
             "status": sub.status,
-            "plan_id": "pro" if is_live_accessible else "free",
-            "product_name": "Autofy Pro" if is_live_accessible else "Free Tier",
+            "plan_id": plan_key if is_live_accessible else "free",
+            "product_name": plan_config.get("product_name", "Autofy Pro") if is_live_accessible else "Free Tier",
             "plan_name": plan_config["name"] if is_live_accessible else "Free Tier",
             "provider": sub.provider,
             "provider_subscription_id": sub.provider_subscription_id,

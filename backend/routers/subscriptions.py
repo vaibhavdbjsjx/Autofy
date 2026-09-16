@@ -74,12 +74,37 @@ def create_subscription_checkout(
     db: Session = Depends(get_db)
 ):
     """
-    Generates Razorpay Subscription configuration for Autofy Pro recurring billing.
+    Generates Razorpay Subscription configuration for Autofy Pro / Plus recurring billing.
     Monthly: ₹3,699/mo, recurring on the 4th of every month.
     Yearly:  ₹999/yr, immediate billing.
+    Plus:    ₹999/mo, recurring monthly subscription (immediate billing).
     """
-    interval_key = "yearly" if "year" in str(payload.billing_interval or payload.plan_id).lower() else "monthly"
-    plan_config = SUBSCRIPTION_PLANS.get(interval_key, SUBSCRIPTION_PLANS["monthly"])
+    # Normalize and validate requested plan identifier
+    raw_plan = str(payload.plan_id or payload.billing_interval or "monthly").lower().strip()
+    if raw_plan in ("plus", "autofy_plus"):
+        plan_key = "plus"
+        interval_key = "monthly"
+    elif raw_plan in ("yearly", "annual", "year"):
+        plan_key = "yearly"
+        interval_key = "yearly"
+    elif raw_plan in ("monthly", "month", "pro"):
+        interval_spec = str(payload.billing_interval or "").lower().strip()
+        if interval_spec in ("plus", "autofy_plus"):
+            plan_key = "plus"
+            interval_key = "monthly"
+        elif interval_spec in ("yearly", "annual", "year"):
+            plan_key = "yearly"
+            interval_key = "yearly"
+        else:
+            plan_key = "monthly"
+            interval_key = "monthly"
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid plan identifier. Accepted plans are: 'monthly', 'yearly', 'plus'."
+        )
+
+    plan_config = SUBSCRIPTION_PLANS.get(plan_key, SUBSCRIPTION_PLANS["monthly"])
 
     from services.razorpay_subscription_service import (
         RazorpaySubscriptionConfigurationError,
@@ -89,6 +114,7 @@ def create_subscription_checkout(
         rzp_sub = RazorpaySubscriptionService.create_subscription(
             business_id=current_user.business_id,
             billing_interval=interval_key,
+            plan_id=plan_key,
         )
     except RazorpaySubscriptionConfigurationError as err:
         # Never hand Razorpay Checkout a fabricated subscription ID.
@@ -106,7 +132,7 @@ def create_subscription_checkout(
     sub_record = db.query(Subscription).filter(Subscription.business_id == current_user.business_id).first()
     if sub_record:
         sub_record.provider_subscription_id = rzp_sub["provider_subscription_id"]
-        sub_record.plan_id = "pro"
+        sub_record.plan_id = plan_key
         sub_record.billing_interval = interval_key
         sub_record.normal_price = plan_config["price"]
         sub_record.first_cycle_price = plan_config["price"]
@@ -130,15 +156,26 @@ def create_subscription_checkout(
     import os
     key_id = os.environ.get("RAZORPAY_KEY_ID") or settings.RAZORPAY_KEY_ID
 
-    is_monthly = interval_key == "monthly"
+    is_monthly_4th = (plan_key == "monthly")
+    is_plus_15th = (plan_key == "plus")
     is_same_day = rzp_sub.get("is_same_day", False)
-    amount_today = plan_config["price"] if (not is_monthly or is_same_day) else 0.0
+    amount_today = plan_config["price"] if (is_same_day or (not is_monthly_4th and not is_plus_15th)) else 0.0
+
+    if is_monthly_4th:
+        schedule_desc = "Billed on the 4th of every month"
+        anchor_day = 4
+    elif is_plus_15th:
+        schedule_desc = "Billed on the 15th of every month"
+        anchor_day = 15
+    else:
+        schedule_desc = "Billed annually"
+        anchor_day = None
 
     return {
         "status": "success",
         "business_id": current_user.business_id,
-        "product_name": "Autofy Pro",
-        "plan_id": "pro",
+        "product_name": plan_config.get("product_name", "Autofy Pro"),
+        "plan_id": plan_key,
         "plan_name": plan_config["name"],
         "billing_interval": interval_key,
         "charge_amount": plan_config["price"],
@@ -153,13 +190,9 @@ def create_subscription_checkout(
             "amount_today": amount_today,
             "recurring_amount": plan_config["price"],
             "billing_interval": interval_key,
-            "billing_anchor_day": 4 if is_monthly else None,
+            "billing_anchor_day": anchor_day,
             "first_charge_date": rzp_sub.get("next_billing_date"),
-            "schedule": (
-                "Billed on the 4th of every month"
-                if is_monthly
-                else "Billed annually"
-            )
+            "schedule": schedule_desc
         }
     }
 
@@ -211,6 +244,7 @@ def change_subscription_plan(
     pricing_map = {
         "starter": {"monthly": 399.00, "yearly": 3999.00, "name": "Autofy Starter"},
         "pro": {"monthly": 3699.00, "yearly": 999.00, "name": "Autofy Pro"},
+        "plus": {"monthly": 999.00, "yearly": 999.00, "name": "Plus"},
         "enterprise": {"monthly": 1499.00, "yearly": 14999.00, "name": "Autofy Enterprise"}
     }
     

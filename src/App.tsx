@@ -1130,7 +1130,7 @@ function HowItWorksSection() {
 // ════════════════════════════════════════════════════════════
 function PricingSection() {
   const navigate = useNavigate();
-  const [annual, setAnnual] = useState(true);
+  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly" | "plus">("yearly");
 
   const features = [
     "Unlimited WhatsApp Automation & AI Replies",
@@ -1150,35 +1150,46 @@ function PricingSection() {
           <span className="section-label text-gradient-primary">PRICING</span>
           <h2 className="section-h2">Everything you need to <span className="text-gradient-primary">automate your business.</span></h2>
           <p style={{ color: "var(--text-muted)", fontSize: 15, marginTop: 8 }}>
-            Autofy Pro includes complete AI automation with zero feature lockouts.
+            Complete AI automation with zero feature lockouts. Choose the billing cadence that works best for you.
           </p>
         </motion.div>
 
         {/* Billing Toggle */}
         <div style={{ display: "flex", justifyContent: "center", marginBottom: 40 }}>
           <div style={{ display: "flex", background: "var(--input-bg)", borderRadius: 100, padding: 4, border: "1px solid var(--border)", gap: 4 }}>
-            <button onClick={() => setAnnual(false)} style={{
+            <button onClick={() => setSelectedPlan("monthly")} style={{
               padding: "10px 24px", borderRadius: 100, border: "none", cursor: "pointer",
               fontSize: 13, fontWeight: 700,
-              background: !annual ? "var(--brand)" : "transparent",
-              color: !annual ? "#fff" : "var(--text-muted)",
+              background: selectedPlan === "monthly" ? "var(--brand)" : "transparent",
+              color: selectedPlan === "monthly" ? "#fff" : "var(--text-muted)",
               transition: "all 0.2s ease"
             }}>MONTHLY</button>
-            <button onClick={() => setAnnual(true)} style={{
+            <button onClick={() => setSelectedPlan("yearly")} style={{
               padding: "10px 24px", borderRadius: 100, border: "none", cursor: "pointer",
               fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 8,
-              background: annual ? "var(--brand)" : "transparent",
-              color: annual ? "#fff" : "var(--text-muted)",
+              background: selectedPlan === "yearly" ? "var(--brand)" : "transparent",
+              color: selectedPlan === "yearly" ? "#fff" : "var(--text-muted)",
               transition: "all 0.2s ease"
             }}>
               <span>YEARLY</span>
               <span style={{ fontSize: 10, background: "rgba(251,191,36,0.2)", color: "#FBBF24",
-                padding: "2px 8px", borderRadius: 100, fontWeight: 800 }}>SAVE ~25%</span>
+                padding: "2px 8px", borderRadius: 100, fontWeight: 800 }}>BEST VALUE</span>
+            </button>
+            <button onClick={() => setSelectedPlan("plus")} style={{
+              padding: "10px 24px", borderRadius: 100, border: "none", cursor: "pointer",
+              fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 8,
+              background: selectedPlan === "plus" ? "var(--brand)" : "transparent",
+              color: selectedPlan === "plus" ? "#fff" : "var(--text-muted)",
+              transition: "all 0.2s ease"
+            }}>
+              <span>PLUS</span>
+              <span style={{ fontSize: 10, background: "rgba(168,85,247,0.2)", color: "#A855F7",
+                padding: "2px 8px", borderRadius: 100, fontWeight: 800 }}>POPULAR</span>
             </button>
           </div>
         </div>
 
-        {/* Autofy Pro Card */}
+        {/* Pricing Card */}
         <motion.div variants={fadeUp} initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-60px" }}
           className="gradient-border"
           style={{
@@ -1193,27 +1204,41 @@ function PricingSection() {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
                 <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.08em", color: "#8B5CF6", background: "rgba(139,92,246,0.1)", padding: "4px 12px", borderRadius: 100 }}>
-                  Autofy Pro
+                  {selectedPlan === "plus" ? "Plus" : "Autofy Pro"}
                 </span>
-                {annual && (
+                {selectedPlan === "yearly" && (
                   <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#10B981", background: "rgba(16,185,129,0.1)", padding: "4px 12px", borderRadius: 100 }}>
                     Best Value
+                  </span>
+                )}
+                {selectedPlan === "monthly" && (
+                  <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#A855F7", background: "rgba(168,85,247,0.1)", padding: "4px 12px", borderRadius: 100 }}>
+                    Flexible Monthly
+                  </span>
+                )}
+                {selectedPlan === "plus" && (
+                  <span style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", color: "#10B981", background: "rgba(16,185,129,0.1)", padding: "4px 12px", borderRadius: 100 }}>
+                    Recurring Monthly
                   </span>
                 )}
               </div>
 
               <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
                 <span className="text-gradient-primary" style={{ fontSize: 48, fontWeight: 900, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-                  {annual ? "₹999" : "₹3,699"}
+                  {selectedPlan === "yearly" ? "₹999" : selectedPlan === "plus" ? "₹999" : "₹3,699"}
                 </span>
                 <span style={{ fontSize: 15, color: "var(--text-muted)", fontWeight: 600 }}>
-                  /{annual ? "year" : "month"}
+                  /{selectedPlan === "yearly" ? "year" : "month"}
                 </span>
               </div>
 
-              {annual ? (
+              {selectedPlan === "yearly" ? (
                 <div style={{ fontSize: 13, color: "#10B981", fontWeight: 600, marginTop: 4 }}>
                   Save ₹43,389 every year (~₹83/month equivalent)
+                </div>
+              ) : selectedPlan === "plus" ? (
+                <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500, marginTop: 4 }}>
+                  Full AI automation with fixed monthly billing on the 15th.
                 </div>
               ) : (
                 <div style={{ fontSize: 13, color: "var(--text-muted)", fontWeight: 500, marginTop: 4 }}>
@@ -1224,10 +1249,20 @@ function PricingSection() {
 
             <div style={{ background: "rgba(0,0,0,0.3)", padding: "14px 20px", borderRadius: 16, border: "1px solid rgba(139,92,246,0.2)" }}>
               <div style={{ color: "#A78BFA", fontSize: 12, fontWeight: 800, letterSpacing: "0.05em", textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6 }}>
-                <span>{annual ? "ANNUAL BILLING" : "MONTHLY BILLING"}</span>
+                <span>
+                  {selectedPlan === "yearly"
+                    ? "ANNUAL BILLING"
+                    : selectedPlan === "plus"
+                    ? "PLUS MONTHLY"
+                    : "MONTHLY BILLING"}
+                </span>
               </div>
               <div style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "monospace", marginTop: 2 }}>
-                {annual ? "Instant charge & activation." : "Fixed 4th-of-the-month billing."}
+                {selectedPlan === "yearly"
+                  ? "Instant charge & activation."
+                  : selectedPlan === "plus"
+                  ? "Fixed 15th-of-the-month billing."
+                  : "Fixed 4th-of-the-month billing."}
               </div>
             </div>
           </div>
@@ -1235,10 +1270,15 @@ function PricingSection() {
           {/* Disclosure */}
           <div style={{ margin: "24px 0", padding: 16, borderRadius: 16, background: "rgba(24,24,27,0.6)", border: "1px solid rgba(39,39,42,0.8)", fontSize: 12, color: "#D4D4D8", fontFamily: "monospace" }}>
             <div style={{ fontWeight: 700, color: "#fff", marginBottom: 6 }}>Automatic Billing Disclosure</div>
-            {annual ? (
+            {selectedPlan === "yearly" ? (
               <>
                 <div>• Billed annually at <strong>₹999/year</strong> immediately upon subscription.</div>
                 <div>• Automatically renews each year until cancelled in Account Settings.</div>
+              </>
+            ) : selectedPlan === "plus" ? (
+              <>
+                <div>• Billed monthly at <strong>₹999/month</strong> anchored to the 15th of every month.</div>
+                <div>• Recurring monthly charge occurs on the 15th of every month until cancelled in Account Settings.</div>
               </>
             ) : (
               <>
@@ -1251,7 +1291,7 @@ function PricingSection() {
           {/* Features */}
           <div style={{ marginBottom: 32 }}>
             <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 16, letterSpacing: "0.05em" }}>
-              Everything included in Autofy Pro
+              {selectedPlan === "plus" ? "Everything included in Plus" : "Everything included in Autofy Pro"}
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
               {features.map((f, i) => (
@@ -1270,10 +1310,9 @@ function PricingSection() {
               className="btn-primary"
               style={{ width: "100%", padding: "16px", fontSize: 15, justifyContent: "center" }}
             >
-              {annual ? "Get Autofy Pro Annual" : "Get Autofy Pro Monthly"} <ChevronRight size={18} />
+              {selectedPlan === "yearly" ? "Get Autofy Pro Annual" : selectedPlan === "plus" ? "Get Plus Monthly" : "Get Autofy Pro Monthly"} <ChevronRight size={18} />
             </MagneticButton>
             <div style={{ fontSize: 12, fontWeight: 700, color: "var(--text)", marginTop: 10 }}>Instant setup</div>
-            <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>Cancel anytime from your account settings.</div>
           </div>
         </motion.div>
       </div>

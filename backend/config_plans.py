@@ -8,7 +8,8 @@ from typing import Dict, Any
 # Options:
 #   • Monthly: ₹3,699 / month (Recurring charge on the 4th of every month)
 #   • Yearly:  ₹999 / year   (Immediate start & upfront charge, yearly cycle)
-# Both options share the exact same features & entitlements.
+#   • Plus:    ₹999 / month  (Recurring monthly subscription)
+# All options share the exact same features & entitlements.
 # ════════════════════════════════════════════════════════════
 
 AUTOFY_PRO_FEATURES = [
@@ -58,6 +59,19 @@ SUBSCRIPTION_PLANS: Dict[str, Dict[str, Any]] = {
         "razorpay_plan_id": os.environ.get("RAZORPAY_YEARLY_PLAN_ID", ""),
         "features": AUTOFY_PRO_FEATURES,
         "entitlements": AUTOFY_PRO_ENTITLEMENTS
+    },
+    "plus": {
+        "id": "plus",
+        "product_name": "Autofy Plus",
+        "name": "Plus",
+        "price": 999.0,
+        "normal_price": 999.0,
+        "currency": "INR",
+        "billing_interval": "monthly",
+        "billing_anchor_day": 15,
+        "razorpay_plan_id": os.environ.get("RAZORPAY_PLUS_PLAN_ID", ""),
+        "features": AUTOFY_PRO_FEATURES,
+        "entitlements": AUTOFY_PRO_ENTITLEMENTS
     }
 }
 
@@ -65,3 +79,4 @@ SUBSCRIPTION_PLANS: Dict[str, Dict[str, Any]] = {
 SUBSCRIPTION_PLANS["pro"] = SUBSCRIPTION_PLANS["monthly"]
 SUBSCRIPTION_PLANS["starter"] = SUBSCRIPTION_PLANS["monthly"]
 SUBSCRIPTION_PLANS["enterprise"] = SUBSCRIPTION_PLANS["yearly"]
+SUBSCRIPTION_PLANS["autofy_plus"] = SUBSCRIPTION_PLANS["plus"]

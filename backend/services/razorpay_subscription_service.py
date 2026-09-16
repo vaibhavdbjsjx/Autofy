@@ -117,35 +117,100 @@ class RazorpaySubscriptionService:
         }
 
     @staticmethod
-    def get_configured_plan_id(billing_interval: str = "monthly") -> str:
+    def calculate_next_plus_billing_date(
+        dt: Optional[datetime] = None,
+        tz_name: str = "Asia/Kolkata"
+    ) -> Dict[str, Any]:
+        """
+        Dynamically calculates the next recurring monthly billing date anchored to the 15th of the month for Plus.
+        
+        Timezone choice:
+        Asia/Kolkata (UTC+5:30), Indian Standard Time.
+        Evaluated relative to midnight (00:00:00 IST) on the 15th of the target month.
+        
+        Schedule Rules:
+        - Before the 15th (e.g. Sep 11, Sep 14): Anchors to the 15th of the current month (Sep 15).
+        - On the 15th (e.g. Sep 15): Same-day billing. Charged immediately upon authorization,
+          with subsequent recurring renewals anchored to the 15th of every following month.
+          start_at is omitted (None) to trigger immediate charge while preserving 15th cadence.
+        - After the 15th (e.g. Sep 16, Sep 20): Anchors to the 15th of the next month (Oct 15).
+          Handles month length differences, leap years, and December -> January year boundary.
+        """
+        from zoneinfo import ZoneInfo
+        from datetime import date
+
+        tz = ZoneInfo(tz_name)
+        if dt is None:
+            dt = datetime.now(tz)
+        elif dt.tzinfo is None:
+            dt = dt.replace(tzinfo=tz)
+        else:
+            dt = dt.astimezone(tz)
+
+        current_day = dt.day
+        current_month = dt.month
+        current_year = dt.year
+
+        if current_day < 15:
+            target_year = current_year
+            target_month = current_month
+            is_same_day = False
+        elif current_day == 15:
+            target_year = current_year
+            target_month = current_month
+            is_same_day = True
+        else:
+            is_same_day = False
+            if current_month == 12:
+                target_year = current_year + 1
+                target_month = 1
+            else:
+                target_year = current_year
+                target_month = current_month + 1
+
+        billing_date = date(target_year, target_month, 15)
+        billing_datetime = datetime(target_year, target_month, 15, 0, 0, 0, tzinfo=tz)
+
+        return {
+            "billing_date": billing_date,
+            "billing_datetime": billing_datetime,
+            "is_same_day": is_same_day,
+            "start_at": None if is_same_day else int(billing_datetime.timestamp()),
+            "timezone": tz_name
+        }
+
+    @staticmethod
+    def get_configured_plan_id(plan_or_interval: str = "monthly") -> str:
         """
         Resolves the authoritative plan ID configured for the same Razorpay account as the API key.
-
-        Plans must be provisioned in Razorpay before checkout.
+        Supports 'monthly', 'yearly', and 'plus'.
         """
-        interval_key = "yearly" if str(billing_interval).lower() == "yearly" else "monthly"
-        env_var_map = {
-            "monthly": (
-                os.environ.get("RAZORPAY_MONTHLY_PLAN_ID")
-                or settings.RAZORPAY_MONTHLY_PLAN_ID
-                or SUBSCRIPTION_PLANS.get("monthly", {}).get("razorpay_plan_id")
-            ),
-            "yearly": (
-                os.environ.get("RAZORPAY_YEARLY_PLAN_ID")
-                or settings.RAZORPAY_YEARLY_PLAN_ID
-                or SUBSCRIPTION_PLANS.get("yearly", {}).get("razorpay_plan_id")
-            ),
-        }
-        plan_id = (env_var_map.get(interval_key) or "").strip()
+        key = str(plan_or_interval).lower().strip()
+        if key in ("plus", "autofy_plus"):
+            plan_key = "plus"
+        elif key in ("yearly", "annual", "year"):
+            plan_key = "yearly"
+        else:
+            plan_key = "monthly"
+
+        env_var_name = f"RAZORPAY_{plan_key.upper()}_PLAN_ID"
+        if env_var_name in os.environ:
+            plan_id = os.environ[env_var_name].strip()
+        else:
+            plan_id = (
+                getattr(settings, env_var_name, "")
+                or SUBSCRIPTION_PLANS.get(plan_key, {}).get("razorpay_plan_id", "")
+            ).strip()
+
         if not plan_id:
             raise RazorpaySubscriptionConfigurationError(
-                f"Razorpay {interval_key} plan ID is not configured in RAZORPAY_{interval_key.upper()}_PLAN_ID environment variable."
+                f"Razorpay {plan_key} plan ID is not configured in {env_var_name} environment variable."
             )
 
         if plan_id.lower() in RazorpaySubscriptionService.DEPRECATED_PLAN_IDS:
             raise RazorpaySubscriptionConfigurationError(
                 f"Deprecated Razorpay plan ID '{plan_id}' cannot be used for new subscriptions. "
-                f"Please update RAZORPAY_{interval_key.upper()}_PLAN_ID with the new plan ID."
+                f"Please update RAZORPAY_{plan_key.upper()}_PLAN_ID with the new plan ID."
             )
 
         return plan_id
@@ -153,14 +218,25 @@ class RazorpaySubscriptionService:
     @staticmethod
     def create_subscription(
         business_id: str,
-        billing_interval: str = "monthly"
+        billing_interval: str = "monthly",
+        plan_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Creates an official Razorpay Subscription object via API for Autofy Pro.
+        Creates an official Razorpay Subscription object via API for Autofy Pro / Plus.
         Monthly: ₹3,699/mo, recurring billing anchored to the 4th of every month.
         Yearly:  ₹999/yr, charged immediately at signup with a 1-year renewal cycle.
+        Plus:    ₹999/mo, recurring monthly subscription anchored to the 15th of every month.
         """
-        interval_key = "yearly" if str(billing_interval).lower() == "yearly" else "monthly"
+        key = str(plan_id or billing_interval).lower().strip()
+        if key in ("plus", "autofy_plus"):
+            plan_key = "plus"
+            interval_key = "monthly"
+        elif "year" in key or key == "annual":
+            plan_key = "yearly"
+            interval_key = "yearly"
+        else:
+            plan_key = "monthly"
+            interval_key = "monthly"
 
         client = RazorpaySubscriptionService.get_client()
         if client is None:
@@ -168,10 +244,10 @@ class RazorpaySubscriptionService:
                 "Razorpay API credentials are not configured."
             )
 
-        rzp_plan_id = RazorpaySubscriptionService.get_configured_plan_id(interval_key)
+        rzp_plan_id = RazorpaySubscriptionService.get_configured_plan_id(plan_key)
 
         now = datetime.utcnow()
-        total_count = 10 if interval_key == "yearly" else 120 # 10 years recurring duration
+        total_count = 10 if plan_key == "yearly" else 120 # 10 years recurring duration
 
         sub_payload: Dict[str, Any] = {
             "plan_id": rzp_plan_id,
@@ -180,18 +256,25 @@ class RazorpaySubscriptionService:
             "customer_notify": 1,
             "notes": {
                 "business_id": business_id,
-                "plan_id": "pro",
+                "plan_id": plan_key,
                 "billing_interval": interval_key
             }
         }
 
         billing_schedule: Dict[str, Any] = {}
-        if interval_key == "monthly":
+        if plan_key == "monthly":
             billing_schedule = RazorpaySubscriptionService.calculate_next_monthly_billing_date()
             # If not same-day on the 4th, send start_at to anchor recurring billing to the 4th
             if not billing_schedule["is_same_day"] and billing_schedule["start_at"]:
                 sub_payload["start_at"] = billing_schedule["start_at"]
                 sub_payload["notes"]["billing_anchor_day"] = "4"
+                sub_payload["notes"]["first_charge_date"] = billing_schedule["billing_date"].isoformat()
+        elif plan_key == "plus":
+            billing_schedule = RazorpaySubscriptionService.calculate_next_plus_billing_date()
+            # If not same-day on the 15th, send start_at to anchor recurring billing to the 15th
+            if not billing_schedule["is_same_day"] and billing_schedule["start_at"]:
+                sub_payload["start_at"] = billing_schedule["start_at"]
+                sub_payload["notes"]["billing_anchor_day"] = "15"
                 sub_payload["notes"]["first_charge_date"] = billing_schedule["billing_date"].isoformat()
         else:
             # Yearly plan: NO start_at is sent.

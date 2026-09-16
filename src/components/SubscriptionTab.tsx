@@ -46,7 +46,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
   const [subState, setSubState] = useState<SubscriptionStatusResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [billingInterval, setBillingInterval] = useState<"monthly" | "yearly">("yearly");
+  const [selectedPlan, setSelectedPlan] = useState<"monthly" | "yearly" | "plus">("yearly");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const fetchStatus = async () => {
@@ -56,8 +56,10 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
       if (isAuthenticated()) {
         const res = await api.get<SubscriptionStatusResponse>("/api/v1/subscriptions/status");
         setSubState(res);
-        if (res.pricing.billing_interval === "monthly" || res.pricing.billing_interval === "yearly") {
-          setBillingInterval(res.pricing.billing_interval as "monthly" | "yearly");
+        if (res.plan_id === "plus" || res.plan_name?.toLowerCase().includes("plus")) {
+          setSelectedPlan("plus");
+        } else if (res.pricing?.billing_interval === "monthly" || res.pricing?.billing_interval === "yearly") {
+          setSelectedPlan(res.pricing.billing_interval as "monthly" | "yearly");
         }
       } else {
         // Unauthenticated preview fallback
@@ -110,7 +112,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
     fetchStatus();
   }, []);
 
-  const handleCreateCheckout = async (interval: "monthly" | "yearly") => {
+  const handleCreateCheckout = async (plan: "monthly" | "yearly" | "plus") => {
     setIsSubmitting(true);
     try {
       if (!isAuthenticated()) {
@@ -124,19 +126,30 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
         return;
       }
 
-      const res = await api.post<any>("/api/v1/subscriptions/create-checkout", { billing_interval: interval });
+      const res = await api.post<any>("/api/v1/subscriptions/create-checkout", {
+        plan_id: plan,
+        billing_interval: plan === "yearly" ? "yearly" : "monthly"
+      });
 
       if (!res?.razorpay_subscription_id) {
         triggerNotification?.("Unable to generate subscription checkout payload. Please retry.");
         return;
       }
 
+      const planTitle = plan === "plus" ? "Plus" : "Autofy Pro";
+      const planDesc =
+        plan === "yearly"
+          ? "Autofy Pro Yearly (₹999/yr)"
+          : plan === "plus"
+          ? "Plus Monthly (₹999/mo)"
+          : "Autofy Pro Monthly (₹3,699/mo)";
+
       if ((window as any).Razorpay) {
         const options = {
           key: res.razorpay_key_id,
           subscription_id: res.razorpay_subscription_id,
-          name: "Autofy Pro",
-          description: `Subscription — ${interval === "yearly" ? "Autofy Pro Yearly (₹999/yr)" : "Autofy Pro Monthly (₹3,699/mo)"}`,
+          name: planTitle,
+          description: `Subscription — ${planDesc}`,
           handler: async function (response: any) {
             try {
               setIsSubmitting(true);
@@ -296,9 +309,9 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
             <div className="p-1 rounded-2xl bg-black/40 border border-[var(--border)] inline-flex items-center gap-1">
               <button
                 type="button"
-                onClick={() => setBillingInterval("monthly")}
+                onClick={() => setSelectedPlan("monthly")}
                 className={`px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
-                  billingInterval === "monthly"
+                  selectedPlan === "monthly"
                     ? "bg-[#8B5CF6] text-white shadow-lg shadow-purple-500/25"
                     : "text-[var(--text-muted)] hover:text-[var(--text)]"
                 }`}
@@ -307,9 +320,9 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
               </button>
               <button
                 type="button"
-                onClick={() => setBillingInterval("yearly")}
+                onClick={() => setSelectedPlan("yearly")}
                 className={`px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
-                  billingInterval === "yearly"
+                  selectedPlan === "yearly"
                     ? "bg-[#8B5CF6] text-white shadow-lg shadow-purple-500/25"
                     : "text-[var(--text-muted)] hover:text-[var(--text)]"
                 }`}
@@ -317,6 +330,20 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
                 <span>YEARLY</span>
                 <span className="px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-extrabold text-[10px] uppercase border border-amber-400/30">
                   BEST VALUE
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedPlan("plus")}
+                className={`px-5 py-2.5 rounded-xl text-xs font-black transition cursor-pointer flex items-center gap-2 ${
+                  selectedPlan === "plus"
+                    ? "bg-[#8B5CF6] text-white shadow-lg shadow-purple-500/25"
+                    : "text-[var(--text-muted)] hover:text-[var(--text)]"
+                }`}
+              >
+                <span>PLUS</span>
+                <span className="px-2 py-0.5 rounded-full bg-purple-400/20 text-purple-300 font-extrabold text-[10px] uppercase border border-purple-400/30">
+                  POPULAR
                 </span>
               </button>
             </div>
@@ -329,23 +356,36 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[var(--border)] pb-8">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <h4 className="text-2xl font-black font-display text-[var(--text)]">Autofy Pro</h4>
-                {billingInterval === "yearly" ? (
+                <h4 className="text-2xl font-black font-display text-[var(--text)]">
+                  {selectedPlan === "plus" ? "Plus" : "Autofy Pro"}
+                </h4>
+                {selectedPlan === "yearly" && (
                   <span className="px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-black uppercase tracking-wider">
                     BEST VALUE
                   </span>
-                ) : (
+                )}
+                {selectedPlan === "monthly" && (
                   <span className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-black uppercase tracking-wider">
                     FLEXIBLE MONTHLY
+                  </span>
+                )}
+                {selectedPlan === "plus" && (
+                  <span className="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-black uppercase tracking-wider">
+                    RECURRING MONTHLY
                   </span>
                 )}
               </div>
 
               <div className="flex items-baseline gap-2 pt-1">
-                {billingInterval === "yearly" ? (
+                {selectedPlan === "yearly" ? (
                   <>
                     <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹999</span>
                     <span className="text-sm font-semibold text-[var(--text-muted)]">/ year</span>
+                  </>
+                ) : selectedPlan === "plus" ? (
+                  <>
+                    <span className="text-4xl sm:text-5xl font-black font-display text-[var(--text)] tracking-tight">₹999</span>
+                    <span className="text-sm font-semibold text-[var(--text-muted)]">/ month</span>
                   </>
                 ) : (
                   <>
@@ -355,11 +395,15 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
                 )}
               </div>
 
-              {billingInterval === "yearly" ? (
+              {selectedPlan === "yearly" ? (
                 <div className="text-xs font-medium text-emerald-400 flex items-center gap-2 pt-0.5">
                   <span>Save ₹43,389 every year</span>
                   <span>•</span>
                   <span>(~₹83/month equivalent)</span>
+                </div>
+              ) : selectedPlan === "plus" ? (
+                <div className="text-xs font-medium text-[var(--text-muted)] pt-0.5">
+                  Recurring billing on the 15th of every month.
                 </div>
               ) : (
                 <div className="text-xs font-medium text-[var(--text-muted)] pt-0.5">
@@ -372,10 +416,20 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
             <div className="shrink-0 p-4 rounded-2xl bg-black/40 border border-purple-500/30 space-y-1">
               <div className="flex items-center gap-2 text-purple-300 font-black text-xs uppercase tracking-widest">
                 <Check className="w-4 h-4 text-purple-400" />
-                <span>{billingInterval === "yearly" ? "ANNUAL BILLING" : "MONTHLY BILLING"}</span>
+                <span>
+                  {selectedPlan === "yearly"
+                    ? "ANNUAL BILLING"
+                    : selectedPlan === "plus"
+                    ? "PLUS MONTHLY"
+                    : "MONTHLY BILLING"}
+                </span>
               </div>
               <p className="text-[11px] text-[var(--text-subtle)] font-mono">
-                {billingInterval === "yearly" ? "Immediate activation." : "Fixed 4th of each month."}
+                {selectedPlan === "yearly"
+                  ? "Immediate activation."
+                  : selectedPlan === "plus"
+                  ? "Fixed 15th of each month."
+                  : "Fixed 4th of each month."}
               </p>
             </div>
           </div>
@@ -386,10 +440,15 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
               <Lock className="w-3.5 h-3.5 text-purple-400" />
               Automatic Billing Disclosure
             </div>
-            {billingInterval === "yearly" ? (
+            {selectedPlan === "yearly" ? (
               <>
                 <p>• Billed annually at <strong>₹999/year</strong> immediately upon subscription.</p>
                 <p>• Automatically renews each year until cancelled in Account Settings.</p>
+              </>
+            ) : selectedPlan === "plus" ? (
+              <>
+                <p>• Billed monthly at <strong>₹999/month</strong> anchored to the 15th of every month.</p>
+                <p>• First charge occurs on the upcoming 15th. Automatically renews each month on the 15th.</p>
               </>
             ) : (
               <>
@@ -402,7 +461,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
           {/* FEATURE GRID */}
           <div className="space-y-4">
             <h5 className="text-xs font-black uppercase tracking-wider text-[var(--text-subtle)]">
-              Everything included in Autofy Pro
+              {selectedPlan === "plus" ? "Everything included in Plus" : "Everything included in Autofy Pro"}
             </h5>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {featuresList.map((feat, idx) => (
@@ -422,11 +481,15 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
               <button
                 type="button"
                 disabled={isSubmitting}
-                onClick={() => handleCreateCheckout(billingInterval)}
+                onClick={() => handleCreateCheckout(selectedPlan)}
                 className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-purple-600 to-pink-600 hover:opacity-95 text-white font-black text-sm transition cursor-pointer shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2"
               >
                 <span>
-                  {billingInterval === "yearly" ? "Subscribe Yearly — ₹999" : "Subscribe Monthly — ₹3,699"}
+                  {selectedPlan === "yearly"
+                    ? "Subscribe Yearly — ₹999"
+                    : selectedPlan === "plus"
+                    ? "Subscribe Plus — ₹999/mo"
+                    : "Subscribe Monthly — ₹3,699"}
                 </span>
                 <ArrowRight className="w-4 h-4" />
               </button>
@@ -434,7 +497,7 @@ export const SubscriptionTab: React.FC<SubscriptionTabProps> = ({ triggerNotific
               <button
                 type="button"
                 disabled={isSubmitting}
-                onClick={() => handleCreateCheckout(billingInterval)}
+                onClick={() => handleCreateCheckout(selectedPlan)}
                 className="py-4 px-6 rounded-2xl surface-a hover:bg-[var(--bg-elevated)] border border-purple-500/40 text-purple-300 font-bold text-xs transition cursor-pointer flex items-center justify-center gap-2"
               >
                 <CreditCard className="w-4 h-4 text-purple-400" />

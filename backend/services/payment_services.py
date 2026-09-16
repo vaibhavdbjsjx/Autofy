@@ -300,12 +300,28 @@ class RazorpayService:
         from datetime import timezone
 
         if sub_record:
+            is_plus = str(sub_record.plan_id).lower() in ("plus", "autofy_plus")
             is_yearly = str(sub_record.billing_interval).lower() == "yearly"
             if is_yearly:
                 sub_record.status = "ACTIVE"
                 sub_record.promo_first_cycle_used = True
                 sub_record.current_period_start = datetime.utcnow()
                 sub_record.current_period_end = datetime.utcnow() + timedelta(days=365)
+            elif is_plus:
+                # Plus plan: fixed 15th anchor
+                sched = RazorpaySubscriptionService.calculate_next_plus_billing_date()
+                if sched["is_same_day"]:
+                    sub_record.status = "ACTIVE"
+                    sub_record.promo_first_cycle_used = True
+                    sub_record.current_period_start = datetime.utcnow()
+                    next_cycle = RazorpaySubscriptionService.calculate_next_plus_billing_date(datetime.utcnow() + timedelta(days=2))
+                    sub_record.current_period_end = next_cycle["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
+                else:
+                    # Mandate authorized upfront before the 15th
+                    sub_record.status = "AUTHENTICATED"
+                    sub_record.current_period_start = sched["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
+                    next_cycle = RazorpaySubscriptionService.calculate_next_plus_billing_date(sched["billing_datetime"] + timedelta(days=2))
+                    sub_record.current_period_end = next_cycle["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
             else:
                 # Monthly plan: fixed 4th anchor
                 sched = RazorpaySubscriptionService.calculate_next_monthly_billing_date()
@@ -422,6 +438,7 @@ class RazorpayService:
             if sub_record:
                 if sub_id:
                     sub_record.provider_subscription_id = sub_id
+                is_plus = str(sub_record.plan_id).lower() in ("plus", "autofy_plus") or str(notes.get("plan_id")).lower() in ("plus", "autofy_plus")
                 is_yearly = str(sub_record.billing_interval).lower() == "yearly"
 
                 if is_yearly:
@@ -429,6 +446,22 @@ class RazorpayService:
                     sub_record.status = "ACTIVE"
                     sub_record.current_period_start = datetime.utcnow()
                     sub_record.current_period_end = datetime.utcnow() + timedelta(days=365)
+                elif is_plus:
+                    # Plus: Check if start is deferred to the 15th
+                    sched = RazorpaySubscriptionService.calculate_next_plus_billing_date()
+                    if start_at or not sched["is_same_day"]:
+                        # Mandate authorized ahead of fixed 15th billing date.
+                        sub_record.status = "AUTHENTICATED"
+                        start_dt = datetime.utcfromtimestamp(start_at) if start_at else sched["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
+                        sub_record.current_period_start = start_dt
+                        next_cycle = RazorpaySubscriptionService.calculate_next_plus_billing_date(start_dt + timedelta(days=2))
+                        sub_record.current_period_end = next_cycle["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
+                    else:
+                        # Same-day on the 15th
+                        sub_record.status = "ACTIVE"
+                        sub_record.current_period_start = datetime.utcnow()
+                        next_cycle = RazorpaySubscriptionService.calculate_next_plus_billing_date(datetime.utcnow() + timedelta(days=2))
+                        sub_record.current_period_end = next_cycle["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
                 else:
                     # Monthly: Check if start is deferred to the 4th
                     sched = RazorpaySubscriptionService.calculate_next_monthly_billing_date()
@@ -475,10 +508,16 @@ class RazorpayService:
                     sub_record.provider_subscription_id = sub_id
                 sub_record.promo_first_cycle_used = True
 
+                is_plus = str(sub_record.plan_id).lower() in ("plus", "autofy_plus") or str(notes.get("plan_id")).lower() in ("plus", "autofy_plus")
                 is_yearly = str(sub_record.billing_interval).lower() == "yearly"
                 if is_yearly:
                     sub_record.current_period_start = datetime.utcnow()
                     sub_record.current_period_end = datetime.utcnow() + timedelta(days=365)
+                elif is_plus:
+                    # Plus plan: recurring charge anchored to the 15th
+                    sub_record.current_period_start = datetime.utcnow()
+                    next_cycle = RazorpaySubscriptionService.calculate_next_plus_billing_date(datetime.utcnow() + timedelta(days=2))
+                    sub_record.current_period_end = next_cycle["billing_datetime"].astimezone(timezone.utc).replace(tzinfo=None)
                 else:
                     # Monthly plan: recurring charge anchored to the 4th
                     sub_record.current_period_start = datetime.utcnow()

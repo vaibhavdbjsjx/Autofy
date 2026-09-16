@@ -2025,6 +2025,7 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({ onboardingData, trigge
               <div className="space-y-2.5">
                 {[
                   { id: "starter", name: "Autofy Starter", price: selectedNewInterval === "yearly" ? "₹3,999/yr" : "₹399/mo", desc: "Up to 2,000 WhatsApp AI replies/month" },
+                  { id: "plus", name: "Plus", price: "₹999/mo", desc: "Full AI automation, 24/7 AI employee, recurring monthly" },
                   { id: "pro", name: "Autofy Pro", price: selectedNewInterval === "yearly" ? "₹999/yr" : "₹3,699/mo", desc: "Up to 10,000 AI replies, RAG Knowledge & Appointments" },
                   { id: "enterprise", name: "Autofy Enterprise", price: selectedNewInterval === "yearly" ? "₹14,999/yr" : "₹1,499/mo", desc: "Unlimited AI replies, multi-agent inbox & priority webhooks" },
                 ].map((plan) => (
